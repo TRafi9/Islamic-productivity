@@ -10,25 +10,14 @@ func main() {
 
 	router := gin.Default()
 
-	// prayerTimes, err := GetPrayerTimes("Europe/London")
-	// if err != nil {
-	// 	// TODO find out why you cant return an fmt.errorf here?
-	// 	return
-
-	// }
-	var prayerTimes PrayerTimes
-
 	location := "Europe/London"
 	pt, err := GetPrayerTimes(location)
 	if err != nil {
 		fmt.Errorf("error executing GetPrayerTimes, err %w", err)
-		return
 	}
 	// store it in the global variable to be accessed outside
-	// anonymous function
-
-	prayerTimes = pt
-	fmt.Println(prayerTimes.Fajr)
+	fmt.Println(pt.Isha)
+	fmt.Println(pt.PrayerDate)
 
 	v1 := router.Group("/v1")
 	{

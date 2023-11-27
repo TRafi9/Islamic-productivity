@@ -19,12 +19,13 @@ func GetPrayerTimes(location string) (PrayerTimes, error) {
 		fmt.Println("Error loading location:", err)
 		return PrayerTimes{}, err
 	}
-
+	// apiDate & apiDateString used to get all prayer times from 1st of current month
 	apiDate := time.Now().In(london)
 	apiDate = time.Date(apiDate.Year(), apiDate.Month(), 01, 0, 0, 0, 0, apiDate.Location())
-	// apiDateString := apiDate.Format("02-01-2006")
+	apiDateString := apiDate.Format("02-01-2006")
+	fmt.Printf("date string: %s \n", apiDateString)
 
-	prayerTimesURL := fmt.Sprintf("https://muslimsalat.com/%s/monthly/%s/true.json?key==dd00aaed7ee591ead148b3af566d88f1", apiLoc, "01-11-2023")
+	prayerTimesURL := fmt.Sprintf("https://muslimsalat.com/%s/monthly/%s/true.json?key==dd00aaed7ee591ead148b3af566d88f1", apiLoc, apiDateString)
 
 	response, err := http.Get(prayerTimesURL)
 	if err != nil {
@@ -45,13 +46,10 @@ func GetPrayerTimes(location string) (PrayerTimes, error) {
 		return PrayerTimes{}, fmt.Errorf("error unmarshalling json into struct, err: %w", err)
 	}
 
-	fmt.Println(ResponseStruct.Items[0].Fajr)
-	fmt.Println(ResponseStruct.Items[0].DateFor)
-
-	var prayerDate string
 	// get todays date
 	todaysDate := time.Now().Format("2006-01-02")
 	var (
+		prayerDate  string
 		FajrTime    string
 		DhuhrTime   string
 		AsrTime     string
@@ -69,15 +67,13 @@ func GetPrayerTimes(location string) (PrayerTimes, error) {
 			return PrayerTimes{}, fmt.Errorf("error parsing date: %w", err)
 		}
 		prayerDate = parsedDate.Format("2006-01-02")
-		// fmt.Printf("Todays date is %s, and prayer date is %s \n", todaysDate, prayerDate)
-
 		if prayerDate == todaysDate {
-			fmt.Println("MATCHED TODAYS DATE!!!")
 			FajrTime = ResponseStruct.Items[i].Fajr
 			DhuhrTime = ResponseStruct.Items[i].Dhuhr
 			AsrTime = ResponseStruct.Items[i].Asr
 			MaghribTime = ResponseStruct.Items[i].Maghrib
 			IshaTime = ResponseStruct.Items[i].Isha
+			break
 		}
 
 	}
@@ -85,11 +81,12 @@ func GetPrayerTimes(location string) (PrayerTimes, error) {
 	// create an instance of our struct we want to unmarshal this string into
 
 	prayerTimes := PrayerTimes{
-		Fajr:    parseTime(prayerDate, FajrTime, location),
-		Dhuhr:   parseTime(prayerDate, DhuhrTime, location),
-		Asr:     parseTime(prayerDate, AsrTime, location),
-		Maghrib: parseTime(prayerDate, MaghribTime, location),
-		Isha:    parseTime(prayerDate, IshaTime, location),
+		PrayerDate: prayerDate,
+		Fajr:       parseTime(prayerDate, FajrTime, location),
+		Dhuhr:      parseTime(prayerDate, DhuhrTime, location),
+		Asr:        parseTime(prayerDate, AsrTime, location),
+		Maghrib:    parseTime(prayerDate, MaghribTime, location),
+		Isha:       parseTime(prayerDate, IshaTime, location),
 	}
 
 	// return PrayerTimes, nil
@@ -119,11 +116,12 @@ func parseTime(dateVal string, timeVal string, location string) time.Time {
 
 // returned struct from GetPrayerTimes function
 type PrayerTimes struct {
-	Fajr    time.Time
-	Dhuhr   time.Time
-	Asr     time.Time
-	Maghrib time.Time
-	Isha    time.Time
+	PrayerDate string
+	Fajr       time.Time
+	Dhuhr      time.Time
+	Asr        time.Time
+	Maghrib    time.Time
+	Isha       time.Time
 }
 
 // Response represents the entire JSON response structure.
