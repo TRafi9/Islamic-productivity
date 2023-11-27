@@ -24,7 +24,7 @@ func GetPrayerTimes(location string) (PrayerTimes, error) {
 	apiDate = time.Date(apiDate.Year(), apiDate.Month(), 01, 0, 0, 0, 0, apiDate.Location())
 	// apiDateString := apiDate.Format("02-01-2006")
 
-	prayerTimesURL := fmt.Sprintf("https://muslimsalat.com/%s/monthly/%s/true.json?key==dd00aaed7ee591ead148b3af566d88f1", apiLoc, "01-01-2023")
+	prayerTimesURL := fmt.Sprintf("https://muslimsalat.com/%s/monthly/%s/true.json?key==dd00aaed7ee591ead148b3af566d88f1", apiLoc, "01-11-2023")
 
 	response, err := http.Get(prayerTimesURL)
 	if err != nil {
@@ -48,55 +48,39 @@ func GetPrayerTimes(location string) (PrayerTimes, error) {
 	fmt.Println(ResponseStruct.Items[0].Fajr)
 	fmt.Println(ResponseStruct.Items[0].DateFor)
 
-	// prayerDate := ResponseStruct.Items[0].DateFor
-
-	// if len(prayerDate) == 9 {
-	// 	lastDigit := prayerDate[len(prayerDate)-1]
-	// 	prayerDate = prayerDate[:len(prayerDate)-1]
-	// 	prayerDate = prayerDate + "0" + string(lastDigit)
-
-	// }
-
-	// get today string
-	// todayDay := "01"
-
 	var prayerDate string
-	for i, _ := range ResponseStruct.Items {
+	// get todays date
+	todaysDate := time.Now().Format("2006-01-02")
+	var (
+		FajrTime    string
+		DhuhrTime   string
+		AsrTime     string
+		MaghribTime string
+		IshaTime    string
+	)
+
+	// loops through json for all days of month
+	// finds today and gets prayer times for today in string
+	for i := range ResponseStruct.Items {
 		prayerDate = ResponseStruct.Items[i].DateFor
-		if len(prayerDate) > 8 {
-			// this can be or even 2023-1-23 so need to account for both possibilites 2023-11-10
-			// check if last two digits contain a hyphen, if so need to parse to add 0 in day value
-			fmt.Println(prayerDate[4:5])
-			if strings.Contains(prayerDate[len(prayerDate)-2:], "-") {
-				lastDigit := prayerDate[len(prayerDate)-1]
-				prayerDate = prayerDate[:len(prayerDate)-1]
-				prayerDate = prayerDate + "0" + string(lastDigit)
-			}
-			if !strings.Contains(prayerDate[5:7], "-") {
-				fmt.Println(prayerDate)
-			}
-			if prayerDate[4:5] == "-" {
-				fmt.Sprintf("contains -, need to fix, %s", prayerDate)
-			}
 
-			// adds 0 into date val e.g. 2023-01-2 turns into 2023-01-02
+		parsedDate, err := time.Parse("2006-1-2", prayerDate)
+		if err != nil {
+			return PrayerTimes{}, fmt.Errorf("error parsing date: %w", err)
+		}
+		prayerDate = parsedDate.Format("2006-01-02")
+		// fmt.Printf("Todays date is %s, and prayer date is %s \n", todaysDate, prayerDate)
 
-			fmt.Printf("new prayer date %s \n", prayerDate)
-		} else if len(prayerDate) == 8 {
-			prayerDate = prayerDate[:5] + "0" + prayerDate[5:7] + "0" + prayerDate[7:]
-			fmt.Printf("new prayer date %s \n", prayerDate)
-
+		if prayerDate == todaysDate {
+			fmt.Println("MATCHED TODAYS DATE!!!")
+			FajrTime = ResponseStruct.Items[i].Fajr
+			DhuhrTime = ResponseStruct.Items[i].Dhuhr
+			AsrTime = ResponseStruct.Items[i].Asr
+			MaghribTime = ResponseStruct.Items[i].Maghrib
+			IshaTime = ResponseStruct.Items[i].Isha
 		}
 
 	}
-
-	var (
-		FajrTime    = ResponseStruct.Items[0].Fajr
-		DhuhrTime   = ResponseStruct.Items[0].Dhuhr
-		AsrTime     = ResponseStruct.Items[0].Asr
-		MaghribTime = ResponseStruct.Items[0].Maghrib
-		IshaTime    = ResponseStruct.Items[0].Isha
-	)
 
 	// create an instance of our struct we want to unmarshal this string into
 
@@ -110,10 +94,6 @@ func GetPrayerTimes(location string) (PrayerTimes, error) {
 
 	// return PrayerTimes, nil
 	return prayerTimes, nil
-}
-
-func insertChar(s string, pos int, char rune) string {
-	return strings.Join([]string{s[:pos], string(char), s[pos:]}, "")
 }
 
 func parseTime(dateVal string, timeVal string, location string) time.Time {
