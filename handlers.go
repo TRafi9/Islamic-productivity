@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func GetPrayerTimes(location string) (PrayerTimes, error) {
+func GetPrayerTimes(location string) (map[string]map[string]time.Time, error) {
 
 	// Gets prayer times monthly
 
@@ -17,7 +17,7 @@ func GetPrayerTimes(location string) (PrayerTimes, error) {
 	london, err := time.LoadLocation("Europe/London")
 	if err != nil {
 		fmt.Println("Error loading location:", err)
-		return PrayerTimes{}, err
+		return nil, err
 	}
 	// apiDate & apiDateString used to get all prayer times from 1st of current month
 	apiDate := time.Now().In(london)
@@ -29,80 +29,65 @@ func GetPrayerTimes(location string) (PrayerTimes, error) {
 
 	response, err := http.Get(prayerTimesURL)
 	if err != nil {
-		return PrayerTimes{}, fmt.Errorf("failed to get response from API call to prayerTimesURL, err: %w", err)
+		return nil, fmt.Errorf("failed to get response from API call to prayerTimesURL, err: %w", err)
 	}
 	//TODO check why we defer this specifically
 	defer response.Body.Close()
 
 	resBody, err := io.ReadAll(response.Body)
 	if err != nil {
-		return PrayerTimes{}, fmt.Errorf("failed to read response body, err: %w", err)
+		return nil, fmt.Errorf("failed to read response body, err: %w", err)
 	}
 	jsonString := string(resBody)
 	var ResponseStruct ResponseStruct
 
 	err = json.Unmarshal([]byte(jsonString), &ResponseStruct)
 	if err != nil {
-		return PrayerTimes{}, fmt.Errorf("error unmarshalling json into struct, err: %w", err)
+		return nil, fmt.Errorf("error unmarshalling json into struct, err: %w", err)
 	}
 
 	// get todays date
 	// todaysDate := time.Now().Format("2006-01-02")
-	var (
-		prayerDate  string
-		FajrTime    string
-		DhuhrTime   string
-		AsrTime     string
-		MaghribTime string
-		IshaTime    string
-	)
-	prayerMonthMap := make(map[string]map[string]string)
+
+	prayerMonthMap := make(map[string]map[string]time.Time)
 
 	// loops through json for all days of month
 	// finds today and gets prayer times for today in string
 	for i := range ResponseStruct.Items {
-		prayerDate = ResponseStruct.Items[i].DateFor
+		prayerDate := ResponseStruct.Items[i].DateFor
 
 		parsedDate, err := time.Parse("2006-1-2", prayerDate)
 		if err != nil {
-			return PrayerTimes{}, fmt.Errorf("error parsing date: %w", err)
+			return nil, fmt.Errorf("error parsing date: %w", err)
 		}
 		prayerDate = parsedDate.Format("2006-01-02")
 
-		prayerDayMap := make(map[string]string)
-		prayerDayMap["Fajr"] = ResponseStruct.Items[i].Fajr
-		prayerDayMap["Dhuhr"] = ResponseStruct.Items[i].Dhuhr
-		prayerDayMap["Asr"] = ResponseStruct.Items[i].Asr
-		prayerDayMap["Maghrib"] = ResponseStruct.Items[i].Maghrib
-		prayerDayMap["Isha"] = ResponseStruct.Items[i].Isha
+		prayerDayMap := make(map[string]time.Time)
+
+		prayerDayMap["Fajr"] = parseTime(prayerDate, ResponseStruct.Items[i].Fajr, location)
+		prayerDayMap["Dhuhr"] = parseTime(prayerDate, ResponseStruct.Items[i].Dhuhr, location)
+		prayerDayMap["Asr"] = parseTime(prayerDate, ResponseStruct.Items[i].Asr, location)
+		prayerDayMap["Maghrib"] = parseTime(prayerDate, ResponseStruct.Items[i].Maghrib, location)
+		prayerDayMap["Isha"] = parseTime(prayerDate, ResponseStruct.Items[i].Isha, location)
 
 		prayerMonthMap[prayerDate] = prayerDayMap
 
-		// if prayerDate == todaysDate {
-		// 	FajrTime = ResponseStruct.Items[i].Fajr
-		// 	DhuhrTime = ResponseStruct.Items[i].Dhuhr
-		// 	AsrTime = ResponseStruct.Items[i].Asr
-		// 	MaghribTime = ResponseStruct.Items[i].Maghrib
-		// 	IshaTime = ResponseStruct.Items[i].Isha
-		// 	break
-		// }
-		fmt.Println(prayerMonthMap)
-
 	}
+	return prayerMonthMap, nil
 
 	// create an instance of our struct we want to unmarshal this string into
 
-	prayerTimes := PrayerTimes{
-		PrayerDate: prayerDate,
-		Fajr:       parseTime(prayerDate, FajrTime, location),
-		Dhuhr:      parseTime(prayerDate, DhuhrTime, location),
-		Asr:        parseTime(prayerDate, AsrTime, location),
-		Maghrib:    parseTime(prayerDate, MaghribTime, location),
-		Isha:       parseTime(prayerDate, IshaTime, location),
-	}
+	// prayerTimes := PrayerTimes{
+	// 	PrayerDate: prayerDate,
+	// 	Fajr:       parseTime(prayerDate, FajrTime, location),
+	// 	Dhuhr:      parseTime(prayerDate, DhuhrTime, location),
+	// 	Asr:        parseTime(prayerDate, AsrTime, location),
+	// 	Maghrib:    parseTime(prayerDate, MaghribTime, location),
+	// 	Isha:       parseTime(prayerDate, IshaTime, location),
+	// }
 
-	// return PrayerTimes, nil
-	return prayerTimes, nil
+	// // return PrayerTimes, nil
+	// return prayerTimes, nil
 }
 
 func parseTime(dateVal string, timeVal string, location string) time.Time {

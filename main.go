@@ -23,8 +23,7 @@ func main() {
 	}
 
 	// store it in the global variable to be accessed outside
-	fmt.Println(pt.Isha)
-	fmt.Println(pt.PrayerDate)
+	fmt.Println(pt)
 
 	v1 := router.Group("/v1")
 	{
