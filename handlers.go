@@ -9,7 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo"
+	"go.uber.org/zap"
 )
 
 func GetPrayerTimes(location string) (map[string]map[string]time.Time, error) {
@@ -169,16 +170,29 @@ type PrayerItem struct {
 	Isha    string `json:"isha"`
 }
 
-func todayPrayerHandler(c *gin.Context) error {
+func todayPrayerHandler(c echo.Context, pt map[string]map[string]time.Time, logger *zap.SugaredLogger) error {
 
-	incomingDate := c.Param(":dateValue")
+	incomingDate := c.Param("dateValue")
+	logger.Info(incomingDate)
 	// regex check to see if string is valid date format
 	pattern := `^\d{4}-\d{2}-\d{2}$`
 	re := regexp.MustCompile(pattern)
 	if !re.MatchString(incomingDate) {
-		return fmt.Errorf("Date value from api incorrect: %s", http.StatusBadRequest)
+		return fmt.Errorf("date value from api incorrect: %d", http.StatusBadRequest)
 	}
+	prayers := pt[incomingDate]
+	jsonString, err := json.Marshal(prayers)
+	fmt.Println(string(jsonString))
 
-	// Use the regular expression to check the format
+	if err != nil {
+		return fmt.Errorf("failed to marshal prayers map into json string")
+	}
+	// c.Header("content-type", "application/json")
+	c.JSON(http.StatusOK, prayers)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("failed to write JSON string to response body: %w", err)
+	// }
+
+	return nil
 
 }
