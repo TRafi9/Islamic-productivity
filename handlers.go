@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 func GetPrayerTimes(location string) (map[string]map[string]time.Time, error) {
@@ -164,4 +167,18 @@ type PrayerItem struct {
 	Asr     string `json:"asr"`
 	Maghrib string `json:"maghrib"`
 	Isha    string `json:"isha"`
+}
+
+func todayPrayerHandler(c *gin.Context) error {
+
+	incomingDate := c.Param(":dateValue")
+	// regex check to see if string is valid date format
+	pattern := `^\d{4}-\d{2}-\d{2}$`
+	re := regexp.MustCompile(pattern)
+	if !re.MatchString(incomingDate) {
+		return fmt.Errorf("Date value from api incorrect: %s", http.StatusBadRequest)
+	}
+
+	// Use the regular expression to check the format
+
 }

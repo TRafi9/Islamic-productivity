@@ -17,19 +17,18 @@ func main() {
 	// add v1 GET api to make a call, given a date, to recieve all prayer times for that day, from the redis server
 
 	location := "Europe/London"
-	pt, err := GetPrayerTimes(location)
+	Pt, err := GetPrayerTimes(location)
 	if err != nil {
 		fmt.Errorf("error executing GetPrayerTimes, err %w", err)
 	}
-
 	// store it in the global variable to be accessed outside
-	fmt.Println(pt)
+	fmt.Println(Pt)
 
-	v1 := router.Group("/v1")
+	v1 := router.Group("/api/v1")
 	{
 		// v1.GET("/prayerTimes", getPrayerTimes(c*gin.Context))
 		// check if this will be a post
-		v1.POST("/")
+		v1.GET("/getPrayerTimes/:dateValue", todayPrayerHandler)
 	}
 	router.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
