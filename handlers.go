@@ -47,7 +47,7 @@ func GetPrayerTimes(location string) (PrayerTimes, error) {
 	}
 
 	// get todays date
-	todaysDate := time.Now().Format("2006-01-02")
+	// todaysDate := time.Now().Format("2006-01-02")
 	var (
 		prayerDate  string
 		FajrTime    string
@@ -56,6 +56,7 @@ func GetPrayerTimes(location string) (PrayerTimes, error) {
 		MaghribTime string
 		IshaTime    string
 	)
+	prayerMonthMap := make(map[string]map[string]string)
 
 	// loops through json for all days of month
 	// finds today and gets prayer times for today in string
@@ -67,14 +68,25 @@ func GetPrayerTimes(location string) (PrayerTimes, error) {
 			return PrayerTimes{}, fmt.Errorf("error parsing date: %w", err)
 		}
 		prayerDate = parsedDate.Format("2006-01-02")
-		if prayerDate == todaysDate {
-			FajrTime = ResponseStruct.Items[i].Fajr
-			DhuhrTime = ResponseStruct.Items[i].Dhuhr
-			AsrTime = ResponseStruct.Items[i].Asr
-			MaghribTime = ResponseStruct.Items[i].Maghrib
-			IshaTime = ResponseStruct.Items[i].Isha
-			break
-		}
+
+		prayerDayMap := make(map[string]string)
+		prayerDayMap["Fajr"] = ResponseStruct.Items[i].Fajr
+		prayerDayMap["Dhuhr"] = ResponseStruct.Items[i].Dhuhr
+		prayerDayMap["Asr"] = ResponseStruct.Items[i].Asr
+		prayerDayMap["Maghrib"] = ResponseStruct.Items[i].Maghrib
+		prayerDayMap["Isha"] = ResponseStruct.Items[i].Isha
+
+		prayerMonthMap[prayerDate] = prayerDayMap
+
+		// if prayerDate == todaysDate {
+		// 	FajrTime = ResponseStruct.Items[i].Fajr
+		// 	DhuhrTime = ResponseStruct.Items[i].Dhuhr
+		// 	AsrTime = ResponseStruct.Items[i].Asr
+		// 	MaghribTime = ResponseStruct.Items[i].Maghrib
+		// 	IshaTime = ResponseStruct.Items[i].Isha
+		// 	break
+		// }
+		fmt.Println(prayerMonthMap)
 
 	}
 
