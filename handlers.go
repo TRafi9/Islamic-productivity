@@ -184,7 +184,6 @@ func todayPrayerHandler(c echo.Context, pt map[string]map[string]time.Time, logg
 	prayers := pt[incomingDate]
 
 	c.JSON(http.StatusOK, prayers)
-
 	return nil
 
 }

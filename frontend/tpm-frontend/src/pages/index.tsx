@@ -21,17 +21,41 @@ export default function Home() {
   // Create the formatted date string
   const formattedDate = `${year}-${month}-${day}`;
 
+  interface PrayerData {
+    Asr: string;
+    Dhuhr: string;
+    Fajr: string;
+    Isha: string;
+    Maghrib: string;
+  }
+
+  const [todaysPrayers, setTodaysPrayers] = useState<PrayerData>({
+    Asr: "",
+    Dhuhr: "",
+    Fajr: "",
+    Isha: "",
+    Maghrib: "",
+  });
+
   useEffect(() => {
     if (formattedDate !== checkDate || checkDate == null) {
       setCheckDate(formattedDate);
       console.log("formattedDate");
       console.log(formattedDate);
       getTodaysPrayers(formattedDate).then((result) => {
-        console.log(result);
+        console.log("Checking if result exists:", result);
+
+        if (result) {
+          console.log("Before SetState:", todaysPrayers);
+          setTodaysPrayers(result);
+          console.log("After SetState:", todaysPrayers);
+          console.log("Asr value:", result.Asr);
+        } else {
+          console.log("Result is undefined or null");
+        }
       });
     }
   }, [formattedDate]);
-
   const getTodaysPrayers = async (date: string) => {
     if (date) {
       try {
@@ -44,13 +68,15 @@ export default function Home() {
             method: "GET",
           }
         );
-        const textResponse = await response.text();
-        console.log("API Response:", textResponse);
+        console.log("awaiting response...");
+        // const textResponse = await response.text();
+        // console.log("API Response:", textResponse);
 
         // const data = JSON.parse(textResponse);
-        // const data = await response.json();
-
-        return textResponse;
+        const data = await response.json();
+        console.log("responseeee");
+        console.log(data);
+        return data;
       } catch (error) {
         console.log("error calling api in getTodaysPrayers : ", error);
       }
@@ -69,7 +95,8 @@ export default function Home() {
       </Head>
       <main className={`${styles.main} ${inter.className}`}>
         <div>
-          <h1>The productive muslim</h1>
+          <h1>The productive muslim! {todaysPrayers.Asr}</h1>
+
           <h2> Measuring your productivity one step at a time</h2>
         </div>
       </main>
