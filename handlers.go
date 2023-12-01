@@ -178,7 +178,7 @@ func todayPrayerHandler(c echo.Context, pt map[string]map[string]time.Time, logg
 	pattern := `^\d{4}-\d{2}-\d{2}$`
 	re := regexp.MustCompile(pattern)
 	if !re.MatchString(incomingDate) {
-		return c.String(http.StatusBadRequest, fmt.Sprintf("date value from api incorrect: %d", http.StatusBadRequest))
+		return c.JSON(http.StatusBadRequest, fmt.Sprintf("date value from api incorrect: %d", http.StatusBadRequest))
 	}
 
 	prayers := pt[incomingDate]
