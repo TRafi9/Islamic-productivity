@@ -18,7 +18,7 @@ export default function Home() {
   var month = String(currentDate.getMonth() + 1).padStart(2, "0"); // Months are zero-based
   var day = String(currentDate.getDate()).padStart(2, "0");
 
-  // Create the formatted date string
+  // Create the formatted date string to match api call date type
   const formattedDate = `${year}-${month}-${day}`;
 
   interface PrayerData {
@@ -28,7 +28,7 @@ export default function Home() {
     Isha: string;
     Maghrib: string;
   }
-
+  // create the var which is the same structure as the response
   const [todaysPrayers, setTodaysPrayers] = useState<PrayerData>({
     Asr: "",
     Dhuhr: "",
@@ -36,7 +36,8 @@ export default function Home() {
     Isha: "",
     Maghrib: "",
   });
-
+  // check if its first load, or the day has changed, if so call the API to get new results in todaysPrayers
+  // need to update formattedDate daily/hourly to run this constantly
   useEffect(() => {
     if (formattedDate !== checkDate || checkDate == null) {
       setCheckDate(formattedDate);
@@ -56,6 +57,7 @@ export default function Home() {
       });
     }
   }, [formattedDate]);
+
   const getTodaysPrayers = async (date: string) => {
     if (date) {
       try {
@@ -69,10 +71,7 @@ export default function Home() {
           }
         );
         console.log("awaiting response...");
-        // const textResponse = await response.text();
-        // console.log("API Response:", textResponse);
 
-        // const data = JSON.parse(textResponse);
         const data = await response.json();
         console.log("responseeee");
         console.log(data);
@@ -81,9 +80,73 @@ export default function Home() {
         console.log("error calling api in getTodaysPrayers : ", error);
       }
     } else {
+      //TODO update this call
       ("getGranularDirectReport function did not recieve an id - undefined");
     }
   };
+
+  function findClosestAheadTime(prayerTimes: PrayerData): string {
+    const now = new Date();
+
+    // Convert the time strings to Date objects
+    const timeObjects = Object.entries(prayerTimes).map(([prayer, time]) => ({
+      prayer,
+      time: new Date(time),
+    }));
+
+    // Filter out times that are in the past
+    const futureTimes = timeObjects.filter(({ time }) => time > now);
+
+    // If there are no future times, consider the first time as the closest ahead
+    if (futureTimes.length === 0) {
+      return timeObjects[0].prayer;
+    }
+
+    // Find the closest ahead time
+    const closestAheadTime = futureTimes.reduce((closest, current) => {
+      const closestDifference = closest.time.getTime() - now.getTime();
+      const currentDifference = current.time.getTime() - now.getTime();
+
+      return currentDifference < closestDifference ? current : closest;
+    });
+
+    return closestAheadTime.prayer;
+  }
+
+  const closestAheadTime = findClosestAheadTime(todaysPrayers);
+  const closestTimeValue =
+    todaysPrayers[closestAheadTime as keyof typeof todaysPrayers];
+
+  // Step 1: Create state variable for countdown
+  const [countdown, setCountdown] = useState<number | null>(null);
+  useEffect(() => {
+    // Convert closestTimeValue to a Date object
+    const closestTimeDate = closestTimeValue
+      ? new Date(closestTimeValue)
+      : null;
+
+    // Step 2: Update countdown every second
+    const interval = setInterval(() => {
+      // Step 3: Calculate time left until closestTimeDate
+      if (closestTimeDate) {
+        const now = new Date();
+        const timeLeftInSeconds = Math.floor(
+          (closestTimeDate.getTime() - now.getTime()) / 1000
+        );
+
+        // Step 4: Update countdown state variable
+        setCountdown(timeLeftInSeconds);
+
+        // Optionally: You can clear the interval if the countdown reaches zero
+        if (timeLeftInSeconds <= 0) {
+          clearInterval(interval);
+        }
+      }
+    }, 1000);
+
+    // Clear the interval when the component unmounts
+    return () => clearInterval(interval);
+  }, [closestTimeValue]);
 
   return (
     <>
@@ -95,11 +158,34 @@ export default function Home() {
       </Head>
       <main className={`${styles.main} ${inter.className}`}>
         <div>
+          {/* Step 5: Display the countdown in your JSX */}
           <h1>The productive muslim! {todaysPrayers.Asr}</h1>
+          {closestTimeValue && (
+            <h2>
+              Time left until {closestAheadTime} prayer:{" "}
+              {formatCountdown(countdown)}
+            </h2>
+          )}
 
           <h2> Measuring your productivity one step at a time</h2>
         </div>
       </main>
     </>
   );
+}
+
+// Helper function to format seconds into HH:MM:SS
+function formatCountdown(seconds: number | null): string {
+  if (seconds === null) {
+    return "";
+  }
+
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainingSeconds = seconds % 60;
+
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
+    2,
+    "0"
+  )}:${String(remainingSeconds).padStart(2, "0")}`;
 }
