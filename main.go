@@ -2,16 +2,38 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/labstack/echo"
 	"go.uber.org/zap"
 )
 
-func main() {
+func readFile(filepath string) (string, error) {
+	content, err := os.ReadFile(filepath)
+	if err != nil {
+		return "", err
+	}
+	contentString := string(content)
+	return contentString, nil
+}
 
-	e := echo.New()
+func main() {
 	z, _ := zap.NewProduction()
 	logger := z.Sugar()
+
+	pass, err := readFile("./pass.txt")
+	if err != nil {
+		// do something here
+		return
+	}
+	logger.Infof("pass %s", pass)
+	// client := redis.NewClient(&redis.Options{
+	// 	Addr:     "redis-13336.c304.europe-west1-2.gce.cloud.redislabs.com",
+	// 	Password: pass,     // no password set
+	// 	DB:       12040201, // use default DB
+	// })
+
+	e := echo.New()
 
 	//TODO make getPrayerTimes return the whole month
 	// use a cron job to run get prayertimes
