@@ -10,6 +10,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
   //TODO link api calls from api page to this
+  // checkDate is used as a value to check if the currentDate has been changed
   const [checkDate, setCheckDate] = useState("");
   // update currentDate every 24 hours
   // in the same loop check if the formatted current date isnt the same
@@ -37,7 +38,7 @@ export default function Home() {
     Maghrib: "",
   });
   // check if its first load, or the day has changed, if so call the API to get new results in todaysPrayers
-  // need to update formattedDate daily/hourly to run this constantly
+  //TODO IMPORTANT need to update formattedDate daily/hourly to run this constantly
   useEffect(() => {
     if (formattedDate !== checkDate || checkDate == null) {
       setCheckDate(formattedDate);

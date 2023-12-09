@@ -9,11 +9,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-redis/redis"
 	"github.com/labstack/echo"
 	"go.uber.org/zap"
 )
 
-func GetPrayerTimes(location string) (map[string]map[string]time.Time, error) {
+func GetPrayerTimes(location string, client *redis.Client, logger *zap.SugaredLogger) (map[string]map[string]time.Time, error) {
 
 	// Gets prayer times monthly
 
@@ -27,71 +28,75 @@ func GetPrayerTimes(location string) (map[string]map[string]time.Time, error) {
 	apiDate := time.Now().In(london)
 	apiDate = time.Date(apiDate.Year(), apiDate.Month(), 01, 0, 0, 0, 0, apiDate.Location())
 	apiDateString := apiDate.Format("02-01-2006")
+	redisDateFormat := apiDate.Format("2006-01-02")
+	// redisDateFormat := "01-02-2006"
 	fmt.Printf("date string: %s \n", apiDateString)
 
-	prayerTimesURL := fmt.Sprintf("https://muslimsalat.com/%s/monthly/%s/true.json?key==dd00aaed7ee591ead148b3af566d88f1", apiLoc, apiDateString)
+	res, err := client.Get(redisDateFormat).Result()
 
-	response, err := http.Get(prayerTimesURL)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get response from API call to prayerTimesURL, err: %w", err)
-	}
-	//TODO check why we defer this specifically
-	defer response.Body.Close()
+		// error could also be that redis.Nil aka there was no value returned
+		logger.Errorf("error with redis get call, continue to get data from  %w", err)
 
-	resBody, err := io.ReadAll(response.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response body, err: %w", err)
-	}
-	jsonString := string(resBody)
-	var ResponseStruct ResponseStruct
-
-	err = json.Unmarshal([]byte(jsonString), &ResponseStruct)
-	if err != nil {
-		return nil, fmt.Errorf("error unmarshalling json into struct, err: %w", err)
-	}
-
-	// get todays date
-	// todaysDate := time.Now().Format("2006-01-02")
-
-	prayerMonthMap := make(map[string]map[string]time.Time)
-
-	// loops through json for all days of month
-	// finds today and gets prayer times for today in string
-	for i := range ResponseStruct.Items {
-		prayerDate := ResponseStruct.Items[i].DateFor
-
-		parsedDate, err := time.Parse("2006-1-2", prayerDate)
-		if err != nil {
-			return nil, fmt.Errorf("error parsing date: %w", err)
+		// if no redis records exist for the date being queried, call the api code here and also upload to db!
+		if err == redis.Nil {
+			logger.Infof("No redis entry for this date, date %s, res: %s", redisDateFormat, res)
 		}
-		prayerDate = parsedDate.Format("2006-01-02")
 
-		prayerDayMap := make(map[string]time.Time)
+		prayerTimesURL := fmt.Sprintf("https://muslimsalat.com/%s/monthly/%s/true.json?key==dd00aaed7ee591ead148b3af566d88f1", apiLoc, apiDateString)
 
-		prayerDayMap["Fajr"] = parseTime(prayerDate, ResponseStruct.Items[i].Fajr, location)
-		prayerDayMap["Dhuhr"] = parseTime(prayerDate, ResponseStruct.Items[i].Dhuhr, location)
-		prayerDayMap["Asr"] = parseTime(prayerDate, ResponseStruct.Items[i].Asr, location)
-		prayerDayMap["Maghrib"] = parseTime(prayerDate, ResponseStruct.Items[i].Maghrib, location)
-		prayerDayMap["Isha"] = parseTime(prayerDate, ResponseStruct.Items[i].Isha, location)
+		response, err := http.Get(prayerTimesURL)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get response from API call to prayerTimesURL, err: %w", err)
+		}
+		//TODO check why we defer this specifically
+		defer response.Body.Close()
 
-		prayerMonthMap[prayerDate] = prayerDayMap
+		resBody, err := io.ReadAll(response.Body)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read response body, err: %w", err)
+		}
+		jsonString := string(resBody)
+		var ResponseStruct ResponseStruct
 
+		err = json.Unmarshal([]byte(jsonString), &ResponseStruct)
+		if err != nil {
+			return nil, fmt.Errorf("error unmarshalling json into struct, err: %w", err)
+		}
+
+		// get todays date
+		// todaysDate := time.Now().Format("2006-01-02")
+
+		prayerMonthMap := make(map[string]map[string]time.Time)
+
+		// loops through json for all days of month
+		// finds today and gets prayer times for today in string
+		for i := range ResponseStruct.Items {
+			prayerDate := ResponseStruct.Items[i].DateFor
+
+			parsedDate, err := time.Parse("2006-1-2", prayerDate)
+			if err != nil {
+				return nil, fmt.Errorf("error parsing date: %w", err)
+			}
+			prayerDate = parsedDate.Format("2006-01-02")
+
+			prayerDayMap := make(map[string]time.Time)
+
+			prayerDayMap["Fajr"] = parseTime(prayerDate, ResponseStruct.Items[i].Fajr, location)
+			prayerDayMap["Dhuhr"] = parseTime(prayerDate, ResponseStruct.Items[i].Dhuhr, location)
+			prayerDayMap["Asr"] = parseTime(prayerDate, ResponseStruct.Items[i].Asr, location)
+			prayerDayMap["Maghrib"] = parseTime(prayerDate, ResponseStruct.Items[i].Maghrib, location)
+			prayerDayMap["Isha"] = parseTime(prayerDate, ResponseStruct.Items[i].Isha, location)
+
+			prayerMonthMap[prayerDate] = prayerDayMap
+
+		}
+		return prayerMonthMap, nil
 	}
-	return prayerMonthMap, nil
+	//TODO if you reach this code part it means that there are entries for the current month in redis
+	// you will have to collate each of these entries for the month and then return them in the same format as
+	// prayerDayMap
 
-	// create an instance of our struct we want to unmarshal this string into
-
-	// prayerTimes := PrayerTimes{
-	// 	PrayerDate: prayerDate,
-	// 	Fajr:       parseTime(prayerDate, FajrTime, location),
-	// 	Dhuhr:      parseTime(prayerDate, DhuhrTime, location),
-	// 	Asr:        parseTime(prayerDate, AsrTime, location),
-	// 	Maghrib:    parseTime(prayerDate, MaghribTime, location),
-	// 	Isha:       parseTime(prayerDate, IshaTime, location),
-	// }
-
-	// // return PrayerTimes, nil
-	// return prayerTimes, nil
 }
 
 func parseTime(dateVal string, timeVal string, location string) time.Time {
