@@ -93,10 +93,23 @@ func GetPrayerTimes(location string, client *redis.Client, logger *zap.SugaredLo
 		}
 		return prayerMonthMap, nil
 	}
+
 	//TODO if you reach this code part it means that there are entries for the current month in redis
 	// you will have to collate each of these entries for the month and then return them in the same format as
 	// prayerDayMap
+	// monthlyDataRedis := make(map[string]map[string]time.Time)
+	for day := apiDate; day.Month() == apiDate.Month(); day = day.AddDate(0, 0, 1) {
+		logger.Infof("day is : %s", day.Format("2006-01-02"))
+		redisDateKey := day.Format("2006-01-02")
+		redisData, err := client.Get(redisDateKey).Result()
+		if err != nil {
+			logger.Errorf("redis data get request caused error, err: %w", err)
+		}
+		//TODO continue from here, turn the json string returns using the json package into a struct, then convert to time.time and return
+		logger.Infof("Redis data this day is: %s", redisData)
 
+	}
+	return nil, nil
 }
 
 func parseTime(dateVal string, timeVal string, location string) time.Time {
