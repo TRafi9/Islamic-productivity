@@ -5,13 +5,15 @@ import styles from "@/styles/Home.module.css";
 import { useEffect, useState } from "react";
 import { format } from "path";
 import { text } from "stream/consumers";
+import { Button } from "react-bootstrap";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
-  //TODO link api calls from api page to this
   // checkDate is used as a value to check if the currentDate has been changed
   const [checkDate, setCheckDate] = useState("");
+
+  // add cron job to reexecute current date setup and useeffect setup, needs to run every 24 hours
   // update currentDate every 24 hours
   // in the same loop check if the formatted current date isnt the same
   var currentDate = new Date();
@@ -74,15 +76,13 @@ export default function Home() {
         console.log("awaiting response...");
 
         const data = await response.json();
-        console.log("responseeee");
         console.log(data);
         return data;
       } catch (error) {
         console.log("error calling api in getTodaysPrayers : ", error);
       }
     } else {
-      //TODO update this call
-      ("getGranularDirectReport function did not recieve an id - undefined");
+      ("getTodaysPrayers failed");
     }
   };
 
@@ -100,6 +100,7 @@ export default function Home() {
 
     // If there are no future times, consider the first time as the closest ahead
     if (futureTimes.length === 0) {
+      // over here is when there are no prayers left for the day i.e. after isha
       return timeObjects[0].prayer;
     }
 
@@ -120,6 +121,7 @@ export default function Home() {
 
   // Step 1: Create state variable for countdown
   const [countdown, setCountdown] = useState<number | null>(null);
+  const [productiveCheck, setProductiveCheck] = useState(false);
   useEffect(() => {
     // Convert closestTimeValue to a Date object
     const closestTimeDate = closestTimeValue
@@ -141,6 +143,7 @@ export default function Home() {
         // Optionally: You can clear the interval if the countdown reaches zero
         if (timeLeftInSeconds <= 0) {
           clearInterval(interval);
+          setProductiveCheck(true);
         }
       }
     }, 1000);
@@ -158,18 +161,32 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className={`${styles.main} ${inter.className}`}>
-        <div>
-          {/* Step 5: Display the countdown in your JSX */}
-          <h1>The productive muslim! {todaysPrayers.Asr}</h1>
-          {closestTimeValue && (
-            <h2>
-              Time left until {closestAheadTime} prayer:{" "}
-              {formatCountdown(countdown)}
-            </h2>
-          )}
+        {productiveCheck ? (
+          <div>
+            {/* Step 5: Display the countdown in your JSX */}
+            <h1>The productive muslim! {todaysPrayers.Asr}</h1>
+            //TODO CONTINUE onClick runs function that submits users value to
+            backend, which submits value to DB, and then sets ProductiveCheck
+            back to false, to display countdown
+            <Button onClick={(e) => setProductiveCheck(false)}>Yes</Button>
+            <Button> No</Button>
+            <h2> Measuring your productivity one step at a time</h2>
+          </div>
+        ) : (
+          <div>
+            {/* Step 5: Display the countdown in your JSX */}
+            <h1>The productive muslim! {todaysPrayers.Asr}</h1>
+            {closestTimeValue && (
+              <h2>
+                Time left until {closestAheadTime} prayer:{" "}
+                {formatCountdown(countdown)}
+              </h2>
+            )}
+            <Button onClick={(e) => setProductiveCheck(true)}>Yes</Button>
 
-          <h2> Measuring your productivity one step at a time</h2>
-        </div>
+            <h2> Measuring your productivity one step at a time</h2>
+          </div>
+        )}
       </main>
     </>
   );
