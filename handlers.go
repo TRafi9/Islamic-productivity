@@ -113,7 +113,8 @@ func GetPrayerTimes(location string, client *redis.Client, logger *zap.SugaredLo
 				return nil, err
 			}
 		}
-
+		logger.Info("Monthly prayer API call is")
+		logger.Info(prayerMonthMap)
 		return prayerMonthMap, nil
 	}
 
@@ -123,7 +124,7 @@ func GetPrayerTimes(location string, client *redis.Client, logger *zap.SugaredLo
 		redisDateKey := day.Format("2006-01-02")
 
 		redisData, err := client.Get(redisDateKey).Result()
-		logger.Info("SUCCESSFULLY DOWNLOADED DATA FROM REDIS")
+
 		if err != nil {
 			logger.Errorf("redis data get request caused error, err: %w", err)
 		}
@@ -133,26 +134,40 @@ func GetPrayerTimes(location string, client *redis.Client, logger *zap.SugaredLo
 		if err != nil {
 			logger.Errorf("failed to unmarshal redis data into struct, err: %w", err)
 		}
-		logger.Infof("PrayerTimesRedis Struct: %s", prayerTimesRedis)
+		logger.Infof("PrayerTimesRedis Struct: %s", prayerTimesRedis.Fajr)
+
 		//TODO CONTINUE need to parse the prayerTimesRedis struct from string to Time.time values and then can add it to the dailyPrayerTimesMap
 		// From there you can add it to monthlyDataRedis map and serve it as the return of this function
-		// dailyPrayerTimesMap := map[string]time.Time{
-		// 	"Asr":     prayerTimesRedis.Asr,
-		// 	"Dhuhr":   prayerTimesRedis.Dhuhr,
-		// 	"Fajr":    prayerTimesRedis.Fajr,
-		// 	"Isha":    prayerTimesRedis.Isha,
-		// 	"Maghrib": prayerTimesRedis.Maghrib,
-		// }
-		// monthlyDataRedis[redisDateKey] = dailyPrayerTimesMap
-		// logger.Infof("DAILY PRAYER MAP FOR DATE: %s, IS %s", redisDateKey, monthlyDataRedis[redisData])
+		dailyPrayerTimesMap := make(map[string]time.Time)
+		dailyPrayerTimesMap["Fajr"] = parseRedisTimeString(prayerTimesRedis.Fajr, logger)
+		dailyPrayerTimesMap["Dhuhr"] = parseRedisTimeString(prayerTimesRedis.Dhuhr, logger)
+		dailyPrayerTimesMap["Asr"] = parseRedisTimeString(prayerTimesRedis.Asr, logger)
+		dailyPrayerTimesMap["Maghrib"] = parseRedisTimeString(prayerTimesRedis.Maghrib, logger)
+		dailyPrayerTimesMap["Isha"] = parseRedisTimeString(prayerTimesRedis.Isha, logger)
+
+		monthlyDataRedis[redisDateKey] = dailyPrayerTimesMap
+
 	}
+	logger.Info("MONTHLY DATA FROM REDIS CACHE IS: ")
+	logger.Info(monthlyDataRedis)
 	return monthlyDataRedis, nil
+}
+
+func parseRedisTimeString(redisTimeString string, logger *zap.SugaredLogger) time.Time {
+
+	layout := "2006-01-02 15:04:05 -0700 MST"
+	parsedTime, err := time.Parse(layout, redisTimeString)
+	if err != nil {
+		logger.Errorf("error parsing time string, %w", err)
+	}
+	return parsedTime
 }
 
 func parseTime(dateVal string, timeVal string, location string) time.Time {
 
 	loc, err := time.LoadLocation(location)
 	if err != nil {
+
 		return time.Time{}
 	}
 	timeVal = strings.TrimSpace(timeVal)

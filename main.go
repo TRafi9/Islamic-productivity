@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/go-redis/redis"
@@ -45,33 +44,9 @@ func main() {
 	location := "Europe/London"
 	Pt, err := GetPrayerTimes(location, client, logger)
 	if err != nil {
-		fmt.Errorf("error executing GetPrayerTimes, err %w", err)
+		logger.Errorf("error executing GetPrayerTimes, err %w", err)
 	}
-	//TODO add Pt to redis memory
-	// convert to strings as redis cannot store time vars
 
-	// newMap := make(map[string]map[string]string)
-	// for key, innerKeyVal := range Pt {
-	// 	newMap[key] = make(map[string]string)
-	// 	for prayer, timeVal := range innerKeyVal {
-	// 		newMap[key][prayer] = timeVal.String()
-	// 	}
-
-	// }
-
-	// for outerKey, innerMap := range newMap {
-	// 	innerMapJson, err := json.Marshal(innerMap)
-	// 	if err != nil {
-	// 		logger.Error("error marshalling inner map: %w", err)
-	// 		//TODO check if return is right or should add continue here
-	// 		return
-	// 	}
-	// 	err = client.Set(outerKey, innerMapJson, 0).Err()
-	// 	if err != nil {
-	// 		logger.Errorf("error uploading outerKey %s and innerMapJson %s, error: %s", outerKey, innerMapJson, err)
-	// 		return
-	// 	}
-	// }
 	//TODO add panic and recover if it fails to upload to memory
 
 	api := e.Group("/api/v1")
