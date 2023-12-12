@@ -42,6 +42,11 @@ func main() {
 	// add v1 GET api to make a call, given a date, to recieve all prayer times for that day, from the redis server
 
 	location := "Europe/London"
+	//TODO make it globally readable,
+	// use concurrency to
+	// pt object stores everything, not have data for this month, 100 ppl call app at same time for new month, 100 calls, so go handles them concurrently,
+	// problem , when handler cant find data
+
 	Pt, err := GetPrayerTimes(location, client, logger)
 	if err != nil {
 		logger.Errorf("error executing GetPrayerTimes, err %w", err)
@@ -53,6 +58,13 @@ func main() {
 
 	api.GET("/getPrayerTimes/:dateValue", func(c echo.Context) error {
 		return todayPrayerHandler(c, Pt, logger)
+	})
+
+	//have a separate handler that responds to cloud function calls that will udpate pt with information,
+	// use mutex to lock Pt while you update it, and then open it up once mutex is done.
+	api.GET("/getPrayerTimes/:dateValue", func(c echo.Context) error {
+		Pt, err := GetPrayerTimes(location, client, logger)
+		return err
 	})
 
 	e.Start(":8080")
