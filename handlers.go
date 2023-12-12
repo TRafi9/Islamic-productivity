@@ -35,6 +35,7 @@ func GetPrayerTimes(location string, client *redis.Client, logger *zap.SugaredLo
 	res, err := client.Get(redisDateFormat).Result()
 
 	if err != nil {
+		// NO REDIS DATA/ REDIS PULL FAILED, CALL API INSTEAD
 		// error could also be that redis.Nil aka there was no value returned
 		logger.Errorf("error with redis get call, continue to get data from  %w", err)
 
@@ -63,9 +64,6 @@ func GetPrayerTimes(location string, client *redis.Client, logger *zap.SugaredLo
 		if err != nil {
 			return nil, fmt.Errorf("error unmarshalling json into struct, err: %w", err)
 		}
-
-		// get todays date
-		// todaysDate := time.Now().Format("2006-01-02")
 
 		prayerMonthMap := make(map[string]map[string]time.Time)
 
@@ -107,6 +105,7 @@ func GetPrayerTimes(location string, client *redis.Client, logger *zap.SugaredLo
 				//TODO check if return is right or should add continue here
 				return nil, err
 			}
+			// upload data to redis from api call, so it can be used in next cycle
 			err = client.Set(outerKey, innerMapJson, 0).Err()
 			if err != nil {
 				logger.Errorf("error uploading outerKey %s and innerMapJson %s, error: %s", outerKey, innerMapJson, err)
@@ -129,15 +128,12 @@ func GetPrayerTimes(location string, client *redis.Client, logger *zap.SugaredLo
 			logger.Errorf("redis data get request caused error, err: %w", err)
 		}
 
-		// logger.Infof("Redis data for %s day is: %s", redisDateKey, redisData)
 		err = json.Unmarshal([]byte(redisData), &prayerTimesRedis)
 		if err != nil {
 			logger.Errorf("failed to unmarshal redis data into struct, err: %w", err)
 		}
 		logger.Infof("PrayerTimesRedis Struct: %s", prayerTimesRedis.Fajr)
 
-		//TODO CONTINUE need to parse the prayerTimesRedis struct from string to Time.time values and then can add it to the dailyPrayerTimesMap
-		// From there you can add it to monthlyDataRedis map and serve it as the return of this function
 		dailyPrayerTimesMap := make(map[string]time.Time)
 		dailyPrayerTimesMap["Fajr"] = parseRedisTimeString(prayerTimesRedis.Fajr, logger)
 		dailyPrayerTimesMap["Dhuhr"] = parseRedisTimeString(prayerTimesRedis.Dhuhr, logger)
