@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
+	"github.com/go-redis/redis"
 	"github.com/labstack/echo"
 	"go.uber.org/zap"
 )
@@ -27,11 +27,11 @@ func main() {
 		return
 	}
 	logger.Infof("pass %s", pass)
-	// client := redis.NewClient(&redis.Options{
-	// 	Addr:     "redis-13336.c304.europe-west1-2.gce.cloud.redislabs.com",
-	// 	Password: pass,     // no password set
-	// 	DB:       12040201, // use default DB
-	// })
+	client := redis.NewClient(&redis.Options{
+		Addr:     "redis-13336.c304.europe-west1-2.gce.cloud.redislabs.com:13336",
+		Password: pass,
+		DB:       0,
+	})
 
 	e := echo.New()
 
@@ -42,18 +42,29 @@ func main() {
 	// add v1 GET api to make a call, given a date, to recieve all prayer times for that day, from the redis server
 
 	location := "Europe/London"
-	Pt, err := GetPrayerTimes(location)
+	//TODO make it globally readable,
+	// use concurrency to
+	// pt object stores everything, not have data for this month, 100 ppl call app at same time for new month, 100 calls, so go handles them concurrently,
+	// problem , when handler cant find data
+
+	Pt, err := GetPrayerTimes(location, client, logger)
 	if err != nil {
-		fmt.Errorf("error executing GetPrayerTimes, err %w", err)
+		logger.Errorf("error executing GetPrayerTimes, err %w", err)
 	}
+
+	//TODO add panic and recover if it fails to upload to memory
 
 	api := e.Group("/api/v1")
 
-	// v1.GET("/prayerTimes", getPrayerTimes(c*gin.Context))
-	// check if this will be a post
-
 	api.GET("/getPrayerTimes/:dateValue", func(c echo.Context) error {
 		return todayPrayerHandler(c, Pt, logger)
+	})
+
+	//have a separate handler that responds to cloud function calls that will udpate pt with information,
+	// use mutex to lock Pt while you update it, and then open it up once mutex is done.
+	api.GET("/getPrayerTimes/:dateValue", func(c echo.Context) error {
+		Pt, err := GetPrayerTimes(location, client, logger)
+		return err
 	})
 
 	e.Start(":8080")

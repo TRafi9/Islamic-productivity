@@ -9,11 +9,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-redis/redis"
 	"github.com/labstack/echo"
 	"go.uber.org/zap"
 )
 
-func GetPrayerTimes(location string) (map[string]map[string]time.Time, error) {
+func GetPrayerTimes(location string, client *redis.Client, logger *zap.SugaredLogger) (map[string]map[string]time.Time, error) {
 
 	// Gets prayer times monthly
 
@@ -27,77 +28,142 @@ func GetPrayerTimes(location string) (map[string]map[string]time.Time, error) {
 	apiDate := time.Now().In(london)
 	apiDate = time.Date(apiDate.Year(), apiDate.Month(), 01, 0, 0, 0, 0, apiDate.Location())
 	apiDateString := apiDate.Format("02-01-2006")
+	redisDateFormat := apiDate.Format("2006-01-02")
+	// redisDateFormat := "01-02-2006"
 	fmt.Printf("date string: %s \n", apiDateString)
 
-	prayerTimesURL := fmt.Sprintf("https://muslimsalat.com/%s/monthly/%s/true.json?key==dd00aaed7ee591ead148b3af566d88f1", apiLoc, apiDateString)
+	res, err := client.Get(redisDateFormat).Result()
 
-	response, err := http.Get(prayerTimesURL)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get response from API call to prayerTimesURL, err: %w", err)
-	}
-	//TODO check why we defer this specifically
-	defer response.Body.Close()
+		// NO REDIS DATA/ REDIS PULL FAILED, CALL API INSTEAD
+		// error could also be that redis.Nil aka there was no value returned
+		logger.Errorf("error with redis get call, continue to get data from  %w", err)
 
-	resBody, err := io.ReadAll(response.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response body, err: %w", err)
-	}
-	jsonString := string(resBody)
-	var ResponseStruct ResponseStruct
-
-	err = json.Unmarshal([]byte(jsonString), &ResponseStruct)
-	if err != nil {
-		return nil, fmt.Errorf("error unmarshalling json into struct, err: %w", err)
-	}
-
-	// get todays date
-	// todaysDate := time.Now().Format("2006-01-02")
-
-	prayerMonthMap := make(map[string]map[string]time.Time)
-
-	// loops through json for all days of month
-	// finds today and gets prayer times for today in string
-	for i := range ResponseStruct.Items {
-		prayerDate := ResponseStruct.Items[i].DateFor
-
-		parsedDate, err := time.Parse("2006-1-2", prayerDate)
-		if err != nil {
-			return nil, fmt.Errorf("error parsing date: %w", err)
+		// if no redis records exist for the date being queried, call the api code here and also upload to db!
+		if err == redis.Nil {
+			logger.Infof("No redis entry for this date, date %s, res: %s", redisDateFormat, res)
 		}
-		prayerDate = parsedDate.Format("2006-01-02")
 
-		prayerDayMap := make(map[string]time.Time)
+		prayerTimesURL := fmt.Sprintf("https://muslimsalat.com/%s/monthly/%s/true.json?key==dd00aaed7ee591ead148b3af566d88f1", apiLoc, apiDateString)
 
-		prayerDayMap["Fajr"] = parseTime(prayerDate, ResponseStruct.Items[i].Fajr, location)
-		prayerDayMap["Dhuhr"] = parseTime(prayerDate, ResponseStruct.Items[i].Dhuhr, location)
-		prayerDayMap["Asr"] = parseTime(prayerDate, ResponseStruct.Items[i].Asr, location)
-		prayerDayMap["Maghrib"] = parseTime(prayerDate, ResponseStruct.Items[i].Maghrib, location)
-		prayerDayMap["Isha"] = parseTime(prayerDate, ResponseStruct.Items[i].Isha, location)
+		response, err := http.Get(prayerTimesURL)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get response from API call to prayerTimesURL, err: %w", err)
+		}
+		//TODO check why we defer this specifically
+		defer response.Body.Close()
 
-		prayerMonthMap[prayerDate] = prayerDayMap
+		resBody, err := io.ReadAll(response.Body)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read response body, err: %w", err)
+		}
+		jsonString := string(resBody)
+		var ResponseStruct ResponseStruct
+
+		err = json.Unmarshal([]byte(jsonString), &ResponseStruct)
+		if err != nil {
+			return nil, fmt.Errorf("error unmarshalling json into struct, err: %w", err)
+		}
+
+		prayerMonthMap := make(map[string]map[string]time.Time)
+
+		// loops through json for all days of month
+		// finds today and gets prayer times for today in string
+		for i := range ResponseStruct.Items {
+			prayerDate := ResponseStruct.Items[i].DateFor
+
+			parsedDate, err := time.Parse("2006-1-2", prayerDate)
+			if err != nil {
+				return nil, fmt.Errorf("error parsing date: %w", err)
+			}
+			prayerDate = parsedDate.Format("2006-01-02")
+
+			prayerDayMap := make(map[string]time.Time)
+
+			prayerDayMap["Fajr"] = parseTime(prayerDate, ResponseStruct.Items[i].Fajr, location)
+			prayerDayMap["Dhuhr"] = parseTime(prayerDate, ResponseStruct.Items[i].Dhuhr, location)
+			prayerDayMap["Asr"] = parseTime(prayerDate, ResponseStruct.Items[i].Asr, location)
+			prayerDayMap["Maghrib"] = parseTime(prayerDate, ResponseStruct.Items[i].Maghrib, location)
+			prayerDayMap["Isha"] = parseTime(prayerDate, ResponseStruct.Items[i].Isha, location)
+
+			prayerMonthMap[prayerDate] = prayerDayMap
+
+		}
+		newMap := make(map[string]map[string]string)
+		for key, innerKeyVal := range prayerMonthMap {
+			newMap[key] = make(map[string]string)
+			for prayer, timeVal := range innerKeyVal {
+				newMap[key][prayer] = timeVal.String()
+			}
+
+		}
+
+		for outerKey, innerMap := range newMap {
+			innerMapJson, err := json.Marshal(innerMap)
+			if err != nil {
+				logger.Error("error marshalling inner map: %w", err)
+				//TODO check if return is right or should add continue here
+				return nil, err
+			}
+			// upload data to redis from api call, so it can be used in next cycle
+			err = client.Set(outerKey, innerMapJson, 0).Err()
+			if err != nil {
+				logger.Errorf("error uploading outerKey %s and innerMapJson %s, error: %s", outerKey, innerMapJson, err)
+				return nil, err
+			}
+		}
+		logger.Info("Monthly prayer API call is")
+		logger.Info(prayerMonthMap)
+		return prayerMonthMap, nil
+	}
+
+	monthlyDataRedis := make(map[string]map[string]time.Time)
+	var prayerTimesRedis PrayerTimesRedis
+	for day := apiDate; day.Month() == apiDate.Month(); day = day.AddDate(0, 0, 1) {
+		redisDateKey := day.Format("2006-01-02")
+
+		redisData, err := client.Get(redisDateKey).Result()
+
+		if err != nil {
+			logger.Errorf("redis data get request caused error, err: %w", err)
+		}
+
+		err = json.Unmarshal([]byte(redisData), &prayerTimesRedis)
+		if err != nil {
+			logger.Errorf("failed to unmarshal redis data into struct, err: %w", err)
+		}
+		logger.Infof("PrayerTimesRedis Struct: %s", prayerTimesRedis.Fajr)
+
+		dailyPrayerTimesMap := make(map[string]time.Time)
+		dailyPrayerTimesMap["Fajr"] = parseRedisTimeString(prayerTimesRedis.Fajr, logger)
+		dailyPrayerTimesMap["Dhuhr"] = parseRedisTimeString(prayerTimesRedis.Dhuhr, logger)
+		dailyPrayerTimesMap["Asr"] = parseRedisTimeString(prayerTimesRedis.Asr, logger)
+		dailyPrayerTimesMap["Maghrib"] = parseRedisTimeString(prayerTimesRedis.Maghrib, logger)
+		dailyPrayerTimesMap["Isha"] = parseRedisTimeString(prayerTimesRedis.Isha, logger)
+
+		monthlyDataRedis[redisDateKey] = dailyPrayerTimesMap
 
 	}
-	return prayerMonthMap, nil
+	logger.Info("MONTHLY DATA FROM REDIS CACHE IS: ")
+	logger.Info(monthlyDataRedis)
+	return monthlyDataRedis, nil
+}
 
-	// create an instance of our struct we want to unmarshal this string into
+func parseRedisTimeString(redisTimeString string, logger *zap.SugaredLogger) time.Time {
 
-	// prayerTimes := PrayerTimes{
-	// 	PrayerDate: prayerDate,
-	// 	Fajr:       parseTime(prayerDate, FajrTime, location),
-	// 	Dhuhr:      parseTime(prayerDate, DhuhrTime, location),
-	// 	Asr:        parseTime(prayerDate, AsrTime, location),
-	// 	Maghrib:    parseTime(prayerDate, MaghribTime, location),
-	// 	Isha:       parseTime(prayerDate, IshaTime, location),
-	// }
-
-	// // return PrayerTimes, nil
-	// return prayerTimes, nil
+	layout := "2006-01-02 15:04:05 -0700 MST"
+	parsedTime, err := time.Parse(layout, redisTimeString)
+	if err != nil {
+		logger.Errorf("error parsing time string, %w", err)
+	}
+	return parsedTime
 }
 
 func parseTime(dateVal string, timeVal string, location string) time.Time {
 
 	loc, err := time.LoadLocation(location)
 	if err != nil {
+
 		return time.Time{}
 	}
 	timeVal = strings.TrimSpace(timeVal)
@@ -123,6 +189,13 @@ type PrayerTimes struct {
 	Asr        time.Time
 	Maghrib    time.Time
 	Isha       time.Time
+}
+type PrayerTimesRedis struct {
+	Fajr    string
+	Dhuhr   string
+	Asr     string
+	Maghrib string
+	Isha    string
 }
 
 // Response represents the entire JSON response structure.
