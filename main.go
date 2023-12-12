@@ -60,8 +60,14 @@ func main() {
 		return todayPrayerHandler(c, Pt, logger)
 	})
 
-	//have a separate handler that responds to cloud function calls that will udpate pt with information,
-	// use mutex to lock Pt while you update it, and then open it up once mutex is done.
+	//TODO CONTINUE FROM HERE
+	// make Pt a global variable, then use a cloud function to trigger the handler function underneath
+	// handler function should just rerun getPrayerTimes, which will run for the new day and push the month data to redis
+	// therefore you want the cloud function to trigger just after midnight on the first of a new month to populate redis data
+	// use mutex to lock Pt while you update it, and then open it up once mutex is done
+
+	// you can also use an infinite for-loop instead that will sleep daily and trigger Pt to run if it is the first of the month
+	// but this is a copout version (although very viable and efficient heuheh)
 	api.GET("/getPrayerTimes/:dateValue", func(c echo.Context) error {
 		Pt, err := GetPrayerTimes(location, client, logger)
 		return err
