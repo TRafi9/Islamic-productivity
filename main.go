@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/http"
 	"os"
 
 	"github.com/go-redis/redis"
@@ -61,6 +62,9 @@ func main() {
 	})
 
 	//TODO CONTINUE FROM HERE
+	// also look at serialisation of prayerData so you dont have to convert and revert between time.Time and string values, can store serialized strings in redis that are
+	// time.time values instead?
+
 	// make Pt a global variable, then use a cloud function to trigger the handler function underneath
 	// handler function should just rerun getPrayerTimes, which will run for the new day and push the month data to redis
 	// therefore you want the cloud function to trigger just after midnight on the first of a new month to populate redis data
@@ -68,9 +72,29 @@ func main() {
 
 	// you can also use an infinite for-loop instead that will sleep daily and trigger Pt to run if it is the first of the month
 	// but this is a copout version (although very viable and efficient heuheh)
-	api.GET("/getPrayerTimes/:dateValue", func(c echo.Context) error {
-		Pt, err := GetPrayerTimes(location, client, logger)
-		return err
+
+	//TODO abstract away Error messages into structs and call them instead
+	type ErrorResponse struct {
+		Message string `json:"message"`
+		Error   string `json:"error"`
+	}
+	api.GET("/updatePt", func(c echo.Context) error {
+		newPt, err := GetPrayerTimes(location, client, logger)
+		if err != nil {
+			logger.Errorf("Error running updatePt %w", err)
+			errorResponse := ErrorResponse{
+				Message: "Failed to update prayer times",
+				Error:   err.Error(),
+			}
+			return c.JSON(http.StatusInternalServerError, errorResponse)
+		}
+		Pt = newPt
+		successResponse := ErrorResponse{
+			Message: "Successfully updated prayer times from cloud run",
+			Error:   "",
+		}
+		return c.JSON(http.StatusOK, successResponse)
+
 	})
 
 	e.Start(":8080")
