@@ -9,6 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// ngrok http --domain=living-sacred-skunk.ngrok-free.app 8080
 func readFile(filepath string) (string, error) {
 	content, err := os.ReadFile(filepath)
 	if err != nil {
@@ -79,7 +80,6 @@ func main() {
 		Error   string `json:"error"`
 	}
 
-
 	api.GET("/updatePt", func(c echo.Context) error {
 		newPt, err := GetPrayerTimes(location, client, logger)
 		if err != nil {
@@ -98,8 +98,6 @@ func main() {
 		return c.JSON(http.StatusOK, successResponse)
 
 	})
-
-	
 
 	e.Start(":8080")
 }
