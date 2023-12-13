@@ -78,6 +78,8 @@ func main() {
 		Message string `json:"message"`
 		Error   string `json:"error"`
 	}
+
+
 	api.GET("/updatePt", func(c echo.Context) error {
 		newPt, err := GetPrayerTimes(location, client, logger)
 		if err != nil {
@@ -96,6 +98,8 @@ func main() {
 		return c.JSON(http.StatusOK, successResponse)
 
 	})
+
+	
 
 	e.Start(":8080")
 }
