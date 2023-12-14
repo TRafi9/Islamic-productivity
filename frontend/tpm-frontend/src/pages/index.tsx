@@ -44,16 +44,13 @@ export default function Home() {
   useEffect(() => {
     if (formattedDate !== checkDate || checkDate == null) {
       setCheckDate(formattedDate);
-      console.log("formattedDate");
-      console.log(formattedDate);
+
       getTodaysPrayers(formattedDate).then((result) => {
         console.log("Checking if result exists:", result);
 
         if (result) {
-          console.log("Before SetState:", todaysPrayers);
           setTodaysPrayers(result);
           console.log("After SetState:", todaysPrayers);
-          console.log("Asr value:", result.Asr);
         } else {
           console.log("Result is undefined or null");
         }
@@ -61,96 +58,6 @@ export default function Home() {
     }
   }, [formattedDate]);
 
-  const getTodaysPrayers = async (date: string) => {
-    if (date) {
-      try {
-        // const graphResponse = await instance.acquireTokenSilent(request);
-        // const token = `Bearer ${graphResponse.accessToken}`;
-        const response = await fetch(
-          // `api/getTodaysPrayers?bearer=${token}&id=${id}`,
-          `api/getTodaysPrayers?date=${date}`,
-          {
-            method: "GET",
-          }
-        );
-        console.log("awaiting response...");
-
-        const data = await response.json();
-        console.log(data);
-        return data;
-      } catch (error) {
-        console.log("error calling api in getTodaysPrayers : ", error);
-      }
-    } else {
-      ("getTodaysPrayers failed");
-    }
-  };
-
-  function findClosestAheadTime(prayerTimes: PrayerData): string {
-    const now = new Date();
-
-    // Convert the time strings to Date objects
-    const timeObjects = Object.entries(prayerTimes).map(([prayer, time]) => ({
-      prayer,
-      time: new Date(time),
-    }));
-
-    // Filter out times that are in the past
-    const futureTimes = timeObjects.filter(({ time }) => time > now);
-
-    // If there are no future times, consider the first time as the closest ahead
-    if (futureTimes.length === 0) {
-      // over here is when there are no prayers left for the day i.e. after isha
-      return timeObjects[0].prayer;
-    }
-
-    // Find the closest ahead time
-    const closestAheadTime = futureTimes.reduce((closest, current) => {
-      const closestDifference = closest.time.getTime() - now.getTime();
-      const currentDifference = current.time.getTime() - now.getTime();
-
-      return currentDifference < closestDifference ? current : closest;
-    });
-
-    return closestAheadTime.prayer;
-  }
-
-  const closestAheadTime = findClosestAheadTime(todaysPrayers);
-  const closestTimeValue =
-    todaysPrayers[closestAheadTime as keyof typeof todaysPrayers];
-
-  // Step 1: Create state variable for countdown
-  const [countdown, setCountdown] = useState<number | null>(null);
-  const [productiveCheck, setProductiveCheck] = useState(false);
-  useEffect(() => {
-    // Convert closestTimeValue to a Date object
-    const closestTimeDate = closestTimeValue
-      ? new Date(closestTimeValue)
-      : null;
-
-    // Step 2: Update countdown every second
-    const interval = setInterval(() => {
-      // Step 3: Calculate time left until closestTimeDate
-      if (closestTimeDate) {
-        const now = new Date();
-        const timeLeftInSeconds = Math.floor(
-          (closestTimeDate.getTime() - now.getTime()) / 1000
-        );
-
-        // Step 4: Update countdown state variable
-        setCountdown(timeLeftInSeconds);
-
-        // Optionally: You can clear the interval if the countdown reaches zero
-        if (timeLeftInSeconds <= 0) {
-          clearInterval(interval);
-          setProductiveCheck(true);
-        }
-      }
-    }, 1000);
-
-    // Clear the interval when the component unmounts
-    return () => clearInterval(interval);
-  }, [closestTimeValue]);
 
   return (
     <>
@@ -161,49 +68,8 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className={`${styles.main} ${inter.className}`}>
-        {productiveCheck ? (
-          <div>
-            {/* Step 5: Display the countdown in your JSX */}
-            <h1>The productive muslim! {todaysPrayers.Asr}</h1>
-            //TODO CONTINUE onClick runs function that submits users value to
-            backend, which submits value to DB, and then sets ProductiveCheck
-            back to false, to display countdown
-            <Button onClick={(e) => setProductiveCheck(false)}>Yes</Button>
-            <Button> No</Button>
-            <h2> Measuring your productivity one step at a time</h2>
-          </div>
-        ) : (
-          <div>
-            {/* Step 5: Display the countdown in your JSX */}
-            <h1>The productive muslim! {todaysPrayers.Asr}</h1>
-            {closestTimeValue && (
-              <h2>
-                Time left until {closestAheadTime} prayer:{" "}
-                {formatCountdown(countdown)}
-              </h2>
-            )}
-            <Button onClick={(e) => setProductiveCheck(true)}>Yes</Button>
-
-            <h2> Measuring your productivity one step at a time</h2>
-          </div>
-        )}
+        <div></div>
       </main>
     </>
   );
-}
-
-// Helper function to format seconds into HH:MM:SS
-function formatCountdown(seconds: number | null): string {
-  if (seconds === null) {
-    return "";
-  }
-
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const remainingSeconds = seconds % 60;
-
-  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
-    2,
-    "0"
-  )}:${String(remainingSeconds).padStart(2, "0")}`;
 }
