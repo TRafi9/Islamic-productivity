@@ -22,3 +22,5 @@ const getTodaysPrayers = async (date: string) => {
     ("getTodaysPrayers failed");
   }
 };
+
+export default getTodaysPrayers;

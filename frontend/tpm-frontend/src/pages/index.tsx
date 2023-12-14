@@ -6,6 +6,9 @@ import { useEffect, useState } from "react";
 import { format } from "path";
 import { text } from "stream/consumers";
 import { Button } from "react-bootstrap";
+import getTodaysPrayers from "@/functions/getTodaysPrayers";
+import getNextPrayer from "@/functions/getNextPrayer";
+import next from "next";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -39,25 +42,37 @@ export default function Home() {
     Isha: "",
     Maghrib: "",
   });
+
+  const [prayersLeftInDay, setPrayersLeftInDay] = useState<Record<
+    string,
+    string
+  > | null>(null);
   // check if its first load, or the day has changed, if so call the API to get new results in todaysPrayers
   //TODO IMPORTANT need to update formattedDate daily/hourly to run this constantly
   useEffect(() => {
-    if (formattedDate !== checkDate || checkDate == null) {
-      setCheckDate(formattedDate);
+    const fetchData = async () => {
+      if (formattedDate !== checkDate || checkDate == null) {
+        setCheckDate(formattedDate);
+        try {
+          const result = await getTodaysPrayers(formattedDate);
 
-      getTodaysPrayers(formattedDate).then((result) => {
-        console.log("Checking if result exists:", result);
-
-        if (result) {
-          setTodaysPrayers(result);
-          console.log("After SetState:", todaysPrayers);
-        } else {
-          console.log("Result is undefined or null");
+          if (result) {
+            setTodaysPrayers(result);
+          } else {
+            console.log("Results undefined couldnt get todays prayers");
+          }
+        } catch (error) {
+          console.error("Error fetching todays prayers", error);
         }
-      });
-    }
+      }
+    };
+    fetchData();
   }, [formattedDate]);
 
+  useEffect(() => {
+    const nextPrayer = getNextPrayer(todaysPrayers);
+    console.log("next prayer is", nextPrayer);
+  }, [todaysPrayers]);
 
   return (
     <>
