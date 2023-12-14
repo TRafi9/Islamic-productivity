@@ -69,10 +69,38 @@ export default function Home() {
     fetchData();
   }, [formattedDate]);
 
+  const [nextPrayerTime, setNextPrayerTime] = useState<Date | null>(null);
+  const [nextPrayerName, setNextPrayerName] = useState<string | null>(null);
+
+  // used in a use effect to trigger a rerun of the getNextPrayer function, it runs when the time passes that of the next prayer
+  const [nextPrayerTimeActivator, setNextPrayerTimeActivator] = useState<
+    number | null
+  >(null);
+
   useEffect(() => {
-    const nextPrayer = getNextPrayer(todaysPrayers);
-    console.log("next prayer is", nextPrayer);
-  }, [todaysPrayers]);
+    if (todaysPrayers != null) {
+      const nextPrayer = getNextPrayer(todaysPrayers);
+      if (nextPrayer) {
+        setNextPrayerTime(new Date(nextPrayer.time));
+        setNextPrayerName(nextPrayer.name);
+      }
+    }
+  }, [todaysPrayers, nextPrayerTimeActivator]);
+
+  // if a nextPrayerTime exists (should do after first load), start timer to see when it goes past nextPrayerTime
+  if (nextPrayerTime) {
+    setInterval(updateNextPrayer, 5000);
+  }
+
+  // if timer in this function goes past nextPrayerTime, it will know and will hit the activator which will rerun the useeffect to call a new prayer time
+  function updateNextPrayer(nextPrayerTime: Date, nextPrayerName: string) {
+    const timer = new Date();
+    if (timer > nextPrayerTime && nextPrayerName != "Isha") {
+      setNextPrayerName("AFTER ISHA");
+    } else if (timer > nextPrayerTime) {
+      setNextPrayerTimeActivator(1);
+    }
+  }
 
   return (
     <>
@@ -83,7 +111,13 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className={`${styles.main} ${inter.className}`}>
-        <div></div>
+        <div>
+          <p>
+            {" "}
+            {nextPrayerName}
+            {String(nextPrayerTime)}
+          </p>
+        </div>
       </main>
     </>
   );
