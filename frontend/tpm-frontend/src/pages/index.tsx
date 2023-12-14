@@ -57,7 +57,13 @@ export default function Home() {
           const result = await getTodaysPrayers(formattedDate);
 
           if (result) {
-            setTodaysPrayers(result);
+            setTodaysPrayers({
+              Asr: "2023-12-14T14:35:00Z",
+              Dhuhr: "2023-12-14T12:55:00Z",
+              Fajr: "2023-12-14T06:54:00Z",
+              Isha: "2023-12-14T20:27:00Z",
+              Maghrib: "2023-12-14T16:59:00Z",
+            });
           } else {
             console.log("Results undefined couldnt get todays prayers");
           }
@@ -88,13 +94,26 @@ export default function Home() {
   }, [todaysPrayers, nextPrayerTimeActivator]);
 
   // if a nextPrayerTime exists (should do after first load), start timer to see when it goes past nextPrayerTime
-  if (nextPrayerTime) {
-    setInterval(updateNextPrayer, 5000);
-  }
+  //TODO CONTINUE FROM HERE - FIND OUT WHY HAVING THIS IN USE EFFECT CALLS THE TIMER LESS
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+
+    if (nextPrayerTime && nextPrayerName) {
+      // Pass a function reference, not an invocation
+      intervalId = setInterval(
+        () => updateNextPrayer(nextPrayerTime, nextPrayerName),
+        5000
+      );
+    }
+
+    // Cleanup function to clear the interval when the component unmounts
+    return () => clearInterval(intervalId);
+  }, [nextPrayerTime, nextPrayerName]);
 
   // if timer in this function goes past nextPrayerTime, it will know and will hit the activator which will rerun the useeffect to call a new prayer time
   function updateNextPrayer(nextPrayerTime: Date, nextPrayerName: string) {
     const timer = new Date();
+    console.log("timer running...");
     if (timer > nextPrayerTime && nextPrayerName != "Isha") {
       setNextPrayerName("AFTER ISHA");
     } else if (timer > nextPrayerTime) {
