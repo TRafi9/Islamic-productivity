@@ -9,6 +9,7 @@ import { Button } from "react-bootstrap";
 import getTodaysPrayers from "@/functions/getTodaysPrayers";
 import getNextPrayer from "@/functions/getNextPrayer";
 import next from "next";
+import Countdown from "react-countdown";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -58,11 +59,11 @@ export default function Home() {
 
           if (result) {
             setTodaysPrayers({
-              Asr: "2023-12-14T14:35:00Z",
-              Dhuhr: "2023-12-14T12:55:00Z",
-              Fajr: "2023-12-14T06:54:00Z",
-              Isha: "2023-12-14T20:27:00Z",
-              Maghrib: "2023-12-14T16:59:00Z",
+              Asr: "2023-12-15T14:35:00Z",
+              Dhuhr: "2023-12-15T12:55:00Z",
+              Fajr: "2023-12-15T06:54:00Z",
+              Isha: "2023-12-15T17:33:00Z",
+              Maghrib: "2023-12-15T16:59:00Z",
             });
           } else {
             console.log("Results undefined couldnt get todays prayers");
@@ -114,7 +115,7 @@ export default function Home() {
   function updateNextPrayer(nextPrayerTime: Date, nextPrayerName: string) {
     const timer = new Date();
     console.log("timer running...");
-    if (timer > nextPrayerTime && nextPrayerName != "Isha") {
+    if (timer > nextPrayerTime && nextPrayerName == "Isha") {
       setNextPrayerName("AFTER ISHA");
     } else if (timer > nextPrayerTime) {
       setNextPrayerTimeActivator(1);
@@ -133,8 +134,12 @@ export default function Home() {
         <div>
           <p>
             {" "}
-            {nextPrayerName}
-            {String(nextPrayerTime)}
+            the next Prayer is {nextPrayerName} at {String(nextPrayerTime)}
+          </p>
+          <br></br>
+          <p> Time left till {nextPrayerName} is</p>
+          <p>
+            {nextPrayerTime !== null && <Countdown date={nextPrayerTime} />}
           </p>
         </div>
       </main>
