@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"net/http"
 	"os"
 
+	"cloud.google.com/go/bigquery"
 	"github.com/go-redis/redis"
 	"github.com/labstack/echo"
 	"go.uber.org/zap"
@@ -34,6 +36,45 @@ func main() {
 		Password: pass,
 		DB:       0,
 	})
+	//BQ initialisation and uploading functionality
+	ctx := context.Background()
+	projectID := "starlit-booster-408007"
+	bqClient, err := bigquery.NewClient(ctx, projectID)
+	if err != nil {
+		logger.Errorf("failed to create bqClient, err: %w", err.Error())
+	}
+
+	myDataset := bqClient.Dataset("my_dataset")
+	if err := myDataset.Create(ctx, nil); err != nil {
+		logger.Errorf("failed to connect to dataset in BQ, err: %w", err.Error())
+	}
+
+	table := myDataset.Table("my_table")
+
+	uploader := table.Inserter()
+
+	type user_submissions struct {
+		user_id             string
+		productive_val      bool
+		first_prayer_name   string
+		second_prayer_name  string
+		first_prayer_time   string
+		second_prayer_time  string
+		ingestion_timestamp string
+	}
+	// Item implements the ValueSaver interface.
+	userSubmissionItems := &user_submissions{
+		user_id:             "talha_1",
+		productive_val:      true,
+		first_prayer_name:   "Fajr",
+		second_prayer_name:  "Dhuhr",
+		first_prayer_time:   "2023-12-16T15:04:05Z",
+		second_prayer_time:  "2023-12-16T20:20:05Z",
+		ingestion_timestamp: "2023-12-16T20:21:00Z",
+	}
+	if err := uploader.Put(ctx, userSubmissionItems); err != nil {
+		// TODO: Handle error.
+	}
 
 	e := echo.New()
 
