@@ -14,6 +14,7 @@ import Countdown from "react-countdown";
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
+  const [displayType, setDisplayType] = useState("countdown");
   // checkDate is used as a value to check if the currentDate has been changed
   const [checkDate, setCheckDate] = useState("");
 
@@ -59,11 +60,11 @@ export default function Home() {
 
           if (result) {
             setTodaysPrayers({
-              Asr: "2023-12-15T14:35:00Z",
-              Dhuhr: "2023-12-15T12:55:00Z",
-              Fajr: "2023-12-15T06:54:00Z",
-              Isha: "2023-12-15T17:33:00Z",
-              Maghrib: "2023-12-15T16:59:00Z",
+              Asr: "2023-12-16T14:35:00Z",
+              Dhuhr: "2023-12-16T10:01:00Z",
+              Fajr: "2023-12-16T06:56:00Z",
+              Isha: "2023-12-16T10:11:00Z",
+              Maghrib: "2023-12-16T16:59:00Z",
             });
           } else {
             console.log("Results undefined couldnt get todays prayers");
@@ -83,6 +84,7 @@ export default function Home() {
   const [nextPrayerTimeActivator, setNextPrayerTimeActivator] = useState<
     number | null
   >(null);
+  const [productiveState, setProductiveState] = useState(false);
 
   useEffect(() => {
     if (todaysPrayers != null) {
@@ -117,10 +119,14 @@ export default function Home() {
     console.log("timer running...");
     if (timer > nextPrayerTime && nextPrayerName == "Isha") {
       setNextPrayerName("AFTER ISHA");
+      setDisplayType("after isha");
     } else if (timer > nextPrayerTime) {
+      setProductiveState(true);
       setNextPrayerTimeActivator(1);
     }
   }
+
+  const countdownKey = nextPrayerTime ? nextPrayerTime.toString() : null;
 
   return (
     <>
@@ -131,17 +137,26 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className={`${styles.main} ${inter.className}`}>
-        <div>
-          <p>
-            {" "}
-            the next Prayer is {nextPrayerName} at {String(nextPrayerTime)}
-          </p>
-          <br></br>
-          <p> Time left till {nextPrayerName} is</p>
-          <p>
-            {nextPrayerTime !== null && <Countdown date={nextPrayerTime} />}
-          </p>
-        </div>
+        {displayType == "countdown" && productiveState == false && (
+          <div>
+            <p>
+              {" "}
+              the next Prayer is {nextPrayerName} at {String(nextPrayerTime)}
+            </p>
+            <br></br>
+            <p> Time left till {nextPrayerName} is</p>
+            <p>
+              {nextPrayerTime !== null && (
+                <Countdown key={countdownKey} date={nextPrayerTime} />
+              )}
+            </p>
+          </div>
+        )}
+        {displayType == "after isha" && (
+          <div>
+            <p> after isha, come back tomorrow</p>
+          </div>
+        )}
       </main>
     </>
   );
