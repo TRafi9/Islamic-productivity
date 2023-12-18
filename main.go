@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"os"
+	"time"
 
 	"cloud.google.com/go/bigquery"
 	"github.com/go-redis/redis"
@@ -36,44 +37,50 @@ func main() {
 		Password: pass,
 		DB:       0,
 	})
+
+	connectionName := os.Getenv("CONNECTION_NAME")
+	user := "USER"
+	password := "PASSWORD"
+	dbName := "DB_NAME"
 	//BQ initialisation and uploading functionality
 	ctx := context.Background()
 	projectID := "starlit-booster-408007"
+	// opt := option.WithCredentialsFile("")
 	bqClient, err := bigquery.NewClient(ctx, projectID)
 	if err != nil {
 		logger.Errorf("failed to create bqClient, err: %w", err.Error())
 	}
 
-	myDataset := bqClient.Dataset("my_dataset")
-	if err := myDataset.Create(ctx, nil); err != nil {
-		logger.Errorf("failed to connect to dataset in BQ, err: %w", err.Error())
-	}
+	myDataset := bqClient.Dataset("the_productive_muslim")
+	// if err := myDataset.Create(ctx, nil); err != nil {
+	// 	logger.Errorf("failed to connect to dataset in BQ, err: %w", err.Error())
+	// }
 
-	table := myDataset.Table("my_table")
+	table := myDataset.Table("user-submissions")
 
 	uploader := table.Inserter()
 
 	type user_submissions struct {
-		user_id             string
-		productive_val      bool
-		first_prayer_name   string
-		second_prayer_name  string
-		first_prayer_time   string
-		second_prayer_time  string
-		ingestion_timestamp string
+		User_id             string    `bigquery:"user_id"`
+		Productive_val      bool      `bigquery:"productive_val"`
+		First_prayer_name   string    `bigquery:"first_prayer_name"`
+		Second_prayer_name  string    `bigquery:"second_prayer_name"`
+		First_prayer_time   time.Time `bigquery:"first_prayer_time"`
+		Second_prayer_time  time.Time `bigquery:"second_prayer_time"`
+		Ingestion_timestamp time.Time `bigquery:"ingestion_timestamp"`
 	}
 	// Item implements the ValueSaver interface.
 	userSubmissionItems := &user_submissions{
-		user_id:             "talha_1",
-		productive_val:      true,
-		first_prayer_name:   "Fajr",
-		second_prayer_name:  "Dhuhr",
-		first_prayer_time:   "2023-12-16T15:04:05Z",
-		second_prayer_time:  "2023-12-16T20:20:05Z",
-		ingestion_timestamp: "2023-12-16T20:21:00Z",
+		User_id:             "talha_1",
+		Productive_val:      true,
+		First_prayer_name:   "Fajr",
+		Second_prayer_name:  "Dhuhr",
+		First_prayer_time:   time.Date(2023, 12, 16, 15, 4, 5, 0, time.UTC),
+		Second_prayer_time:  time.Date(2023, 12, 16, 20, 20, 5, 0, time.UTC),
+		Ingestion_timestamp: time.Now(),
 	}
 	if err := uploader.Put(ctx, userSubmissionItems); err != nil {
-		// TODO: Handle error.
+		logger.Errorf("error uploading userSubmissionItems, err: %w", err.Error())
 	}
 
 	e := echo.New()

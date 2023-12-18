@@ -112,8 +112,8 @@ func GetPrayerTimes(location string, client *redis.Client, logger *zap.SugaredLo
 				return nil, err
 			}
 		}
-		logger.Info("Monthly prayer API call is")
-		logger.Info(prayerMonthMap)
+		// logger.Info("Monthly prayer API call is")
+		// logger.Info(prayerMonthMap)
 		return prayerMonthMap, nil
 	}
 
@@ -132,7 +132,7 @@ func GetPrayerTimes(location string, client *redis.Client, logger *zap.SugaredLo
 		if err != nil {
 			logger.Errorf("failed to unmarshal redis data into struct, err: %w", err)
 		}
-		logger.Infof("PrayerTimesRedis Struct: %s", prayerTimesRedis.Fajr)
+		// logger.Infof("PrayerTimesRedis Struct: %s", prayerTimesRedis.Fajr)
 
 		dailyPrayerTimesMap := make(map[string]time.Time)
 		dailyPrayerTimesMap["Fajr"] = parseRedisTimeString(prayerTimesRedis.Fajr, logger)

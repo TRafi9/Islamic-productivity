@@ -1,3 +1,4 @@
 tpm
 pass.txt
-tmp_key.json
+tpm_key.json
+.envrc
