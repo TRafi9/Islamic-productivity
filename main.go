@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -9,6 +11,7 @@ import (
 	"cloud.google.com/go/bigquery"
 	"github.com/go-redis/redis"
 	"github.com/labstack/echo"
+	_ "github.com/lib/pq"
 	"go.uber.org/zap"
 )
 
@@ -38,10 +41,59 @@ func main() {
 		DB:       0,
 	})
 
-	connectionName := os.Getenv("CONNECTION_NAME")
-	user := "USER"
-	password := "PASSWORD"
-	dbName := "DB_NAME"
+	// connectionName := os.Getenv("CONNECTION_NAME")
+	user := os.Getenv("USER")
+	password := os.Getenv("PASSWORD")
+
+	dbName := os.Getenv("DB_NAME")
+	connectionString := fmt.Sprintf("host=localhost user=%s password=%s dbname=%s sslmode=disable", user, password, dbName)
+
+	logger.Info(connectionString)
+
+	db, err := sql.Open("postgres", connectionString)
+
+	if err != nil {
+		logger.Fatalf("Failed to open sql connection, err: %w", err)
+	}
+	defer db.Close()
+
+	// verify connection to db by pinging it
+	err = db.Ping()
+	if err != nil {
+		logger.Fatalf("Ping to db failed, fataling out, err: %w", err)
+	}
+
+	// createTableSQL := `
+	// CREATE TABLE IF NOT EXISTS user_submissions (
+	// 	user_id VARCHAR(255) PRIMARY KEY,
+	// 	productive_val BOOLEAN,
+	// 	first_prayer_name VARCHAR(255),
+	// 	second_prayer_name VARCHAR(255),
+	// 	first_prayer_time TIMESTAMP,
+	// 	second_prayer_time TIMESTAMP,
+	// 	ingestion_timestamp TIMESTAMP
+	// );
+	// `
+
+	insertSQL := `
+	INSERT INTO user_submissions (
+		user_id, productive_val, first_prayer_name,
+		second_prayer_name, first_prayer_time,
+		second_prayer_time, ingestion_timestamp
+	) VALUES (
+		'talha_1', true, 'Fajr', 'Dhuhr',
+		'2023-12-16 15:04:05', '2023-12-16 20:20:05',
+		'2023-12-18 12:34:56'
+	);
+`
+
+	_, err = db.Exec(insertSQL)
+	if err != nil {
+		logger.Fatalf("Failed to execute database sql statement, err: %w", err)
+	} else {
+		logger.Info("SUCCESSFULLY UPLOADED TO POSTRGRES DB!")
+	}
+
 	//BQ initialisation and uploading functionality
 	ctx := context.Background()
 	projectID := "starlit-booster-408007"
