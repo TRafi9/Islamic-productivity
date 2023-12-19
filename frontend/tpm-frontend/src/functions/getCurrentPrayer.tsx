@@ -13,7 +13,7 @@ interface ClosestPrayer {
 }
 
 // this function returns next prayer in closestPrayer interface
-const getNextPrayer = (todaysPrayers: PrayerData): ClosestPrayer | null => {
+const getCurrentPrayer = (todaysPrayers: PrayerData): ClosestPrayer | null => {
   const currTime = new Date();
 
   const filteredPrayerObj: Record<string, ClosestPrayer> = Object.entries(
@@ -21,8 +21,8 @@ const getNextPrayer = (todaysPrayers: PrayerData): ClosestPrayer | null => {
   ).reduce((acc, [key, value]) => {
     const prayerTime = new Date(value);
 
-    if (prayerTime > currTime) {
-      const difference = prayerTime.getTime() - currTime.getTime();
+    if (prayerTime <= currTime) {
+      const difference = currTime.getTime() - prayerTime.getTime();
       acc[key] = { name: key, time: value, difference };
     }
 
@@ -44,4 +44,4 @@ const getNextPrayer = (todaysPrayers: PrayerData): ClosestPrayer | null => {
   return closestPrayer;
 };
 
-export default getNextPrayer;
+export default getCurrentPrayer;

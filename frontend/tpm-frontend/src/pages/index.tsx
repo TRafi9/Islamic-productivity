@@ -10,6 +10,7 @@ import getTodaysPrayers from "@/functions/getTodaysPrayers";
 import getNextPrayer from "@/functions/getNextPrayer";
 import next from "next";
 import Countdown from "react-countdown";
+import getCurrentPrayer from "@/functions/getCurrentPrayer";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -60,11 +61,11 @@ export default function Home() {
 
           if (result) {
             setTodaysPrayers({
-              Asr: "2023-12-16T14:35:00Z",
-              Dhuhr: "2023-12-16T10:01:00Z",
-              Fajr: "2023-12-16T06:56:00Z",
-              Isha: "2023-12-16T10:11:00Z",
-              Maghrib: "2023-12-16T16:59:00Z",
+              Asr: "2023-12-19T14:35:00Z",
+              Dhuhr: "2023-12-19T10:01:00Z",
+              Fajr: "2023-12-19T06:56:00Z",
+              Isha: "2023-12-19T20:11:00Z",
+              Maghrib: "2023-12-19T16:59:00Z",
             });
           } else {
             console.log("Results undefined couldnt get todays prayers");
@@ -89,6 +90,9 @@ export default function Home() {
   useEffect(() => {
     if (todaysPrayers != null) {
       const nextPrayer = getNextPrayer(todaysPrayers);
+      const currentPrayer = getCurrentPrayer(todaysPrayers);
+      console.log("current prayer");
+      console.log(currentPrayer);
       if (nextPrayer) {
         setNextPrayerTime(new Date(nextPrayer.time));
         setNextPrayerName(nextPrayer.name);
@@ -105,7 +109,7 @@ export default function Home() {
       // Pass a function reference, not an invocation
       intervalId = setInterval(
         () => updateNextPrayer(nextPrayerTime, nextPrayerName),
-        5000
+        1000
       );
     }
 
@@ -120,11 +124,15 @@ export default function Home() {
     if (timer > nextPrayerTime && nextPrayerName == "Isha") {
       setNextPrayerName("AFTER ISHA");
       setDisplayType("after isha");
+      // timer is past prayer time, show productive state
     } else if (timer > nextPrayerTime) {
       setProductiveState(true);
+
       setNextPrayerTimeActivator(1);
     }
   }
+
+  const holdCurrentPrayer = nextPrayerTime;
 
   const countdownKey = nextPrayerTime ? nextPrayerTime.toString() : null;
 
@@ -157,6 +165,9 @@ export default function Home() {
             <p> after isha, come back tomorrow</p>
           </div>
         )}
+        {/* {productiveState == true && (
+          <productiveStateView setProductiveState={setProductiveState} />
+        )} */}
       </main>
     </>
   );
