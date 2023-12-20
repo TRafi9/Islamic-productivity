@@ -11,6 +11,9 @@ import getNextPrayer from "@/functions/getNextPrayer";
 import next from "next";
 import Countdown from "react-countdown";
 import getCurrentPrayer from "@/functions/getCurrentPrayer";
+import ProductiveStateView from "@/functions/productiveStateView";
+
+import getLastPrayer from "@/functions/getLastPrayer";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -61,11 +64,11 @@ export default function Home() {
 
           if (result) {
             setTodaysPrayers({
-              Asr: "2023-12-19T14:35:00Z",
-              Dhuhr: "2023-12-19T10:01:00Z",
-              Fajr: "2023-12-19T06:56:00Z",
-              Isha: "2023-12-19T20:11:00Z",
-              Maghrib: "2023-12-19T16:59:00Z",
+              Asr: "2023-12-20T14:35:00Z",
+              Dhuhr: "2023-12-20T10:01:00Z",
+              Fajr: "2023-12-20T06:56:00Z",
+              Isha: "2023-12-20T20:11:00Z",
+              Maghrib: "2023-12-20T16:59:00Z",
             });
           } else {
             console.log("Results undefined couldnt get todays prayers");
@@ -78,8 +81,14 @@ export default function Home() {
     fetchData();
   }, [formattedDate]);
 
-  const [nextPrayerTime, setNextPrayerTime] = useState<Date | null>(null);
   const [nextPrayerName, setNextPrayerName] = useState<string | null>(null);
+  const [nextPrayerTime, setNextPrayerTime] = useState<Date | null>(null);
+  const [currentPrayerName, setCurrentPrayerName] = useState<string | null>(
+    null
+  );
+  const [currentPrayerTime, setCurrentPrayerTime] = useState<Date | null>(null);
+  const [lastPrayerName, setLastPrayerName] = useState<string | null>(null);
+  const [lastPrayerTime, setLastPrayerTime] = useState<Date | null>(null);
 
   // used in a use effect to trigger a rerun of the getNextPrayer function, it runs when the time passes that of the next prayer
   const [nextPrayerTimeActivator, setNextPrayerTimeActivator] = useState<
@@ -91,17 +100,21 @@ export default function Home() {
     if (todaysPrayers != null) {
       const nextPrayer = getNextPrayer(todaysPrayers);
       const currentPrayer = getCurrentPrayer(todaysPrayers);
-      console.log("current prayer");
-      console.log(currentPrayer);
-      if (nextPrayer) {
+      const lastPrayer = getLastPrayer(todaysPrayers);
+      console.log("last prayer...");
+      console.log(lastPrayer);
+
+      if (nextPrayer && currentPrayer && lastPrayer) {
         setNextPrayerTime(new Date(nextPrayer.time));
         setNextPrayerName(nextPrayer.name);
+        setCurrentPrayerName(currentPrayer.name);
+        setCurrentPrayerTime(new Date(currentPrayer.time));
+        setLastPrayerName(lastPrayer.name);
       }
     }
   }, [todaysPrayers, nextPrayerTimeActivator]);
 
   // if a nextPrayerTime exists (should do after first load), start timer to see when it goes past nextPrayerTime
-  //TODO CONTINUE FROM HERE - FIND OUT WHY HAVING THIS IN USE EFFECT CALLS THE TIMER LESS
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
 
@@ -165,9 +178,15 @@ export default function Home() {
             <p> after isha, come back tomorrow</p>
           </div>
         )}
-        {/* {productiveState == true && (
-          <productiveStateView setProductiveState={setProductiveState} />
-        )} */}
+        {productiveState == true && (
+          <ProductiveStateView
+            setProductiveState={setProductiveState}
+            currentPrayerName={currentPrayerName}
+            currentPrayerTime={currentPrayerTime}
+            lastPrayerName={lastPrayerName}
+            lastPrayerTime={lastPrayerTime}
+          />
+        )}
       </main>
     </>
   );
