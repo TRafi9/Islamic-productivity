@@ -2,40 +2,47 @@ import Button from "react-bootstrap/Button";
 // need to send data to handleSendData from getCurrentPrayer + next prayer
 const ProductiveStateView = (props: any) => {
   // set productiveState back to false after person has clicked button
-  const x = props.currentPrayerName;
-  function sendData(value: boolean, props: any) {
-    props.currentPrayerName;
+
+  async function sendData(value: boolean, props: any) {
+    const data = {
+      currentPrayerName: props.currentPrayerName,
+      currentPrayerTime: props.currentPrayerTime,
+      lastPrayerName: props.lastPrayerName,
+      lastPrayerTime: props.lastPrayerTime,
+      productiveValue: value,
+    };
+    await handleSendData(data);
+
     props.setProductiveState(false);
   }
 
-  // const handleSendData = async () => {
-  //   try {
-  //     const response = await fetch("/api/postProductivityValue", {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify(data),
-  //     });
+  const handleSendData = async (data: any) => {
+    try {
+      const response = await fetch("/api/postProductivityValue", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
 
-  //     if (response.ok) {
-  //       // Request was successful
-  //       const responseData = await response.json();
-  //       console.log("API Response:", responseData);
-  //     } else {
-  //       // Handle errors
-  //       console.error("Error:", response.statusText);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error:");
-  //   }
-  // };
+      if (response.ok) {
+        // Request was successful
+        const responseData = await response.json();
+        console.log("API Response:", responseData);
+      } else {
+        // Handle errors
+        console.error("Error:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error:");
+    }
+  };
 
   return (
     <div>
-      <p>{x}</p>
-      <Button onClick={() => sendData(true)}>Yes</Button>
-      <Button onClick={() => sendData(false)}>No</Button>
+      <Button onClick={() => sendData(true, props)}>Yes</Button>
+      <Button onClick={() => sendData(false, props)}>No</Button>
     </div>
   );
 };
