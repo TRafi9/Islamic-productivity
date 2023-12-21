@@ -1,11 +1,15 @@
 package main
 
 import (
+	"context"
 	"net/http"
 	"os"
+	"time"
 
+	"cloud.google.com/go/bigquery"
 	"github.com/go-redis/redis"
 	"github.com/labstack/echo"
+	_ "github.com/lib/pq"
 	"go.uber.org/zap"
 )
 
@@ -20,20 +24,84 @@ func readFile(filepath string) (string, error) {
 }
 
 func main() {
+	// setup logger
 	z, _ := zap.NewProduction()
 	logger := z.Sugar()
 
+	// read in password for redis connection
 	pass, err := readFile("./pass.txt")
 	if err != nil {
 		// do something here
 		return
 	}
-	logger.Infof("pass %s", pass)
+	// setup redis client
 	client := redis.NewClient(&redis.Options{
 		Addr:     "redis-13336.c304.europe-west1-2.gce.cloud.redislabs.com:13336",
 		Password: pass,
 		DB:       0,
 	})
+
+	// setup connection to postgresql db, need to run proxy first
+
+	// user := os.Getenv("USER")
+	// password := os.Getenv("PASSWORD")
+	// dbName := os.Getenv("DB_NAME")
+	// connectionString := fmt.Sprintf("host=localhost user=%s password=%s dbname=%s sslmode=disable", user, password, dbName)
+
+	// logger.Info(connectionString)
+
+	// db, err := sql.Open("postgres", connectionString)
+
+	// if err != nil {
+	// 	logger.Fatalf("Failed to open sql connection, err: %w", err)
+	// }
+	// defer db.Close()
+	// // verify connection to db by pinging it
+	// err = db.Ping()
+	// if err != nil {
+	// 	logger.Fatalf("Ping to db failed, fataling out, err: %w", err)
+	// }
+
+	//BQ initialisation and uploading functionality
+	ctx := context.Background()
+	projectID := "starlit-booster-408007"
+	// opt := option.WithCredentialsFile("")
+	bqClient, err := bigquery.NewClient(ctx, projectID)
+	if err != nil {
+		logger.Errorf("failed to create bqClient, err: %w", err.Error())
+	}
+
+	myDataset := bqClient.Dataset("the_productive_muslim")
+	// if err := myDataset.Create(ctx, nil); err != nil {
+	// 	logger.Errorf("failed to connect to dataset in BQ, err: %w", err.Error())
+	// }
+
+	table := myDataset.Table("user-submissions")
+
+	uploader := table.Inserter()
+
+	type user_submissions struct {
+		User_id             string    `bigquery:"user_id"`
+		Productive_val      bool      `bigquery:"productive_val"`
+		First_prayer_name   string    `bigquery:"first_prayer_name"`
+		Second_prayer_name  string    `bigquery:"second_prayer_name"`
+		First_prayer_time   time.Time `bigquery:"first_prayer_time"`
+		Second_prayer_time  time.Time `bigquery:"second_prayer_time"`
+		Ingestion_timestamp time.Time `bigquery:"ingestion_timestamp"`
+	}
+	// Item implements the ValueSaver interface.
+	userSubmissionItems := &user_submissions{
+		User_id:             "talha_1",
+		Productive_val:      true,
+		First_prayer_name:   "Fajr",
+		Second_prayer_name:  "Dhuhr",
+		First_prayer_time:   time.Date(2023, 12, 16, 15, 4, 5, 0, time.UTC),
+		Second_prayer_time:  time.Date(2023, 12, 16, 20, 20, 5, 0, time.UTC),
+		Ingestion_timestamp: time.Now(),
+	}
+	if err := uploader.Put(ctx, userSubmissionItems); err != nil {
+		logger.Errorf("error uploading userSubmissionItems, err: %w", err.Error())
+	}
 
 	e := echo.New()
 
@@ -44,10 +112,6 @@ func main() {
 	// add v1 GET api to make a call, given a date, to recieve all prayer times for that day, from the redis server
 
 	location := "Europe/London"
-	//TODO make it globally readable,
-	// use concurrency to
-	// pt object stores everything, not have data for this month, 100 ppl call app at same time for new month, 100 calls, so go handles them concurrently,
-	// problem , when handler cant find data
 
 	Pt, err := GetPrayerTimes(location, client, logger)
 	if err != nil {
@@ -98,6 +162,10 @@ func main() {
 		return c.JSON(http.StatusOK, successResponse)
 
 	})
+
+	// api.GET("/sendUserInput/:value", func(c echo.Context) error {
+	// 	return uploadUserInput(c, logger, db)
+	// })
 
 	e.Start(":8080")
 }

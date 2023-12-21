@@ -112,8 +112,8 @@ func GetPrayerTimes(location string, client *redis.Client, logger *zap.SugaredLo
 				return nil, err
 			}
 		}
-		logger.Info("Monthly prayer API call is")
-		logger.Info(prayerMonthMap)
+		// logger.Info("Monthly prayer API call is")
+		// logger.Info(prayerMonthMap)
 		return prayerMonthMap, nil
 	}
 
@@ -132,7 +132,7 @@ func GetPrayerTimes(location string, client *redis.Client, logger *zap.SugaredLo
 		if err != nil {
 			logger.Errorf("failed to unmarshal redis data into struct, err: %w", err)
 		}
-		logger.Infof("PrayerTimesRedis Struct: %s", prayerTimesRedis.Fajr)
+		// logger.Infof("PrayerTimesRedis Struct: %s", prayerTimesRedis.Fajr)
 
 		dailyPrayerTimesMap := make(map[string]time.Time)
 		dailyPrayerTimesMap["Fajr"] = parseRedisTimeString(prayerTimesRedis.Fajr, logger)
@@ -260,3 +260,27 @@ func todayPrayerHandler(c echo.Context, pt map[string]map[string]time.Time, logg
 	return nil
 
 }
+
+// func uploadUserInput(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) error {
+// 	userVal := c.Param(":value")
+// 	insertSQL := `
+// 	INSERT INTO user_submissions (
+// 		user_id, productive_val, first_prayer_name,
+// 		second_prayer_name, first_prayer_time,
+// 		second_prayer_time, ingestion_timestamp
+// 	) VALUES (
+// 		'talha_1', true, 'Fajr', 'Dhuhr',
+// 		'2023-12-16 15:04:05', '2023-12-16 20:20:05',
+// 		'2023-12-18 12:34:56'
+// 	);
+// `
+
+// 	_, err := db.Exec(insertSQL)
+// 	if err != nil {
+// 		logger.Fatalf("Failed to execute database sql statement, err: %w", err)
+// 		return err
+// 	} else {
+// 		logger.Info("SUCCESSFULLY UPLOADED TO POSTRGRES DB!")
+// 		return nil
+// 	}
+// }
