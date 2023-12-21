@@ -64,11 +64,11 @@ export default function Home() {
 
           if (result) {
             setTodaysPrayers({
-              Asr: "2023-12-20T14:35:00Z",
-              Dhuhr: "2023-12-20T10:01:00Z",
-              Fajr: "2023-12-20T06:56:00Z",
-              Isha: "2023-12-20T20:11:00Z",
-              Maghrib: "2023-12-20T16:59:00Z",
+              Asr: "2023-12-21T14:35:00Z",
+              Dhuhr: "2023-12-21T10:01:00Z",
+              Fajr: "2023-12-21T06:56:00Z",
+              Isha: "2023-12-21T18:32:00Z",
+              Maghrib: "2023-12-21T17:42:00Z",
             });
           } else {
             console.log("Results undefined couldnt get todays prayers");

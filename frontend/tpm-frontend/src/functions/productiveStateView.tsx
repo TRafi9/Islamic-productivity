@@ -2,20 +2,6 @@ import Button from "react-bootstrap/Button";
 // need to send data to handleSendData from getCurrentPrayer + next prayer
 const ProductiveStateView = (props: any) => {
   // set productiveState back to false after person has clicked button
-
-  async function sendData(value: boolean, props: any) {
-    const data = {
-      currentPrayerName: props.currentPrayerName,
-      currentPrayerTime: props.currentPrayerTime,
-      lastPrayerName: props.lastPrayerName,
-      lastPrayerTime: props.lastPrayerTime,
-      productiveValue: value,
-    };
-    await handleSendData(data);
-
-    props.setProductiveState(false);
-  }
-
   const handleSendData = async (data: any) => {
     try {
       const response = await fetch("/api/postProductivityValue", {
@@ -39,10 +25,23 @@ const ProductiveStateView = (props: any) => {
     }
   };
 
+  async function sendData(value: boolean) {
+    const data = {
+      currentPrayerName: props.currentPrayerName,
+      currentPrayerTime: props.currentPrayerTime,
+      lastPrayerName: props.lastPrayerName,
+      lastPrayerTime: props.lastPrayerTime,
+      productiveValue: value,
+    };
+    await handleSendData(data);
+
+    props.setProductiveState(false);
+  }
+
   return (
     <div>
-      <Button onClick={() => sendData(true, props)}>Yes</Button>
-      <Button onClick={() => sendData(false, props)}>No</Button>
+      <Button onClick={() => sendData(true)}>Yes</Button>
+      <Button onClick={() => sendData(false)}>No</Button>
     </div>
   );
 };
