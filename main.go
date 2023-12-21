@@ -2,8 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
-	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -26,73 +24,43 @@ func readFile(filepath string) (string, error) {
 }
 
 func main() {
+	// setup logger
 	z, _ := zap.NewProduction()
 	logger := z.Sugar()
 
+	// read in password for redis connection
 	pass, err := readFile("./pass.txt")
 	if err != nil {
 		// do something here
 		return
 	}
-	logger.Infof("pass %s", pass)
+	// setup redis client
 	client := redis.NewClient(&redis.Options{
 		Addr:     "redis-13336.c304.europe-west1-2.gce.cloud.redislabs.com:13336",
 		Password: pass,
 		DB:       0,
 	})
 
-	// connectionName := os.Getenv("CONNECTION_NAME")
-	user := os.Getenv("USER")
-	password := os.Getenv("PASSWORD")
+	// setup connection to postgresql db, need to run proxy first
 
-	dbName := os.Getenv("DB_NAME")
-	connectionString := fmt.Sprintf("host=localhost user=%s password=%s dbname=%s sslmode=disable", user, password, dbName)
+	// user := os.Getenv("USER")
+	// password := os.Getenv("PASSWORD")
+	// dbName := os.Getenv("DB_NAME")
+	// connectionString := fmt.Sprintf("host=localhost user=%s password=%s dbname=%s sslmode=disable", user, password, dbName)
 
-	logger.Info(connectionString)
+	// logger.Info(connectionString)
 
-	db, err := sql.Open("postgres", connectionString)
+	// db, err := sql.Open("postgres", connectionString)
 
-	if err != nil {
-		logger.Fatalf("Failed to open sql connection, err: %w", err)
-	}
-	defer db.Close()
-
-	// verify connection to db by pinging it
-	err = db.Ping()
-	if err != nil {
-		logger.Fatalf("Ping to db failed, fataling out, err: %w", err)
-	}
-
-	// createTableSQL := `
-	// CREATE TABLE IF NOT EXISTS user_submissions (
-	// 	user_id VARCHAR(255) PRIMARY KEY,
-	// 	productive_val BOOLEAN,
-	// 	first_prayer_name VARCHAR(255),
-	// 	second_prayer_name VARCHAR(255),
-	// 	first_prayer_time TIMESTAMP,
-	// 	second_prayer_time TIMESTAMP,
-	// 	ingestion_timestamp TIMESTAMP
-	// );
-	// `
-
-	insertSQL := `
-	INSERT INTO user_submissions (
-		user_id, productive_val, first_prayer_name,
-		second_prayer_name, first_prayer_time,
-		second_prayer_time, ingestion_timestamp
-	) VALUES (
-		'talha_1', true, 'Fajr', 'Dhuhr',
-		'2023-12-16 15:04:05', '2023-12-16 20:20:05',
-		'2023-12-18 12:34:56'
-	);
-`
-
-	_, err = db.Exec(insertSQL)
-	if err != nil {
-		logger.Fatalf("Failed to execute database sql statement, err: %w", err)
-	} else {
-		logger.Info("SUCCESSFULLY UPLOADED TO POSTRGRES DB!")
-	}
+	// if err != nil {
+	// 	logger.Fatalf("Failed to open sql connection, err: %w", err)
+	// }
+	// defer db.Close()
+	// // verify connection to db by pinging it
+	// err = db.Ping()
+	// if err != nil {
+	// 	logger.Fatalf("Ping to db failed, fataling out, err: %w", err)
+	// }
 
 	//BQ initialisation and uploading functionality
 	ctx := context.Background()
@@ -144,10 +112,6 @@ func main() {
 	// add v1 GET api to make a call, given a date, to recieve all prayer times for that day, from the redis server
 
 	location := "Europe/London"
-	//TODO make it globally readable,
-	// use concurrency to
-	// pt object stores everything, not have data for this month, 100 ppl call app at same time for new month, 100 calls, so go handles them concurrently,
-	// problem , when handler cant find data
 
 	Pt, err := GetPrayerTimes(location, client, logger)
 	if err != nil {
@@ -198,6 +162,10 @@ func main() {
 		return c.JSON(http.StatusOK, successResponse)
 
 	})
+
+	// api.GET("/sendUserInput/:value", func(c echo.Context) error {
+	// 	return uploadUserInput(c, logger, db)
+	// })
 
 	e.Start(":8080")
 }
