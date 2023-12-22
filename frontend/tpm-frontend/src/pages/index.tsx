@@ -64,11 +64,11 @@ export default function Home() {
 
           if (result) {
             setTodaysPrayers({
-              Asr: "2023-12-21T14:35:00Z",
-              Dhuhr: "2023-12-21T10:01:00Z",
-              Fajr: "2023-12-21T06:56:00Z",
-              Isha: "2023-12-21T18:32:00Z",
-              Maghrib: "2023-12-21T17:42:00Z",
+              Asr: "2023-12-22T14:35:00Z",
+              Dhuhr: "2023-12-22T10:01:00Z",
+              Fajr: "2023-12-22T06:56:00Z",
+              Isha: "2023-12-22T21:32:00Z",
+              Maghrib: "2023-12-22T19:35:00Z",
             });
           } else {
             console.log("Results undefined couldnt get todays prayers");
@@ -110,6 +110,7 @@ export default function Home() {
         setCurrentPrayerName(currentPrayer.name);
         setCurrentPrayerTime(new Date(currentPrayer.time));
         setLastPrayerName(lastPrayer.name);
+        setLastPrayerTime(new Date(lastPrayer.time));
       }
     }
   }, [todaysPrayers, nextPrayerTimeActivator]);

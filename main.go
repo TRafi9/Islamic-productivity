@@ -126,6 +126,8 @@ func main() {
 		return todayPrayerHandler(c, Pt, logger)
 	})
 
+	api.POST("/userData", handlePostUserData)
+
 	//TODO CONTINUE FROM HERE
 	// also look at serialisation of prayerData so you dont have to convert and revert between time.Time and string values, can store serialized strings in redis that are
 	// time.time values instead?
@@ -143,7 +145,7 @@ func main() {
 		Message string `json:"message"`
 		Error   string `json:"error"`
 	}
-
+	// updatePt needs to be triggered off a cloud function that is set to run every X days on cloud scheduler
 	api.GET("/updatePt", func(c echo.Context) error {
 		newPt, err := GetPrayerTimes(location, client, logger)
 		if err != nil {

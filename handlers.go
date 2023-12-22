@@ -261,6 +261,8 @@ func todayPrayerHandler(c echo.Context, pt map[string]map[string]time.Time, logg
 
 }
 
+// DO NOT DELETE THIS
+// TODO NEED TO ADD BACK WHEN UPLOADING USER DATA TO POSTGRESQL
 // func uploadUserInput(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) error {
 // 	userVal := c.Param(":value")
 // 	insertSQL := `
@@ -284,3 +286,36 @@ func todayPrayerHandler(c echo.Context, pt map[string]map[string]time.Time, logg
 // 		return nil
 // 	}
 // }
+
+type UserDataRequestBody struct {
+	CurrentPrayerName string `json:"currentPrayerName"`
+	CurrentPrayerTime string `json:"currentPrayerTime"`
+	LastPrayerName    string `json:"lastPrayerName"`
+	LastPrayerTime    string `json:"lastPrayerTime"`
+	ProductiveValue   string `json:"productiveValue"`
+}
+
+func handlePostUserData(c echo.Context) error {
+	requestBody := new(UserDataRequestBody)
+	if err := c.Bind(requestBody); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+	}
+	output := processPostRequest(requestBody)
+	// Respond with the processed data
+	return c.JSON(http.StatusOK, map[string]string{"message": output})
+}
+
+func processPostRequest(data *UserDataRequestBody) string {
+	// Access the data fields as needed for your business logic
+	currentPrayerName := data.CurrentPrayerName
+	currentPrayerTime := data.CurrentPrayerTime
+	lastPrayerName := data.LastPrayerName
+	lastPrayerTime := data.LastPrayerTime
+	productiveValue := data.ProductiveValue
+
+	// Perform your business logic here
+	// For example, you can save the data to a database, perform some computations, etc.
+
+	// For this example, just return a message
+	return "Received data: " + currentPrayerName + ", " + currentPrayerTime + ", " + lastPrayerName + ", " + lastPrayerTime + ", " + productiveValue
+}

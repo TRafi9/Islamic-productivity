@@ -3,6 +3,10 @@ import Button from "react-bootstrap/Button";
 const ProductiveStateView = (props: any) => {
   // set productiveState back to false after person has clicked button
   const handleSendData = async (data: any) => {
+    console.log("data in handleSendData but strignified");
+
+    const x = JSON.stringify(data);
+    console.log(x);
     try {
       const response = await fetch("/api/postProductivityValue", {
         method: "POST",
@@ -33,6 +37,8 @@ const ProductiveStateView = (props: any) => {
       lastPrayerTime: props.lastPrayerTime,
       productiveValue: value,
     };
+    console.log("data in send data");
+    console.log(data);
     await handleSendData(data);
 
     props.setProductiveState(false);
