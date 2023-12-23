@@ -64,11 +64,11 @@ export default function Home() {
 
           if (result) {
             setTodaysPrayers({
-              Asr: "2023-12-22T14:35:00Z",
-              Dhuhr: "2023-12-22T10:01:00Z",
-              Fajr: "2023-12-22T06:56:00Z",
-              Isha: "2023-12-22T21:32:00Z",
-              Maghrib: "2023-12-22T19:35:00Z",
+              Asr: "2023-12-23T14:35:00Z",
+              Dhuhr: "2023-12-23T13:54:00Z",
+              Fajr: "2023-12-23T06:56:00Z",
+              Isha: "2023-12-23T21:32:00Z",
+              Maghrib: "2023-12-23T19:35:00Z",
             });
           } else {
             console.log("Results undefined couldnt get todays prayers");
@@ -100,9 +100,11 @@ export default function Home() {
     if (todaysPrayers != null) {
       const nextPrayer = getNextPrayer(todaysPrayers);
       const currentPrayer = getCurrentPrayer(todaysPrayers);
-      const lastPrayer = getLastPrayer(todaysPrayers);
+      const lastPrayer = getLastPrayer(todaysPrayers, currentPrayer);
       console.log("last prayer...");
       console.log(lastPrayer);
+      console.log("current prayer...");
+      console.log(currentPrayer);
 
       if (nextPrayer && currentPrayer && lastPrayer) {
         setNextPrayerTime(new Date(nextPrayer.time));

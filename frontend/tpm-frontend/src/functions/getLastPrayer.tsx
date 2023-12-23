@@ -6,33 +6,64 @@ interface PrayerData {
   Maghrib: string;
 }
 
-interface ClosestPrayer {
+interface CurrentPrayer {
   name: string;
   time: string;
   difference: number;
 }
 
-const getLastPrayer = (todaysPrayers: PrayerData): ClosestPrayer => {
-  const currTime = new Date();
+interface LastPrayer {
+  name: string;
+  time: string;
+}
 
-  const filteredPrayerArray: ClosestPrayer[] = Object.entries(
-    todaysPrayers
-  ).reduce((acc, [key, value]) => {
-    const prayerTime = new Date(value);
+const getLastPrayer = (
+  todaysPrayers: PrayerData,
+  currentPrayer: CurrentPrayer | null
+): LastPrayer | null => {
+  var lastPrayer: LastPrayer = {
+    name: "",
+    time: "",
+  };
+  if (currentPrayer) {
+    var CurrentPrayerName: string = currentPrayer.name;
 
-    if (prayerTime <= currTime) {
-      const difference = currTime.getTime() - prayerTime.getTime();
-      acc.push({ name: key, time: value, difference });
+    switch (CurrentPrayerName) {
+      case "Fajr":
+        break;
+      case "Dhuhr":
+        lastPrayer = {
+          name: "Fajr",
+          time: todaysPrayers.Fajr,
+        };
+        break;
+      case "Asr":
+        lastPrayer = {
+          name: "Dhuhr",
+          time: todaysPrayers.Dhuhr,
+        };
+        break;
+      case "Maghrib":
+        lastPrayer = {
+          name: "Asr",
+          time: todaysPrayers.Asr,
+        };
+        break;
+      case "Isha":
+        lastPrayer = {
+          name: "Maghrib",
+          time: todaysPrayers.Maghrib,
+        };
+        break;
     }
 
-    return acc;
-  }, [] as ClosestPrayer[]);
-
-  // Sort the array based on the difference in ascending order
-  filteredPrayerArray.sort((a, b) => a.difference - b.difference);
-  console.log(filteredPrayerArray);
-  // Return the last prayer that isnt the current prayer going on
-  return filteredPrayerArray.slice(-2)[0];
+    return lastPrayer;
+  } else {
+    console.log(
+      "current prayer missing, so cannot use switch case to get last prayer"
+    );
+    return null;
+  }
 };
 
 export default getLastPrayer;
