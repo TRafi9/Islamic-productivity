@@ -5,15 +5,13 @@ const ProductiveStateView = (props: any) => {
   const handleSendData = async (data: any) => {
     console.log("data in handleSendData but strignified");
 
-    const x = JSON.stringify(data);
-    console.log(x);
     try {
-      const response = await fetch("/api/postProductivityValue", {
+      const response = await fetch("http://localhost:8080/api/v1/userData", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: data,
       });
 
       if (response.ok) {
@@ -39,13 +37,17 @@ const ProductiveStateView = (props: any) => {
     };
     console.log("data in send data");
     console.log(data);
-    await handleSendData(data);
+    const x = await handleSendData(data);
+    console.log(x);
 
     props.setProductiveState(false);
   }
 
   return (
     <div>
+      <p>
+        {props.currentPrayerName} & {props.lastPrayerName}
+      </p>
       <Button onClick={() => sendData(true)}>Yes</Button>
       <Button onClick={() => sendData(false)}>No</Button>
     </div>

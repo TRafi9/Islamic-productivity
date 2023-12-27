@@ -7,7 +7,9 @@ export default async function postProductivityValue(
   res: NextApiResponse
 ) {
   try {
-    const data = req.body;
+    const data = JSON.parse(req.body);
+    console.log("parsed json data");
+    console.log(data);
 
     const response = await fetch(
       // needs to be updated to something else probably
@@ -17,7 +19,7 @@ export default async function postProductivityValue(
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ data }), // include date and data in the request body
+        body: JSON.stringify(data), // include date and data in the request body
       }
     );
 
