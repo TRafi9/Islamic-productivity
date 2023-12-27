@@ -11,7 +11,7 @@ const ProductiveStateView = (props: any) => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: data,
+        body: JSON.stringify(data),
       });
 
       if (response.ok) {
