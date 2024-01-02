@@ -64,8 +64,8 @@ export default function Home() {
 
           if (result) {
             setTodaysPrayers({
-              Asr: "2024-01-02T15:50:00Z",
-              Dhuhr: "2024-01-02T08:01:00Z",
+              Asr: "2024-01-02T15:49:50Z",
+              Dhuhr: "2024-01-02T08:50:00Z",
               Fajr: "2024-01-02T06:56:00Z",
               Isha: "2024-01-02T21:32:00Z",
               Maghrib: "2024-01-02T19:35:00Z",

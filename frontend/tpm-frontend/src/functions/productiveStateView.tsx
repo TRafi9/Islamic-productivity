@@ -28,7 +28,7 @@ const ProductiveStateView = (props: any) => {
     }
   };
 
-  async function sendData(value: boolean, props: any) {
+  async function sendData(value: boolean) {
     const data = {
       currentPrayerName: props.currentPrayerName,
       currentPrayerTime: props.currentPrayerTime,
@@ -49,8 +49,8 @@ const ProductiveStateView = (props: any) => {
       <p>
         {props.currentPrayerName} & {props.lastPrayerName}
       </p>
-      <Button onClick={() => sendData(true, props)}>Yes</Button>
-      <Button onClick={() => sendData(false, props)}>No</Button>
+      <Button onClick={() => sendData(true)}>Yes</Button>
+      <Button onClick={() => sendData(false)}>No</Button>
     </div>
   );
 };
