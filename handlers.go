@@ -26,6 +26,7 @@ func GetPrayerTimes(location string, client *redis.Client, logger *zap.SugaredLo
 	}
 	// apiDate & apiDateString used to get all prayer times from 1st of current month
 	apiDate := time.Now().In(london)
+	// set as first day of month, use for loop later to add all dates of month to a map
 	apiDate = time.Date(apiDate.Year(), apiDate.Month(), 01, 0, 0, 0, 0, apiDate.Location())
 	apiDateString := apiDate.Format("02-01-2006")
 	redisDateFormat := apiDate.Format("2006-01-02")
@@ -37,7 +38,7 @@ func GetPrayerTimes(location string, client *redis.Client, logger *zap.SugaredLo
 	if err != nil {
 		// NO REDIS DATA/ REDIS PULL FAILED, CALL API INSTEAD
 		// error could also be that redis.Nil aka there was no value returned
-		logger.Errorf("error with redis get call, continue to get data from  %w", err)
+		logger.Errorf("error with redis get call, continue to get data from api, err:  %w", err)
 
 		// if no redis records exist for the date being queried, call the api code here and also upload to db!
 		if err == redis.Nil {
@@ -97,7 +98,7 @@ func GetPrayerTimes(location string, client *redis.Client, logger *zap.SugaredLo
 			}
 
 		}
-
+		logger.Info("Uploading date values to redis...")
 		for outerKey, innerMap := range newMap {
 			innerMapJson, err := json.Marshal(innerMap)
 			if err != nil {
@@ -112,6 +113,7 @@ func GetPrayerTimes(location string, client *redis.Client, logger *zap.SugaredLo
 				return nil, err
 			}
 		}
+		logger.Info("Uploading successful")
 		// logger.Info("Monthly prayer API call is")
 		// logger.Info(prayerMonthMap)
 		return prayerMonthMap, nil
@@ -295,14 +297,27 @@ type UserDataRequestBody struct {
 	ProductiveValue   string `json:"productiveValue"`
 }
 
-func handlePostUserData(c echo.Context) error {
-	requestBody := new(UserDataRequestBody)
-	if err := c.Bind(requestBody); err != nil {
+func handlePostUserData(c echo.Context, logger *zap.SugaredLogger) error {
+
+	// requestBody := new(UserDataRequestBody)
+
+	var incomingData UserDataRequestBody
+	if err := c.Bind(&incomingData); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
 	}
-	output := processPostRequest(requestBody)
+	logger.Info("data coming in example of prayers is %s, %s", incomingData.CurrentPrayerName, incomingData.CurrentPrayerTime)
+
+	// var data UserDataRequestBody
+	// if err := c.Bind(&data); err != nil {
+	// 	return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request"})
+	// }
+
+	// if err := c.Bind(requestBody); err != nil {
+	// 	return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+	// }
+	// output := processPostRequest(requestBody)
 	// Respond with the processed data
-	return c.JSON(http.StatusOK, map[string]string{"message": output})
+	return c.JSON(http.StatusOK, incomingData)
 }
 
 func processPostRequest(data *UserDataRequestBody) string {

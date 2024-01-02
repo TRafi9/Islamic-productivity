@@ -9,6 +9,7 @@ import (
 	"cloud.google.com/go/bigquery"
 	"github.com/go-redis/redis"
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 	_ "github.com/lib/pq"
 	"go.uber.org/zap"
 )
@@ -104,6 +105,10 @@ func main() {
 	}
 
 	e := echo.New()
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"http://localhost:3000"},
+		AllowMethods: []string{echo.GET, echo.POST},
+	}))
 
 	//TODO make getPrayerTimes return the whole month
 	// use a cron job to run get prayertimes
@@ -126,7 +131,9 @@ func main() {
 		return todayPrayerHandler(c, Pt, logger)
 	})
 
-	api.POST("/userData", handlePostUserData)
+	api.POST("/userData", func(c echo.Context) error {
+		return handlePostUserData(c, logger)
+	})
 
 	//TODO CONTINUE FROM HERE
 	// also look at serialisation of prayerData so you dont have to convert and revert between time.Time and string values, can store serialized strings in redis that are
