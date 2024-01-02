@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -44,24 +46,24 @@ func main() {
 
 	// setup connection to postgresql db, need to run proxy first
 
-	// user := os.Getenv("USER")
-	// password := os.Getenv("PASSWORD")
-	// dbName := os.Getenv("DB_NAME")
-	// connectionString := fmt.Sprintf("host=localhost user=%s password=%s dbname=%s sslmode=disable", user, password, dbName)
+	user := os.Getenv("USER")
+	password := os.Getenv("PASSWORD")
+	dbName := os.Getenv("DB_NAME")
+	connectionString := fmt.Sprintf("host=localhost user=%s password=%s dbname=%s sslmode=disable", user, password, dbName)
 
-	// logger.Info(connectionString)
+	logger.Info(connectionString)
 
-	// db, err := sql.Open("postgres", connectionString)
+	db, err := sql.Open("postgres", connectionString)
 
-	// if err != nil {
-	// 	logger.Fatalf("Failed to open sql connection, err: %w", err)
-	// }
-	// defer db.Close()
-	// // verify connection to db by pinging it
-	// err = db.Ping()
-	// if err != nil {
-	// 	logger.Fatalf("Ping to db failed, fataling out, err: %w", err)
-	// }
+	if err != nil {
+		logger.Fatalf("Failed to open sql connection, err: %w", err)
+	}
+	defer db.Close()
+	// verify connection to db by pinging it
+	err = db.Ping()
+	if err != nil {
+		logger.Fatalf("Ping to db failed, fataling out, err: %w", err)
+	}
 
 	//BQ initialisation and uploading functionality
 	ctx := context.Background()
@@ -132,7 +134,7 @@ func main() {
 	})
 
 	api.POST("/userData", func(c echo.Context) error {
-		return handlePostUserData(c, logger)
+		return handlePostUserData(c, logger, db)
 	})
 
 	//TODO CONTINUE FROM HERE
@@ -171,10 +173,6 @@ func main() {
 		return c.JSON(http.StatusOK, successResponse)
 
 	})
-
-	// api.GET("/sendUserInput/:value", func(c echo.Context) error {
-	// 	return uploadUserInput(c, logger, db)
-	// })
 
 	e.Start(":8080")
 }

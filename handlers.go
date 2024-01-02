@@ -1,11 +1,13 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -265,29 +267,6 @@ func todayPrayerHandler(c echo.Context, pt map[string]map[string]time.Time, logg
 
 // DO NOT DELETE THIS
 // TODO NEED TO ADD BACK WHEN UPLOADING USER DATA TO POSTGRESQL
-// func uploadUserInput(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) error {
-// 	userVal := c.Param(":value")
-// 	insertSQL := `
-// 	INSERT INTO user_submissions (
-// 		user_id, productive_val, first_prayer_name,
-// 		second_prayer_name, first_prayer_time,
-// 		second_prayer_time, ingestion_timestamp
-// 	) VALUES (
-// 		'talha_1', true, 'Fajr', 'Dhuhr',
-// 		'2023-12-16 15:04:05', '2023-12-16 20:20:05',
-// 		'2023-12-18 12:34:56'
-// 	);
-// `
-
-// 	_, err := db.Exec(insertSQL)
-// 	if err != nil {
-// 		logger.Fatalf("Failed to execute database sql statement, err: %w", err)
-// 		return err
-// 	} else {
-// 		logger.Info("SUCCESSFULLY UPLOADED TO POSTRGRES DB!")
-// 		return nil
-// 	}
-// }
 
 type UserDataRequestBody struct {
 	CurrentPrayerName string `json:"currentPrayerName"`
@@ -297,14 +276,73 @@ type UserDataRequestBody struct {
 	ProductiveValue   bool   `json:"productiveValue"`
 }
 
-func handlePostUserData(c echo.Context, logger *zap.SugaredLogger) error {
+func handlePostUserData(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) error {
 
 	var incomingData UserDataRequestBody
 	if err := c.Bind(&incomingData); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
 	}
-	logger.Info(incomingData)
-	logger.Info("data coming in example of prayers is %s, %s", incomingData.CurrentPrayerName, incomingData.CurrentPrayerTime)
+	logger.Infof("User posted Data %s", incomingData)
+
+	err := uploadUserInput(c, logger, db, incomingData)
+	if err != nil {
+		logger.Errorf("Failed to upload users input! err: %s", err.Error())
+	}
 
 	return c.JSON(http.StatusOK, incomingData)
+}
+
+func uploadUserInput(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, userData UserDataRequestBody) error {
+	lastPrayerTimeStamp, err := convertToISO8601(userData.LastPrayerTime)
+	if err != nil {
+		logger.Errorf("error converting timestamp to iso8601, err: %s", err.Error())
+		return err
+	}
+	currentPrayerTimeStamp, err := convertToISO8601(userData.CurrentPrayerTime)
+	if err != nil {
+		logger.Errorf("error converting timestamp to iso8601, err: %s", err.Error())
+		return err
+	}
+	// 	insertSQL := `
+	// 	INSERT INTO user_submissions (
+	// 		user_id, productive_val, first_prayer_name,
+	// 		second_prayer_name, first_prayer_time,
+	// 		second_prayer_time, ingestion_timestamp
+	// 	) VALUES (
+	// 		'talha_1', true, 'Fajr', 'Dhuhr',
+	// 		'2023-12-16 15:04:05', '2023-12-16 20:20:05',
+	// 		'2023-12-18 12:34:56'
+	// 	);
+	// `
+	insertSQL := fmt.Sprintf(`
+	INSERT INTO user_submissions (
+		user_id, productive_val, first_prayer_name,
+		second_prayer_name, first_prayer_time,
+		second_prayer_time, ingestion_timestamp
+	) VALUES (
+		'talha_2', %s, '%s', '%s',
+		'%s', '%s',
+		'2023-12-18 12:34:56'
+	);
+	`, strconv.FormatBool(userData.ProductiveValue), userData.LastPrayerName, userData.CurrentPrayerName, lastPrayerTimeStamp, currentPrayerTimeStamp)
+
+	_, err = db.Exec(insertSQL)
+	if err != nil {
+		logger.Fatalf("Failed to execute database sql statement, err: %w", err)
+		return err
+	} else {
+		logger.Info("SUCCESSFULLY UPLOADED TO POSTRGRES DB!")
+		return nil
+	}
+}
+
+func convertToISO8601(timestampStr string) (string, error) {
+	// parses the incoming string *should be rfc3339, into a time.time value of it
+	timestamp, err := time.Parse(time.RFC3339, timestampStr)
+	if err != nil {
+		return "", nil
+	}
+
+	iso8601TimeStamp := timestamp.Format("2006-01-02T15:04:05.000Z")
+	return iso8601TimeStamp, nil
 }

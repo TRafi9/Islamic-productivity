@@ -1,0 +1,3 @@
+How to connect to cloudsql including cloudsql proxy
+
+cloud-sql-proxy starlit-booster-408007:europe-west2:the-productive-muslim --credentials-file=/Users/talharafi/dev_practice/TPM/tpm_key.json
