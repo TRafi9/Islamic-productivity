@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
@@ -309,5 +308,3 @@ func handlePostUserData(c echo.Context, logger *zap.SugaredLogger) error {
 
 	return c.JSON(http.StatusOK, incomingData)
 }
-
-
