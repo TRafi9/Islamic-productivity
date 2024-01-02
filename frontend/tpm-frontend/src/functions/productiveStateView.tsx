@@ -4,6 +4,7 @@ const ProductiveStateView = (props: any) => {
   // set productiveState back to false after person has clicked button
   const handleSendData = async (data: any) => {
     console.log("data in handleSendData but strignified");
+    console.log(JSON.stringify(data));
 
     try {
       const response = await fetch("http://localhost:8080/api/v1/userData", {
@@ -27,7 +28,7 @@ const ProductiveStateView = (props: any) => {
     }
   };
 
-  async function sendData(value: boolean) {
+  async function sendData(value: boolean, props: any) {
     const data = {
       currentPrayerName: props.currentPrayerName,
       currentPrayerTime: props.currentPrayerTime,
@@ -48,8 +49,8 @@ const ProductiveStateView = (props: any) => {
       <p>
         {props.currentPrayerName} & {props.lastPrayerName}
       </p>
-      <Button onClick={() => sendData(true)}>Yes</Button>
-      <Button onClick={() => sendData(false)}>No</Button>
+      <Button onClick={() => sendData(true, props)}>Yes</Button>
+      <Button onClick={() => sendData(false, props)}>No</Button>
     </div>
   );
 };

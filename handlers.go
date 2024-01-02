@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -294,43 +295,19 @@ type UserDataRequestBody struct {
 	CurrentPrayerTime string `json:"currentPrayerTime"`
 	LastPrayerName    string `json:"lastPrayerName"`
 	LastPrayerTime    string `json:"lastPrayerTime"`
-	ProductiveValue   string `json:"productiveValue"`
+	ProductiveValue   bool   `json:"productiveValue"`
 }
 
 func handlePostUserData(c echo.Context, logger *zap.SugaredLogger) error {
-
-	// requestBody := new(UserDataRequestBody)
 
 	var incomingData UserDataRequestBody
 	if err := c.Bind(&incomingData); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
 	}
+	logger.Info(incomingData)
 	logger.Info("data coming in example of prayers is %s, %s", incomingData.CurrentPrayerName, incomingData.CurrentPrayerTime)
 
-	// var data UserDataRequestBody
-	// if err := c.Bind(&data); err != nil {
-	// 	return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request"})
-	// }
-
-	// if err := c.Bind(requestBody); err != nil {
-	// 	return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
-	// }
-	// output := processPostRequest(requestBody)
-	// Respond with the processed data
 	return c.JSON(http.StatusOK, incomingData)
 }
 
-func processPostRequest(data *UserDataRequestBody) string {
-	// Access the data fields as needed for your business logic
-	currentPrayerName := data.CurrentPrayerName
-	currentPrayerTime := data.CurrentPrayerTime
-	lastPrayerName := data.LastPrayerName
-	lastPrayerTime := data.LastPrayerTime
-	productiveValue := data.ProductiveValue
 
-	// Perform your business logic here
-	// For example, you can save the data to a database, perform some computations, etc.
-
-	// For this example, just return a message
-	return "Received data: " + currentPrayerName + ", " + currentPrayerTime + ", " + lastPrayerName + ", " + lastPrayerTime + ", " + productiveValue
-}
