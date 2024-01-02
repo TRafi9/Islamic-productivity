@@ -293,40 +293,32 @@ func handlePostUserData(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) e
 }
 
 func uploadUserInput(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, userData UserDataRequestBody) error {
-	lastPrayerTimeStamp, err := convertToISO8601(userData.LastPrayerTime)
-	if err != nil {
-		logger.Errorf("error converting timestamp to iso8601, err: %s", err.Error())
-		return err
-	}
-	currentPrayerTimeStamp, err := convertToISO8601(userData.CurrentPrayerTime)
-	if err != nil {
-		logger.Errorf("error converting timestamp to iso8601, err: %s", err.Error())
-		return err
-	}
-	// 	insertSQL := `
-	// 	INSERT INTO user_submissions (
-	// 		user_id, productive_val, first_prayer_name,
-	// 		second_prayer_name, first_prayer_time,
-	// 		second_prayer_time, ingestion_timestamp
-	// 	) VALUES (
-	// 		'talha_1', true, 'Fajr', 'Dhuhr',
-	// 		'2023-12-16 15:04:05', '2023-12-16 20:20:05',
-	// 		'2023-12-18 12:34:56'
-	// 	);
+	// insertSQL := `
+	// CREATE TABLE IF NOT EXISTS user_submissions (
+	// 	random_primary_key UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+	// 	user_id VARCHAR(255),
+	// 	productive_val BOOLEAN,
+	// 	first_prayer_name VARCHAR(255),
+	// 	second_prayer_name VARCHAR(255),
+	// 	first_prayer_time TIMESTAMP,
+	// 	second_prayer_time TIMESTAMP,
+	// 	ingestion_timestamp TIMESTAMP
+	// );
 	// `
+
 	insertSQL := fmt.Sprintf(`
 	INSERT INTO user_submissions (
 		user_id, productive_val, first_prayer_name,
 		second_prayer_name, first_prayer_time,
 		second_prayer_time, ingestion_timestamp
 	) VALUES (
-		'talha_2', %s, '%s', '%s',
+		'talha_1', %s, '%s', '%s',
 		'%s', '%s',
 		'2023-12-18 12:34:56'
 	);
-	`, strconv.FormatBool(userData.ProductiveValue), userData.LastPrayerName, userData.CurrentPrayerName, lastPrayerTimeStamp, currentPrayerTimeStamp)
+	`, strconv.FormatBool(userData.ProductiveValue), userData.LastPrayerName, userData.CurrentPrayerName, userData.LastPrayerTime, userData.CurrentPrayerTime)
 
-	_, err = db.Exec(insertSQL)
+	_, err := db.Exec(insertSQL)
 	if err != nil {
 		logger.Fatalf("Failed to execute database sql statement, err: %w", err)
 		return err
@@ -334,15 +326,4 @@ func uploadUserInput(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, user
 		logger.Info("SUCCESSFULLY UPLOADED TO POSTRGRES DB!")
 		return nil
 	}
-}
-
-func convertToISO8601(timestampStr string) (string, error) {
-	// parses the incoming string *should be rfc3339, into a time.time value of it
-	timestamp, err := time.Parse(time.RFC3339, timestampStr)
-	if err != nil {
-		return "", nil
-	}
-
-	iso8601TimeStamp := timestamp.Format("2006-01-02T15:04:05.000Z")
-	return iso8601TimeStamp, nil
 }
