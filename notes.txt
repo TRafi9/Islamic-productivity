@@ -5,3 +5,9 @@ cloud-sql-proxy starlit-booster-408007:europe-west2:the-productive-muslim --cred
 
 note - to add to readme, instructions on how to launch via docker, make sure to mount those env vars that are needed to connect to postgres when running via docker
 
+TODO - ask about how to know what image to use for docker images
+
+
+
+
+TODO CONTINUE - add docker compose file to sync up frontend and backend running files
