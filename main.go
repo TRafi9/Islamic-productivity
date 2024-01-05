@@ -1,14 +1,11 @@
 package main
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"net/http"
 	"os"
-	"time"
 
-	"cloud.google.com/go/bigquery"
 	"github.com/go-redis/redis"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
@@ -46,6 +43,7 @@ func main() {
 
 	// setup connection to postgresql db, need to run proxy first
 
+	// when running via docker, need to mount these vars as env vars
 	user := os.Getenv("USER")
 	password := os.Getenv("PASSWORD")
 	dbName := os.Getenv("DB_NAME")
@@ -64,47 +62,7 @@ func main() {
 	if err != nil {
 		logger.Fatalf("Ping to db failed, fataling out, err: %w", err)
 	}
-
-	//BQ initialisation and uploading functionality
-	ctx := context.Background()
-	projectID := "starlit-booster-408007"
-	// opt := option.WithCredentialsFile("")
-	bqClient, err := bigquery.NewClient(ctx, projectID)
-	if err != nil {
-		logger.Errorf("failed to create bqClient, err: %w", err.Error())
-	}
-
-	myDataset := bqClient.Dataset("the_productive_muslim")
-	// if err := myDataset.Create(ctx, nil); err != nil {
-	// 	logger.Errorf("failed to connect to dataset in BQ, err: %w", err.Error())
-	// }
-
-	table := myDataset.Table("user-submissions")
-
-	uploader := table.Inserter()
-
-	type user_submissions struct {
-		User_id             string    `bigquery:"user_id"`
-		Productive_val      bool      `bigquery:"productive_val"`
-		First_prayer_name   string    `bigquery:"first_prayer_name"`
-		Second_prayer_name  string    `bigquery:"second_prayer_name"`
-		First_prayer_time   time.Time `bigquery:"first_prayer_time"`
-		Second_prayer_time  time.Time `bigquery:"second_prayer_time"`
-		Ingestion_timestamp time.Time `bigquery:"ingestion_timestamp"`
-	}
-	// Item implements the ValueSaver interface.
-	userSubmissionItems := &user_submissions{
-		User_id:             "talha_1",
-		Productive_val:      true,
-		First_prayer_name:   "Fajr",
-		Second_prayer_name:  "Dhuhr",
-		First_prayer_time:   time.Date(2023, 12, 16, 15, 4, 5, 0, time.UTC),
-		Second_prayer_time:  time.Date(2023, 12, 16, 20, 20, 5, 0, time.UTC),
-		Ingestion_timestamp: time.Now(),
-	}
-	if err := uploader.Put(ctx, userSubmissionItems); err != nil {
-		logger.Errorf("error uploading userSubmissionItems, err: %w", err.Error())
-	}
+	logger.Infof("Successfully connected to Postgre instance")
 
 	e := echo.New()
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
