@@ -1,3 +1,7 @@
-How to connect to cloudsql including cloudsql proxy
+TODO Create instructions on how to connect to cloudsql including cloudsql proxy
 
 cloud-sql-proxy starlit-booster-408007:europe-west2:the-productive-muslim --credentials-file=/Users/talharafi/dev_practice/TPM/tpm_key.json
+
+
+note - to add to readme, instructions on how to launch via docker, make sure to mount those env vars that are needed to connect to postgres when running via docker
+
