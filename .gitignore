@@ -2,3 +2,4 @@ tpm
 pass.txt
 tpm_key.json
 .envrc
+.env

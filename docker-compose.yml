@@ -1,0 +1,20 @@
+version: "3"
+
+services:
+  tpm-backend:
+    image: tpm-backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+
+  tpm-frontend:
+    image: tpm-frontend
+    build:
+      context: ./frontend/tpm-frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"

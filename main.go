@@ -65,11 +65,11 @@ func main() {
 	logger.Infof("Successfully connected to Postgre instance")
 
 	e := echo.New()
+	// cors not needed when running on docker containers that are on same network because of docker-compose file? - check TODO
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"http://localhost:3000"},
+		AllowOrigins: []string{"http://tpm-frontend:3000"},
 		AllowMethods: []string{echo.GET, echo.POST},
 	}))
-
 	//TODO make getPrayerTimes return the whole month
 	// use a cron job to run get prayertimes
 	// use the same cron job to add the prayer times to a redis in memory database for that month

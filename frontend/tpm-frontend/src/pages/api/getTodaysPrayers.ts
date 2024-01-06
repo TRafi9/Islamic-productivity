@@ -19,7 +19,7 @@ export default async function getTodaysPrayers(
     console.log(date);
     const response = await fetch(
       // needs to be updated to something else probably
-      `http://localhost:8080/api/v1/getPrayerTimes/${date}`,
+      `http://tpm-backend:8080/api/v1/getPrayerTimes/${date}`,
       { method: "GET" }
     );
 
