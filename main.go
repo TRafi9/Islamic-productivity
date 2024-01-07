@@ -3,9 +3,9 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"net/http"
 	"os"
 
+	"github.com/go-co-op/gocron/v2"
 	"github.com/go-redis/redis"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
@@ -107,30 +107,57 @@ func main() {
 	// you can also use an infinite for-loop instead that will sleep daily and trigger Pt to run if it is the first of the month
 	// but this is a copout version (although very viable and efficient heuheh)
 
-	//TODO abstract away Error messages into structs and call them instead
-	type ErrorResponse struct {
-		Message string `json:"message"`
-		Error   string `json:"error"`
-	}
 	// updatePt needs to be triggered off a cloud function that is set to run every X days on cloud scheduler
-	api.GET("/updatePt", func(c echo.Context) error {
-		newPt, err := GetPrayerTimes(location, client, logger)
-		if err != nil {
-			logger.Errorf("Error running updatePt %w", err)
-			errorResponse := ErrorResponse{
-				Message: "Failed to update prayer times",
-				Error:   err.Error(),
-			}
-			return c.JSON(http.StatusInternalServerError, errorResponse)
-		}
-		Pt = newPt
-		successResponse := ErrorResponse{
-			Message: "Successfully updated prayer times from cloud run",
-			Error:   "",
-		}
-		return c.JSON(http.StatusOK, successResponse)
 
-	})
+	// run a cron job daily to check if the prayer values for the current date exist in Pt, if not, update Pt values for latest month & add to redis
+	s, err := gocron.NewScheduler()
+	if err != nil {
+		fmt.Printf("Error creating scheduler: %v\n", err)
+		return
+	}
+	// Add a job to the scheduler
+	j, err := s.NewJob(
+		gocron.CronJob("28 * * * *", false),
+		gocron.NewTask(func() {
+			latestPt, err := prayerTimesCronJob(client, logger, location, Pt)
+			if err != nil {
+				// Handle the error (do something)
+				// Do not update prayer times
+			} else {
+				// Update prayer times
+				Pt = latestPt
+			}
+		}),
+	)
+	if err != nil {
+		fmt.Printf("Error creating job: %v\n", err)
+		return
+	}
+
+	// Print the job ID
+	fmt.Println(j.ID())
+
+	// Start the scheduler
+	s.Start()
+
+	// api.GET("/updatePt", func(c echo.Context) error {
+	// 	newPt, err := GetPrayerTimes(location, client, logger)
+	// 	if err != nil {
+	// 		logger.Errorf("Error running updatePt %w", err)
+	// 		errorResponse := ErrorResponse{
+	// 			Message: "Failed to update prayer times",
+	// 			Error:   err.Error(),
+	// 		}
+	// 		return c.JSON(http.StatusInternalServerError, errorResponse)
+	// 	}
+	// 	Pt = newPt
+	// 	successResponse := ErrorResponse{
+	// 		Message: "Successfully updated prayer times from cloud run",
+	// 		Error:   "",
+	// 	}
+	// 	return c.JSON(http.StatusOK, successResponse)
+
+	// })
 
 	e.Start(":8080")
 }
