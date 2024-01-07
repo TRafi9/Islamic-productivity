@@ -10,7 +10,7 @@ TODO - ask about how to know what image to use for docker images
 
 
 
-TODO CONTINUE - add docker compose file to sync up frontend and backend running files
+TODO CONTINUE - need to review cron job logic!
 
 BACKEND DOCKER COMMAND
 
