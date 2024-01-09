@@ -10,7 +10,7 @@ TODO - ask about how to know what image to use for docker images
 
 
 
-TODO CONTINUE - need to review cron job logic!
+TODO CONTINUE - check & finish cron logic on frontend
 
 BACKEND DOCKER COMMAND
 

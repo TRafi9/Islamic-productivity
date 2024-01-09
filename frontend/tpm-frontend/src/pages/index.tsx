@@ -3,17 +3,16 @@ import Image from "next/image";
 import { Inter } from "next/font/google";
 import styles from "@/styles/Home.module.css";
 import { useEffect, useState } from "react";
-import { format } from "path";
-import { text } from "stream/consumers";
-import { Button } from "react-bootstrap";
+
 import getTodaysPrayers from "@/functions/getTodaysPrayers";
 import getNextPrayer from "@/functions/getNextPrayer";
-import next from "next";
 import Countdown from "react-countdown";
 import getCurrentPrayer from "@/functions/getCurrentPrayer";
 import ProductiveStateView from "@/functions/productiveStateView";
 
 import getLastPrayer from "@/functions/getLastPrayer";
+
+const cron = require("node-cron");
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -25,13 +24,27 @@ export default function Home() {
   // add cron job to reexecute current date setup and useeffect setup, needs to run every 24 hours
   // update currentDate every 24 hours
   // in the same loop check if the formatted current date isnt the same
+  function updateDate() {
+    var newDate = new Date();
+    var year = newDate.getFullYear();
+    var month = String(newDate.getMonth() + 1).padStart(2, "0"); // Months are zero-based
+    var day = String(newDate.getDate()).padStart(2, "0");
+    const formattedDate = `${year}-${month}-${day}`;
+    return formattedDate;
+  }
+
   var currentDate = new Date();
   var year = currentDate.getFullYear();
   var month = String(currentDate.getMonth() + 1).padStart(2, "0"); // Months are zero-based
   var day = String(currentDate.getDate()).padStart(2, "0");
-
   // Create the formatted date string to match api call date type
-  const formattedDate = `${year}-${month}-${day}`;
+  let [formattedDate, setFormattedDate] = useState(`${year}-${month}-${day}`);
+
+  // Schedule the cron job to run every minute
+  //TODO CHECK IF THIS LOGIC WORKS - continue from here
+  cron.schedule("* * * * *", () => {
+    setFormattedDate(updateDate);
+  });
 
   interface PrayerData {
     Asr: string;
@@ -49,10 +62,11 @@ export default function Home() {
     Maghrib: "",
   });
 
-  const [prayersLeftInDay, setPrayersLeftInDay] = useState<Record<
-    string,
-    string
-  > | null>(null);
+  // const [prayersLeftInDay, setPrayersLeftInDay] = useState<Record<
+  //   string,
+  //   string
+  // > | null>(null);
+
   // check if its first load, or the day has changed, if so call the API to get new results in todaysPrayers
   //TODO IMPORTANT need to update formattedDate daily/hourly to run this constantly
   useEffect(() => {
@@ -63,13 +77,9 @@ export default function Home() {
           const result = await getTodaysPrayers(formattedDate);
 
           if (result) {
-            setTodaysPrayers({
-              Asr: "2024-01-06T15:49:50Z",
-              Dhuhr: "2024-01-06T08:50:00Z",
-              Fajr: "2024-01-06T06:56:00Z",
-              Isha: "2024-01-06T21:32:00Z",
-              Maghrib: "2024-01-06T19:35:00Z",
-            });
+            console.log("results for prayers today...");
+            console.log(result);
+            setTodaysPrayers(result);
           } else {
             console.log("Results undefined couldnt get todays prayers");
           }
