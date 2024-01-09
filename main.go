@@ -117,12 +117,12 @@ func main() {
 	}
 	// Add a job to the scheduler
 	j, err := s.NewJob(
-		gocron.CronJob("28 * * * *", false),
+		gocron.CronJob("01 00 * * *", false),
 		gocron.NewTask(func() {
 			latestPt, err := prayerTimesCronJob(client, logger, location, Pt)
 			if err != nil {
-				// Handle the error (do something)
 				// Do not update prayer times
+				logger.Errorf("Error returned: %s", err.Error())
 			} else {
 				// Update prayer times
 				Pt = latestPt
