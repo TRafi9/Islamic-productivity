@@ -44,6 +44,14 @@ export default function Home() {
   // cron.schedule("* * * * *", () => {
   //   setFormattedDate(updateDate);
   // });
+  // initial delay before running the refresh
+  var initialDelay = calculateTimeTillRefresh();
+  //test this code to see if it works, adjust the time in the calculateTimeTillRefresh code to test
+  setTimeout(() => {
+    setInterval(() => {
+      setFormattedDate(updateDate);
+    }, 24 * 60 * 60 * 1000);
+  }, initialDelay);
 
   interface PrayerData {
     Asr: string;
