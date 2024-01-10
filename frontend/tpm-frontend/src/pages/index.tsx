@@ -12,8 +12,6 @@ import ProductiveStateView from "@/functions/productiveStateView";
 
 import getLastPrayer from "@/functions/getLastPrayer";
 
-const cron = require("node-cron");
-
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
@@ -25,6 +23,7 @@ export default function Home() {
   // update currentDate every 24 hours
   // in the same loop check if the formatted current date isnt the same
   function updateDate() {
+    console.log("running update Date, which returns a formattedDate val!");
     var newDate = new Date();
     var year = newDate.getFullYear();
     var month = String(newDate.getMonth() + 1).padStart(2, "0"); // Months are zero-based
@@ -42,9 +41,9 @@ export default function Home() {
 
   // Schedule the cron job to run every minute
   //TODO CHECK IF THIS LOGIC WORKS - continue from here
-  cron.schedule("* * * * *", () => {
-    setFormattedDate(updateDate);
-  });
+  // cron.schedule("* * * * *", () => {
+  //   setFormattedDate(updateDate);
+  // });
 
   interface PrayerData {
     Asr: string;
@@ -71,6 +70,7 @@ export default function Home() {
   //TODO IMPORTANT need to update formattedDate daily/hourly to run this constantly
   useEffect(() => {
     const fetchData = async () => {
+      console.log("use effect triggered!");
       if (formattedDate !== checkDate || checkDate == null) {
         setCheckDate(formattedDate);
         try {
