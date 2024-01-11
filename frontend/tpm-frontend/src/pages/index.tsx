@@ -11,6 +11,7 @@ import getCurrentPrayer from "@/functions/getCurrentPrayer";
 import ProductiveStateView from "@/functions/productiveStateView";
 
 import getLastPrayer from "@/functions/getLastPrayer";
+import calculateTimeTillRefresh from "@/functions/calculateTimeTillRefresh";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -29,6 +30,7 @@ export default function Home() {
     var month = String(newDate.getMonth() + 1).padStart(2, "0"); // Months are zero-based
     var day = String(newDate.getDate()).padStart(2, "0");
     const formattedDate = `${year}-${month}-${day}`;
+    // const formattedDate = `2024-01-12`;
     return formattedDate;
   }
 
@@ -39,16 +41,15 @@ export default function Home() {
   // Create the formatted date string to match api call date type
   let [formattedDate, setFormattedDate] = useState(`${year}-${month}-${day}`);
 
-  // Schedule the cron job to run every minute
-  //TODO CHECK IF THIS LOGIC WORKS - continue from here
-  // cron.schedule("* * * * *", () => {
-  //   setFormattedDate(updateDate);
-  // });
-  // initial delay before running the refresh
+  // initial delay before running the refresh via setInterval
   var initialDelay = calculateTimeTillRefresh();
+  console.log("initial delay is, ", initialDelay);
+
   //test this code to see if it works, adjust the time in the calculateTimeTillRefresh code to test
   setTimeout(() => {
+    setFormattedDate(updateDate);
     setInterval(() => {
+      console.log("interval running, setting formatted date");
       setFormattedDate(updateDate);
     }, 24 * 60 * 60 * 1000);
   }, initialDelay);
@@ -69,31 +70,23 @@ export default function Home() {
     Maghrib: "",
   });
 
-  // const [prayersLeftInDay, setPrayersLeftInDay] = useState<Record<
-  //   string,
-  //   string
-  // > | null>(null);
-
   // check if its first load, or the day has changed, if so call the API to get new results in todaysPrayers
   //TODO IMPORTANT need to update formattedDate daily/hourly to run this constantly
   useEffect(() => {
+    console.log("use effect triggered from formattedDate");
     const fetchData = async () => {
-      console.log("use effect triggered!");
-      if (formattedDate !== checkDate || checkDate == null) {
-        setCheckDate(formattedDate);
-        try {
-          const result = await getTodaysPrayers(formattedDate);
+      try {
+        const result = await getTodaysPrayers(formattedDate);
 
-          if (result) {
-            console.log("results for prayers today...");
-            console.log(result);
-            setTodaysPrayers(result);
-          } else {
-            console.log("Results undefined couldnt get todays prayers");
-          }
-        } catch (error) {
-          console.error("Error fetching todays prayers", error);
+        if (result) {
+          console.log("results for prayers today...");
+          console.log(result);
+          setTodaysPrayers(result);
+        } else {
+          console.log("Results undefined couldnt get todays prayers");
         }
+      } catch (error) {
+        console.error("Error fetching todays prayers", error);
       }
     };
     fetchData();
