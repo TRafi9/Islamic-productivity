@@ -10,7 +10,8 @@ TODO - ask about how to know what image to use for docker images
 
 
 
-TODO CONTINUE - check & finish cron logic on frontend
+TODO CONTINUE - continue debugging interval code, see what it effects and why it effects getlastprayer when run, currently running via local host 8080 attachment
+
 
 BACKEND DOCKER COMMAND
 
