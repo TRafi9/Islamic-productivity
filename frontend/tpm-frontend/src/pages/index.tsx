@@ -29,12 +29,14 @@ export default function Home() {
     var year = newDate.getFullYear();
     var month = String(newDate.getMonth() + 1).padStart(2, "0"); // Months are zero-based
     var day = String(newDate.getDate()).padStart(2, "0");
-    const formattedDate = `${year}-${month}-${day}`;
-    // const formattedDate = `2024-01-12`;
+    // const formattedDate = `${year}-${month}-${day}`;
+    const formattedDate = `2024-01-14`;
     return formattedDate;
   }
 
   var currentDate = new Date();
+  // // TODO REMOVE for testing as need to move it 1 day up, remove later
+  // currentDate.setDate(currentDate.getDate() + 1);
   var year = currentDate.getFullYear();
   var month = String(currentDate.getMonth() + 1).padStart(2, "0"); // Months are zero-based
   var day = String(currentDate.getDate()).padStart(2, "0");
@@ -101,6 +103,21 @@ export default function Home() {
   const [lastPrayerName, setLastPrayerName] = useState<string | null>(null);
   const [lastPrayerTime, setLastPrayerTime] = useState<Date | null>(null);
 
+  interface ClosestPrayer {
+    name: string;
+    time: string;
+    difference: number;
+  }
+
+  // used to update currentPrayer values when date/time changes
+  var [currentPrayer, setCurrentPrayer] = useState<ClosestPrayer | null>(null);
+
+  interface LastPrayer {
+    name: string;
+    time: string;
+  }
+  var [lastPrayer, setLastPrayer] = useState<LastPrayer | null>(null);
+
   // used in a use effect to trigger a rerun of the getNextPrayer function, it runs when the time passes that of the next prayer
   const [nextPrayerTimeActivator, setNextPrayerTimeActivator] = useState<
     number | null
@@ -108,24 +125,32 @@ export default function Home() {
   const [productiveState, setProductiveState] = useState(false);
 
   useEffect(() => {
-    if (todaysPrayers != null) {
-      const nextPrayer = getNextPrayer(todaysPrayers);
-      const currentPrayer = getCurrentPrayer(todaysPrayers);
-      const lastPrayer = getLastPrayer(todaysPrayers, currentPrayer);
-      console.log("last prayer...");
-      console.log(lastPrayer);
-      console.log("current prayer...");
-      console.log(currentPrayer);
-
-      if (nextPrayer && currentPrayer && lastPrayer) {
-        setNextPrayerTime(new Date(nextPrayer.time));
-        setNextPrayerName(nextPrayer.name);
-        setCurrentPrayerName(currentPrayer.name);
-        setCurrentPrayerTime(new Date(currentPrayer.time));
-        setLastPrayerName(lastPrayer.name);
-        setLastPrayerTime(new Date(lastPrayer.time));
+    const fetchData = async () => {
+      if (todaysPrayers != null) {
+        console.log(todaysPrayers);
+        const nextPrayer = getNextPrayer(todaysPrayers);
+        // currPrayer and currentPrayer are different because currPrayer
+        // is used in the if statement below, as setting parts of usestate
+        // may not be resolved before if statement runs below if it called if(currentPrayer),
+        // same for constLastPrayer
+        const currPrayer = await getCurrentPrayer(todaysPrayers);
+        console.log("curr prayer set!");
+        console.log(currPrayer);
+        setCurrentPrayer(currPrayer);
+        const constLastPrayer = await getLastPrayer(todaysPrayers, currPrayer);
+        setLastPrayer(constLastPrayer);
+        if (nextPrayer && currPrayer && constLastPrayer) {
+          console.log("promises resolved, setting times & names");
+          setNextPrayerTime(new Date(nextPrayer.time));
+          setNextPrayerName(nextPrayer.name);
+          setCurrentPrayerName(currPrayer.name);
+          setCurrentPrayerTime(new Date(currPrayer.time));
+          setLastPrayerName(constLastPrayer.name);
+          setLastPrayerTime(new Date(constLastPrayer.time));
+        }
       }
-    }
+    };
+    fetchData();
   }, [todaysPrayers, nextPrayerTimeActivator]);
 
   // if a nextPrayerTime exists (should do after first load), start timer to see when it goes past nextPrayerTime

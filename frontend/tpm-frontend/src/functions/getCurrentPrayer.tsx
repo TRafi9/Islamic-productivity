@@ -13,8 +13,12 @@ interface ClosestPrayer {
 }
 
 // this function returns next prayer in closestPrayer interface
-const getCurrentPrayer = (todaysPrayers: PrayerData): ClosestPrayer | null => {
+async function getCurrentPrayer(
+  todaysPrayers: PrayerData
+): Promise<ClosestPrayer> {
   const currTime = new Date();
+  // TODO for testing as need to move it 1 day up, remove later
+  // currTime.setDate(currTime.getDate() + 1);
 
   const filteredPrayerObj: Record<string, ClosestPrayer> = Object.entries(
     todaysPrayers
@@ -28,10 +32,15 @@ const getCurrentPrayer = (todaysPrayers: PrayerData): ClosestPrayer | null => {
 
     return acc;
   }, {} as Record<string, ClosestPrayer>);
+  console.log(filteredPrayerObj);
 
   // If there are no upcoming prayers, return null
   if (Object.keys(filteredPrayerObj).length === 0) {
-    return null;
+    return {
+      name: "null - no upcoming prayers",
+      time: "null",
+      difference: 0,
+    };
   }
 
   const closestPrayer = Object.values(filteredPrayerObj).reduce(
@@ -42,6 +51,6 @@ const getCurrentPrayer = (todaysPrayers: PrayerData): ClosestPrayer | null => {
   );
 
   return closestPrayer;
-};
+}
 
 export default getCurrentPrayer;

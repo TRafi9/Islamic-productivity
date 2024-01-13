@@ -17,10 +17,10 @@ interface LastPrayer {
   time: string;
 }
 
-const getLastPrayer = (
+async function getLastPrayer(
   todaysPrayers: PrayerData,
   currentPrayer: CurrentPrayer | null
-): LastPrayer | null => {
+): Promise<LastPrayer | null> {
   var lastPrayer: LastPrayer = {
     name: "",
     time: "",
@@ -64,6 +64,6 @@ const getLastPrayer = (
     );
     return null;
   }
-};
+}
 
 export default getLastPrayer;

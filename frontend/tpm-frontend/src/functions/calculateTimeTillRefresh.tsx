@@ -4,7 +4,7 @@ const calculateTimeTillRefresh = () => {
   const timeNow = new Date();
   const targetTime = new Date(timeNow);
   // time is set to 00:05
-  targetTime.setHours(9, 12, 0, 0);
+  targetTime.setHours(11, 1, 0, 0);
 
   let initialDelay: number = targetTime.getTime() - timeNow.getTime();
   //                            0:05                    0:20
