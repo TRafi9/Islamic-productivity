@@ -10,7 +10,7 @@ TODO - ask about how to know what image to use for docker images
 
 
 
-TODO CONTINUE - continue debugging interval code, see what it effects and why it effects getlastprayer when run, currently running via local host 8080 attachment
+TODO CONTINUE - continue debugging interval code and writing section on how dates updates work in notes!
 
 
 BACKEND DOCKER COMMAND
@@ -19,3 +19,11 @@ docker run -e USER=test-user-tpm -e CONNECTION_NAME=starlit-booster-408007:europ
 
 DOCKER COMPOSE STUFF
 docker-compose up --build
+
+
+how date updates work:
+
+formattedDate var is a usestate, initially set to todays date.
+there is an initialDelay value that calculates the time left till 5 mins past the next day.
+once that time is reached a updateDate function is run which gets the date for the new day and sets formattedDate to the new day (this code runs every 24 hours, so 00:05 everyday)
+since formattedDate will now be changed, a use effect that is triggered off formattedDate runs, this useEffect gets the data for todays prayers and sets it in todaysPrayers var.
