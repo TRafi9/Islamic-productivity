@@ -36,10 +36,8 @@ const ProductiveStateView = (props: any) => {
       lastPrayerTime: props.lastPrayerTime,
       productiveValue: value,
     };
-    console.log("data in send data");
-    console.log(data);
-    const x = await handleSendData(data);
-    console.log(x);
+    const statusResponse = await handleSendData(data);
+    console.log(statusResponse);
 
     props.setProductiveState(false);
   }

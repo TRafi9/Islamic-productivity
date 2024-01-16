@@ -33,9 +33,7 @@ const getNextPrayer = (todaysPrayers: PrayerData): ClosestPrayer | null => {
 
   // If there are no upcoming prayers, return null
   if (Object.keys(filteredPrayerObj).length === 0) {
-    console.log(
-      "lmao- get next prayer returned null, comparing today to tomorrow"
-    );
+    console.log("no upcoming prayers");
     return null;
   }
 

@@ -67,7 +67,7 @@ func main() {
 	e := echo.New()
 	// cors not needed when running on docker containers that are on same network because of docker-compose file? - check TODO
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"http://tpm-frontend:3000"},
+		AllowOrigins: []string{"http://tpm-frontend:3000", "http://localhost:3000"},
 		AllowMethods: []string{echo.GET, echo.POST},
 	}))
 	//TODO make getPrayerTimes return the whole month

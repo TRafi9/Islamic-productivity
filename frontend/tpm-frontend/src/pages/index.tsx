@@ -78,7 +78,14 @@ export default function Home() {
     console.log("use effect triggered from formattedDate");
     const fetchData = async () => {
       try {
-        const result = await getTodaysPrayers(formattedDate);
+        // const result = await getTodaysPrayers(formattedDate);
+        const result = {
+          Asr: "2024-01-16T15:01:00Z",
+          Dhuhr: "2024-01-16T09:44:00Z",
+          Fajr: "2024-01-16T06:59:00Z",
+          Isha: "2024-01-16T19:14:00Z",
+          Maghrib: "2024-01-16T17:28:00Z",
+        };
 
         if (result) {
           console.log("results for prayers today...");
