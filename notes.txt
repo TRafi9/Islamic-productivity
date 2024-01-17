@@ -10,7 +10,7 @@ TODO - ask about how to know what image to use for docker images
 
 
 
-TODO CONTINUE - continue debugging interval code and writing section on how dates updates work in notes! + debug the issue with getting data from postgres instance
+TODO CONTINUE - https://www.digitalocean.com/community/tutorials/how-to-add-login-authentication-to-react-applications - setup user login experience
 
 
 BACKEND DOCKER COMMAND

@@ -323,8 +323,10 @@ func uploadUserInput(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, user
 		logger.Fatalf("Failed to execute database sql statement, err: %w", err)
 		return err
 	} else {
+		// this is how you query data that has been sent to the database
+		///
 		sql_select := "SELECT * FROM user_submissions LIMIT 1;"
-		//TODO LEARN HOW db.Query & Scan works together + pointers
+
 		rows, err := db.Query(sql_select)
 		if err != nil {
 			logger.Error(err)
@@ -350,7 +352,8 @@ func uploadUserInput(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, user
 			}
 		}
 
-		logger.Info(random_primary_key, user_id, productive_val, first_prayer_name, second_prayer_name, first_prayer_time, second_prayer_time, ingestion_timestamp)
+		// logger.Info(random_primary_key, user_id, productive_val, first_prayer_name, second_prayer_name, first_prayer_time, second_prayer_time, ingestion_timestamp)
+		///
 		logger.Info("SUCCESSFULLY UPLOADED TO POSTGRES DB!")
 		return nil
 	}
