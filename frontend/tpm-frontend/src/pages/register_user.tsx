@@ -18,17 +18,17 @@ export default function RegisterUser() {
       <div>
         <main className={`${styles.main} ${inter.className}`}>
           <form className="register-form">
-            <div>
+            <div className="form-group">
               <label>Email address</label>
-              <br></br>
+              <br />
               <input
                 type="email"
-                className="register-form"
+                className="form-control"
                 id="email"
                 placeholder="name@example.com"
               />
             </div>
-            <div>
+            <div className="form-group">
               <label htmlFor="exampleInputPassword1">Password</label>
               <input
                 type="password"
@@ -37,8 +37,10 @@ export default function RegisterUser() {
                 placeholder="Password"
               />
             </div>
-            <div>
-              <input type="submit" value="Submit"></input>
+            <div className="form-group">
+              <button type="submit" className="btn btn-primary">
+                Submit
+              </button>
             </div>
           </form>
         </main>
