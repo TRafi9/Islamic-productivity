@@ -10,9 +10,7 @@ TODO - ask about how to know what image to use for docker images
 
 
 
-TODO CONTINUE - https://www.digitalocean.com/community/tutorials/how-to-add-login-authentication-to-react-applications - setup user login experience
-                - you could wrap the code in index in something such as an unauthenticated template(where the login screen will render) and authenticated
-                template where the rest of the code will render, just like in apps&services
+TODO CONTINUE -  setup user login experience, fix empty error on frontend and encrypt password sent on backend
 
 BACKEND DOCKER COMMAND
 

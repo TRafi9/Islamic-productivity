@@ -10,7 +10,8 @@ export default function RegisterUser() {
   const [userEmail, setCreateUserEmail] = useState<string>("");
   const [emailSanitiseCheck, setEmailSanitiseCheck] = useState<boolean>(false);
 
-  const [createUserPassword, setCreateUserPassword] = useState<string>("");
+  const [UserPassword, setUserPassword] = useState<string>("");
+
   const [passwordSanitiseCheck, setPasswordSanitiseCheck] =
     useState<boolean>(false);
   const handleCreateUserEmailChange = (
@@ -22,7 +23,7 @@ export default function RegisterUser() {
 
   const handleCreateUserPassword = (event: ChangeEvent<HTMLInputElement>) => {
     // sets password and sanitises input
-    setCreateUserPassword(event.target.value);
+    setUserPassword(event.target.value);
     sanitisePassword(event.target.value);
   };
 
@@ -76,6 +77,43 @@ export default function RegisterUser() {
     }
   }
 
+  // here we create the struct of submissionData and pass it through to the backend
+  type SubmissionData = {
+    userEmail: string;
+    userPassword: string;
+  };
+  const submitNewUser = async (data: SubmissionData) => {
+    try {
+      const response = await fetch("http://localhost:8080/api/v1/createUser", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (response.ok) {
+        // Request was successful
+        const responseData = await response.json();
+        console.log("API Response:", responseData);
+      } else {
+        // Handle errors
+        console.error("Error:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error:");
+    }
+  };
+
+  async function submit() {
+    const SubmissionData: SubmissionData = {
+      userEmail: userEmail,
+      userPassword: UserPassword,
+    };
+    const statusResponse = await submitNewUser(SubmissionData);
+    console.log(statusResponse);
+  }
+
   return (
     <>
       <Head>
@@ -113,7 +151,14 @@ export default function RegisterUser() {
               />
             </div>
             <div className="form-group">
-              <button type="submit" className="btn btn-primary">
+              <button
+                type="submit"
+                className="btn btn-primary"
+                onClick={(e) => {
+                  e.preventDefault(); // Prevents the default form submission
+                  submit();
+                }}
+              >
                 Submit
               </button>
             </div>

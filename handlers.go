@@ -277,10 +277,11 @@ type UserDataRequestBody struct {
 }
 
 func handlePostUserData(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) error {
+	// this function parses the incoming data and uploads it to the postgres database
 
 	var incomingData UserDataRequestBody
 	if err := c.Bind(&incomingData); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body for incoming user submission"})
 	}
 	logger.Infof("User posted Data %s", incomingData)
 
@@ -357,4 +358,20 @@ func uploadUserInput(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, user
 		logger.Info("SUCCESSFULLY UPLOADED TO POSTGRES DB!")
 		return nil
 	}
+}
+
+type NewUserData struct {
+	UserEmail    string `json:"userEmail"`
+	UserPassword string `json:"userPassword"`
+}
+
+func handleCreateUser(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) error {
+	// this function parses the incoming user data, calls an encryption on the password then uploads it to the db
+	var incomingUserRegistration NewUserData
+	logger.Info("function triggered!")
+	if err := c.Bind(&incomingUserRegistration); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body for new user registration"})
+	}
+	logger.Infof("HERE IS NEW USER REGISTRATION, USER EMAIL: %s, USER PASSWORD: %s", incomingUserRegistration.UserEmail, incomingUserRegistration.UserPassword)
+	return nil
 }
