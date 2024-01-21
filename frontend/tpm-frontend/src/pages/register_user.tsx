@@ -77,33 +77,48 @@ export default function RegisterUser() {
     }
   }
 
+  function showRegistrationMessage() {
+    if (submitResponseStatus) {
+      switch (submitResponseStatus) {
+        case 200:
+          return <p>Registration successful! You can now log in.</p>;
+        case 208:
+          return <p> Error creating user, email already in use</p>;
+        case 400:
+          return (
+            <p>Error creating user, please contact developer: status: 400.</p>
+          );
+        case 500:
+          return (
+            <p>Error creating user, please contact developer: status: 500.</p>
+          );
+        default:
+          return <p>Error: Unknown status code received.</p>;
+      }
+    }
+    return <></>;
+  }
+
   // here we create the struct of submissionData and pass it through to the backend
   type SubmissionData = {
     userEmail: string;
     userPassword: string;
   };
   const submitNewUser = async (data: SubmissionData) => {
-    try {
-      const response = await fetch("http://localhost:8080/api/v1/createUser", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
+    const response = await fetch("http://localhost:8080/api/v1/createUser", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
 
-      if (response.ok) {
-        // Request was successful
-        const responseData = await response.json();
-        console.log("API Response:", responseData);
-      } else {
-        // Handle errors
-        console.error("Error:", response.statusText);
-      }
-    } catch (error) {
-      console.error("Error:");
-    }
+    return response.status;
   };
+  // once user submites, this updates with response code, which triggers showRegistrationMessage() to display something
+  const [submitResponseStatus, setSubmitResponseStatus] = useState<
+    number | null
+  >(null);
 
   async function submit() {
     const SubmissionData: SubmissionData = {
@@ -111,7 +126,7 @@ export default function RegisterUser() {
       userPassword: UserPassword,
     };
     const statusResponse = await submitNewUser(SubmissionData);
-    console.log(statusResponse);
+    setSubmitResponseStatus(statusResponse);
   }
 
   return (
@@ -151,6 +166,7 @@ export default function RegisterUser() {
               />
             </div>
             <div className="form-group">
+              {showRegistrationMessage()}
               <button
                 type="submit"
                 className="btn btn-primary"

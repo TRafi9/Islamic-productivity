@@ -121,6 +121,7 @@ func main() {
 	}
 	// Add a job to the scheduler
 	j, err := s.NewJob(
+		// runs 1 minute past midnight every day
 		gocron.CronJob("01 00 * * *", false),
 		gocron.NewTask(func() {
 			latestPt, err := prayerTimesCronJob(client, logger, location, Pt)

@@ -372,6 +372,44 @@ func handleCreateUser(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) err
 	if err := c.Bind(&incomingUserRegistration); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body for new user registration"})
 	}
-	logger.Infof("HERE IS NEW USER REGISTRATION, USER EMAIL: %s, USER PASSWORD: %s", incomingUserRegistration.UserEmail, incomingUserRegistration.UserPassword)
+	hashed_password, err := hashPassword(incomingUserRegistration.UserPassword)
+	if err != nil {
+		logger.Errorf(fmt.Sprintf("Failed to hash password, err: %s", err.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to hash password"})
+	}
+
+	incomingUserRegistration.UserPassword = hashed_password
+
+	// get current timestamp in postgres format to register when new user was created, can use to delete values
+	currentTime := currentTimeStampPostgres()
+	// set email verification for users initially to false when user is created, they need to confirm later
+	verifiedEmail := false
+
+	// primary key is users email here to stop multiple registrations of same user email going through
+	// createTableSQL := `
+	// CREATE TABLE IF NOT EXISTS users (
+	// 	user_id VARCHAR(255) PRIMARY KEY,
+	// 	password_hash VARCHAR(255),
+	// 	creation_timestamp TIMESTAMP
+	//  verified_email BOOLEAN
+	// );
+	// `
+
+	logger.Info(incomingUserRegistration.UserPassword)
+
+	insertSQL := `
+    INSERT INTO users (
+        user_id, password_hash, creation_timestamp, verified_email
+    ) VALUES (
+        $1, $2, $3, $4
+    )
+`
+
+	_, err = db.Exec(insertSQL, incomingUserRegistration.UserEmail, incomingUserRegistration.UserPassword, currentTime, verifiedEmail)
+	if err != nil {
+		logger.Errorf("Failed to execute database sql statement, err: %w", err)
+		return c.JSON(http.StatusAlreadyReported, map[string]string{"error": "Failed to upload user data to server, is the email already in use?"})
+	}
+
 	return nil
 }
