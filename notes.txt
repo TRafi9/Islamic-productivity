@@ -12,6 +12,8 @@ TODO - ask about how to know what image to use for docker images
 
 TODO CONTINUE -  setup user login experience, make sure submit for new user cant be clicked if email/password are not valid
 
+- need to add email confirmation by sending email to confirm user somehow
+
 BACKEND DOCKER COMMAND
 
 docker run -e USER=test-user-tpm -e CONNECTION_NAME=starlit-booster-408007:europe-west2:the-productive-muslim -e PASSWORD='1SVyqShEUD0Pil' -e DB_NAME=postgres -p 8080:8080 tpm_backend 
