@@ -6,6 +6,10 @@ import React, { ChangeEvent } from "react";
 
 const inter = Inter({ subsets: ["latin"] });
 
+//TODO on this page, the user is registered, but a response is sent from server only when the function on the backend completes
+// because of this, there is a delay in showRegistrationMessage() to resolve
+// add a spinner/ loading animation to show the user that something is being processed while waiting for showRegistrationMessage to resolve
+
 export default function RegisterUser() {
   const [userEmail, setCreateUserEmail] = useState<string>("");
   const [emailSanitiseCheck, setEmailSanitiseCheck] = useState<boolean>(false);
