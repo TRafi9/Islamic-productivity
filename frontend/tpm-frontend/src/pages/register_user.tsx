@@ -124,13 +124,19 @@ export default function RegisterUser() {
     number | null
   >(null);
 
-  async function submit() {
-    const SubmissionData: SubmissionData = {
-      userEmail: userEmail,
-      userPassword: UserPassword,
-    };
-    const statusResponse = await submitNewUser(SubmissionData);
-    setSubmitResponseStatus(statusResponse);
+  const [submitErrorMessage, setSubmitErrorMessage] = useState<boolean>(false);
+
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
+    if (emailSanitiseCheck && passwordSanitiseCheck) {
+      const SubmissionData: SubmissionData = {
+        userEmail: userEmail,
+        userPassword: UserPassword,
+      };
+      const statusResponse = await submitNewUser(SubmissionData);
+      setSubmitResponseStatus(statusResponse);
+    } else {
+      e.preventDefault();
+    }
   }
 
   return (
@@ -145,7 +151,7 @@ export default function RegisterUser() {
       </Head>
       <div>
         <main className={`${styles.main} ${inter.className}`}>
-          <form className="register-form">
+          <form className="register-form" onSubmit={(e) => submit(e)}>
             <div className="form-group">
               {showEmailWarning()}
               <label>Email address</label>
@@ -171,14 +177,7 @@ export default function RegisterUser() {
             </div>
             <div className="form-group">
               {showRegistrationMessage()}
-              <button
-                type="submit"
-                className="btn btn-primary"
-                onClick={(e) => {
-                  e.preventDefault(); // Prevents the default form submission
-                  submit();
-                }}
-              >
+              <button type="submit" className="btn btn-primary">
                 Submit
               </button>
             </div>
