@@ -181,7 +181,7 @@ export default function RegisterUser() {
                 className="btn btn-primary"
                 disabled={!emailSanitiseCheck || !passwordSanitiseCheck}
               >
-                Submit
+                Register
               </button>
             </div>
           </form>
