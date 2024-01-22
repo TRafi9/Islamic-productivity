@@ -10,7 +10,7 @@ TODO - ask about how to know what image to use for docker images
 
 
 
-TODO CONTINUE -  setup user login experience, make sure submit for new user cant be clicked if email/password are not valid
+TODO CONTINUE -  setup user login experience, make sure submit for new user cant be clicked if email/password are not valid - continue
 
 - need to add email confirmation by sending email to confirm user somehow
 
