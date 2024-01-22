@@ -3,6 +3,7 @@ import styles from "@/styles/Home.module.css";
 import { Inter } from "next/font/google";
 import { useState } from "react";
 import React, { ChangeEvent } from "react";
+import { stat } from "fs";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -124,18 +125,16 @@ export default function RegisterUser() {
     number | null
   >(null);
 
-  const [submitErrorMessage, setSubmitErrorMessage] = useState<boolean>(false);
-
   async function submit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     if (emailSanitiseCheck && passwordSanitiseCheck) {
       const SubmissionData: SubmissionData = {
         userEmail: userEmail,
         userPassword: UserPassword,
       };
-      const statusResponse = await submitNewUser(SubmissionData);
-      setSubmitResponseStatus(statusResponse);
-    } else {
-      e.preventDefault();
+      const response = await submitNewUser(SubmissionData);
+
+      setSubmitResponseStatus(response);
     }
   }
 
@@ -177,7 +176,11 @@ export default function RegisterUser() {
             </div>
             <div className="form-group">
               {showRegistrationMessage()}
-              <button type="submit" className="btn btn-primary">
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={!emailSanitiseCheck || !passwordSanitiseCheck}
+              >
                 Submit
               </button>
             </div>
