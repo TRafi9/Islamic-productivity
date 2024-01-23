@@ -3,7 +3,12 @@ import styles from "@/styles/Home.module.css";
 import { Inter } from "next/font/google";
 import { useState } from "react";
 import React, { ChangeEvent } from "react";
-import { stat } from "fs";
+import {
+  showEmailWarning,
+  showPasswordWarning,
+  sanitiseEmail,
+  sanitisePassword,
+} from "@/functions/loginFunctions";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,64 +28,18 @@ export default function RegisterUser() {
     event: ChangeEvent<HTMLInputElement>
   ) => {
     setCreateUserEmail(event.target.value);
-    sanitiseEmail(event.target.value);
+    sanitiseEmail(event.target.value, setEmailSanitiseCheck);
   };
 
   const handleCreateUserPassword = (event: ChangeEvent<HTMLInputElement>) => {
     // sets password and sanitises input
     setUserPassword(event.target.value);
-    sanitisePassword(event.target.value);
+    sanitisePassword(event.target.value, setPasswordSanitiseCheck);
   };
 
   //TODO need to verify username and password sanitization here
 
   // functions for sanitising input
-
-  function sanitiseEmail(email: string) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (emailRegex.test(email)) {
-      setEmailSanitiseCheck(true);
-    } else {
-      setEmailSanitiseCheck(false);
-    }
-  }
-
-  function sanitisePassword(password: string) {
-    // Ensure the password contains at least one special character
-    // Ensure the password contains at least one capital letter
-    const specialCharacterRegex = /[!@#$%^&*()_+{}\[\]:;<>,.?~\\/-]/;
-    const capitalLetterRegex = /[A-Z]/;
-
-    if (
-      password.length < 10 ||
-      !specialCharacterRegex.test(password) ||
-      !capitalLetterRegex.test(password)
-    ) {
-      setPasswordSanitiseCheck(false);
-    } else {
-      setPasswordSanitiseCheck(true);
-    }
-  }
-
-  function showPasswordWarning() {
-    if (passwordSanitiseCheck) {
-      return <></>;
-    } else {
-      return (
-        <p>
-          Password needs to be 10+ letters, have a special character and a
-          number
-        </p>
-      );
-    }
-  }
-  function showEmailWarning() {
-    if (emailSanitiseCheck) {
-      return <></>;
-    } else {
-      return <p>Please enter a valid email address</p>;
-    }
-  }
 
   function showRegistrationMessage() {
     if (submitResponseStatus) {
@@ -152,7 +111,7 @@ export default function RegisterUser() {
         <main className={`${styles.main} ${inter.className}`}>
           <form className="register-form" onSubmit={(e) => submit(e)}>
             <div className="form-group">
-              {showEmailWarning()}
+              {showEmailWarning(emailSanitiseCheck)}
               <label>Email address</label>
               <br />
               <input
@@ -164,7 +123,7 @@ export default function RegisterUser() {
               />
             </div>
             <div className="form-group">
-              {showPasswordWarning()}
+              {showPasswordWarning(passwordSanitiseCheck)}
               <label htmlFor="exampleInputPassword1">Password</label>
               <input
                 type="password"

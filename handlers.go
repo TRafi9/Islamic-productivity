@@ -413,3 +413,8 @@ func handleCreateUser(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) err
 
 	return nil
 }
+
+// TODO continue from here
+func handleLogin(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) error {
+	return nil
+}

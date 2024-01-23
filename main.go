@@ -98,6 +98,9 @@ func main() {
 	api.POST("/createUser", func(c echo.Context) error {
 		return handleCreateUser(c, logger, db)
 	})
+	api.POST("/login", func(c echo.Context) error {
+		return handleLogin(c, logger, db)
+	})
 
 	//TODO CONTINUE FROM HERE
 	// also look at serialisation of prayerData so you dont have to convert and revert between time.Time and string values, can store serialized strings in redis that are
