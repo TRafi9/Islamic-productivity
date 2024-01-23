@@ -360,15 +360,14 @@ func uploadUserInput(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, user
 	}
 }
 
-type NewUserData struct {
+type UserCredentials struct {
 	UserEmail    string `json:"userEmail"`
 	UserPassword string `json:"userPassword"`
 }
 
 func handleCreateUser(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) error {
 	// this function parses the incoming user data, calls an encryption on the password then uploads it to the db
-	var incomingUserRegistration NewUserData
-	logger.Info("function triggered!")
+	var incomingUserRegistration UserCredentials
 	if err := c.Bind(&incomingUserRegistration); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body for new user registration"})
 	}
@@ -416,5 +415,11 @@ func handleCreateUser(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) err
 
 // TODO continue from here
 func handleLogin(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) error {
+	var loginCredentials UserCredentials
+
+	if err := c.Bind(&loginCredentials); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Failed to bind user login credentials"})
+	}
+
 	return nil
 }
