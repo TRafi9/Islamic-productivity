@@ -415,10 +415,42 @@ func handleCreateUser(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) err
 
 // TODO continue from here
 func handleLogin(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) error {
+	// gets hashed pass from db, compares it to users logged in password, then allows auth to continue or stops it
 	var loginCredentials UserCredentials
 
 	if err := c.Bind(&loginCredentials); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Failed to bind user login credentials"})
+	}
+
+	queryPassword := `
+	SELECT password_hash 
+	FROM users
+	WHERE user_id == "$1"
+	LIMIT 1`
+
+	rows, err := db.Query(queryPassword, loginCredentials.UserEmail)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+
+	defer rows.Close() // Don't forget to close the rows when done
+	var hashed_password_from_db string
+
+	for rows.Next() {
+		err := rows.Scan(&hashed_password_from_db)
+		if err != nil {
+			logger.Error(err)
+			return err
+		}
+	}
+
+	isPassHashed := checkPasswordHash(loginCredentials.UserPassword, hashed_password_from_db)
+
+	if isPassHashed {
+		logger.Infof("password is hashed correctly and login details match!")
+	} else {
+		logger.Info("password hash is incorrect!")
 	}
 
 	return nil
