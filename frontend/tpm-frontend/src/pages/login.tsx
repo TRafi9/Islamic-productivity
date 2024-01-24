@@ -46,7 +46,10 @@ export default function LoginUser() {
           return <p>Login successful!</p>;
         case 401:
           return <p>Incorrect email or password</p>;
-        case 400:
+        case 403:
+          return <p>Invalid credentials</p>;
+        case 406:
+          return <p> Please verify email before logging in</p>;
         case 500:
           return <p>Error logging in, please contact the developer</p>;
         default:

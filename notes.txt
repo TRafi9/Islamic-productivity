@@ -10,7 +10,7 @@ TODO - ask about how to know what image to use for docker images
 
 
 
-TODO CONTINUE -  setup user login experience, add user login api handling, pull hashed password check hash, check if setup in backend works
+TODO CONTINUE -  setup user login experience, add email verification step next
 - need to understand and implement jwt token back and forth after login success
 
 - need to add email confirmation by sending email to confirm user somehow

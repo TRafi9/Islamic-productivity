@@ -148,8 +148,8 @@ func GetPrayerTimes(location string, client *redis.Client, logger *zap.SugaredLo
 		monthlyDataRedis[redisDateKey] = dailyPrayerTimesMap
 
 	}
-	logger.Info("MONTHLY DATA FROM REDIS CACHE IS: ")
-	logger.Info(monthlyDataRedis)
+	// logger.Info("MONTHLY DATA FROM REDIS CACHE IS: ")
+	// logger.Info(monthlyDataRedis)
 	return monthlyDataRedis, nil
 }
 
@@ -419,29 +419,33 @@ func handleLogin(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) error {
 	var loginCredentials UserCredentials
 
 	if err := c.Bind(&loginCredentials); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Failed to bind user login credentials"})
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bind user login credentials"})
 	}
 
 	queryPassword := `
-	SELECT password_hash 
+	SELECT password_hash, verified_email 
 	FROM users
-	WHERE user_id == "$1"
+	WHERE user_id = $1
 	LIMIT 1`
 
 	rows, err := db.Query(queryPassword, loginCredentials.UserEmail)
 	if err != nil {
+		logger.Info("query error")
 		logger.Error(err)
-		return err
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to run db.Query"})
 	}
 
 	defer rows.Close() // Don't forget to close the rows when done
 	var hashed_password_from_db string
+	var verified_email bool
 
 	for rows.Next() {
-		err := rows.Scan(&hashed_password_from_db)
+		err := rows.Scan(&hashed_password_from_db, &verified_email)
+		logger.Infof("hashed password from db is: %s and verified email status is : %s", hashed_password_from_db, strconv.FormatBool(verified_email))
 		if err != nil {
+			logger.Info("rows.Next() error")
 			logger.Error(err)
-			return err
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed in rows.Next() loop"})
 		}
 	}
 
@@ -449,8 +453,18 @@ func handleLogin(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) error {
 
 	if isPassHashed {
 		logger.Infof("password is hashed correctly and login details match!")
+		if verified_email {
+			logger.Info("email is verified as well")
+			// returning nil will return status OK by default
+			return nil
+		} else {
+			logger.Info("email is not verified")
+			return c.JSON(http.StatusNotAcceptable, map[string]string{"error": "Email is not verified"})
+		}
+		//TODO return OK if email verified, otherwise return error asking to verify email
 	} else {
 		logger.Info("password hash is incorrect!")
+		return c.JSON(http.StatusForbidden, map[string]string{"error": "User credentials invalid"})
 	}
 
 	return nil

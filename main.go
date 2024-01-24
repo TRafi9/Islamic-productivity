@@ -49,7 +49,7 @@ func main() {
 	dbName := os.Getenv("DB_NAME")
 	connectionString := fmt.Sprintf("host=localhost user=%s password=%s dbname=%s sslmode=disable", user, password, dbName)
 
-	logger.Info(connectionString)
+	// logger.Info(connectionString)
 
 	db, err := sql.Open("postgres", connectionString)
 
