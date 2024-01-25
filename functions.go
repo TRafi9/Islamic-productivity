@@ -1,10 +1,13 @@
 package main
 
 import (
+	"os"
 	"time"
 
 	"crypto/rand"
 	"io"
+
+	"net/smtp"
 
 	"github.com/go-redis/redis"
 	"go.uber.org/zap"
@@ -70,7 +73,14 @@ func currentTimeStampPostgres() string {
 	return formattedTime
 }
 
-func EncodeToString(max int) string {
+func currentTimePlusHourPostgres() string {
+	currentTime := time.Now()
+	oneHourLater := currentTime.Add(time.Hour)
+	formattedTime := oneHourLater.Format("2006-01-02 15:04:05")
+	return formattedTime
+}
+
+func generateRandomCode(max int) string {
 	// [...] means size of array is determined by the number of values provided in the array itself
 	table := [...]byte{1, 2, 3, 4, 5, 6, 7, 8, 9}
 	b := make([]byte, max)
@@ -84,7 +94,13 @@ func EncodeToString(max int) string {
 	return string(b)
 }
 
-func sendEmailVerification() error {
+func sendEmailVerification(verificationCode string) error {
+	email := os.Getenv("VERIFICATION_EMAIL")
+	verification_email_password := os.Getenv("VERIFICATION_EMAIL_PASSWORD")
+	hostName = 
+	auth := smtp.PlainAuth("", email, verification_email_password, "smtp.gmail.com")
+	//https://www.youtube.com/watch?v=H0HZc4FgX7E&t=249s&ab_channel=CodingwithRobby
+	//https://pkg.go.dev/net/smtp#example-PlainAuth
 
 	// generate random code
 

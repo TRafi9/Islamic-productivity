@@ -412,6 +412,37 @@ func handleCreateUser(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) err
 
 	// add send email verification function here before returning registered user?
 	// generate random passphrase for email verification confirmation
+	verificationCode := generateRandomCode(6)
+	expiryTime := currentTimePlusHourPostgres()
+
+	// setup verification table in db to hold verification codes for users to register
+	createTableSQL := `
+	CREATE TABLE IF NOT EXISTS email_verification_check (
+		user_id VARCHAR(255) PRIMARY KEY,
+		email_verification_code INT,
+		expiry_time TIMESTAMP
+	);
+	`
+	_, err = db.Exec(createTableSQL)
+	if err != nil {
+		logger.Errorf("Failed to execute database sql statement, err: %w", err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to upload user data to server, is the email already in use?"})
+	}
+	logger.Info("db for user email verification created")
+
+	insertVerificationCodeSQL := `
+	INSERT INTO email_verification_check (
+		user_id, email_verification_code, expiry_time
+	) VALUES (
+		$1, $2, $3
+	);
+	`
+	_, err = db.Exec(insertVerificationCodeSQL, incomingUserRegistration.UserEmail, verificationCode, expiryTime)
+	if err != nil {
+		logger.Errorf("Failed to insert email verification code in DB, err %w", err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to upload email verification code to db"})
+	}
+
 	// email user a random key to their email, (which is also set in the insert statement of a new DB table called verified_email_check)
 	// this should have created date and expiration date on it
 	// once user registers, if successful, pop up a verify email button, taking user to a new page (or have it change from greyed out)

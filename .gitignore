@@ -1,5 +1,6 @@
 tpm
 pass.txt
 tpm_key.json
+dockerCommand.txt
 .envrc
 .env
