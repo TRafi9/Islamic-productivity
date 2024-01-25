@@ -411,6 +411,7 @@ func handleCreateUser(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) err
 	}
 
 	// add send email verification function here before returning registered user?
+	// generate random passphrase for email verification confirmation
 	// email user a random key to their email, (which is also set in the insert statement of a new DB table called verified_email_check)
 	// this should have created date and expiration date on it
 	// once user registers, if successful, pop up a verify email button, taking user to a new page (or have it change from greyed out)

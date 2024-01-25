@@ -3,6 +3,9 @@ package main
 import (
 	"time"
 
+	"crypto/rand"
+	"io"
+
 	"github.com/go-redis/redis"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
@@ -65,4 +68,26 @@ func currentTimeStampPostgres() string {
 	currentTime := time.Now()
 	formattedTime := currentTime.Format("2006-01-02 15:04:05")
 	return formattedTime
+}
+
+func EncodeToString(max int) string {
+	// [...] means size of array is determined by the number of values provided in the array itself
+	table := [...]byte{1, 2, 3, 4, 5, 6, 7, 8, 9}
+	b := make([]byte, max)
+	n, err := io.ReadAtLeast(rand.Reader, b, max)
+	if n != max {
+		panic(err)
+	}
+	for i := 0; i < len(b); i++ {
+		b[i] = table[int(b[i])%len(table)]
+	}
+	return string(b)
+}
+
+func sendEmailVerification() error {
+
+	// generate random code
+
+	// add email client
+	return nil
 }
