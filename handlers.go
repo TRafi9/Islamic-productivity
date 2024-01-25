@@ -410,6 +410,14 @@ func handleCreateUser(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) err
 		return c.JSON(http.StatusAlreadyReported, map[string]string{"error": "Failed to upload user data to server, is the email already in use?"})
 	}
 
+	// add send email verification function here before returning registered user?
+	// email user a random key to their email, (which is also set in the insert statement of a new DB table called verified_email_check)
+	// this should have created date and expiration date on it
+	// once user registers, if successful, pop up a verify email button, taking user to a new page (or have it change from greyed out)
+	// this page takes user to a new form page, asking for email + verification code
+	// this page makes a query to verified_email_check db, checking if there is a record where email + verification code exists + login expiry time<current time
+	// if record exists,return 200 and display registration verified, else 404 verification not valid/ expired and show message on frontend
+	// pop up resend email verification button -> this reruns email verification somehow?
 	return nil
 }
 
