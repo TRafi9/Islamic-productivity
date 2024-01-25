@@ -10,10 +10,10 @@ TODO - ask about how to know what image to use for docker images
 
 
 
-TODO CONTINUE -  setup user login experience, add email verification step next
+TODO CONTINUE -  setup user login experience, add email verification step next, continue with functions.go email code
 - need to understand and implement jwt token back and forth after login success
 
-- need to add email confirmation by sending email to confirm user somehow
+
 
 DOCKER COMPOSE STUFF
 docker-compose up --build
