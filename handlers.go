@@ -465,6 +465,10 @@ func handleCreateUser(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) err
 	return nil
 }
 
+func handleUserVerification(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) {
+
+}
+
 // TODO continue from here
 func handleLogin(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) error {
 	// gets hashed pass from db, compares it to users logged in password, then allows auth to continue or stops it

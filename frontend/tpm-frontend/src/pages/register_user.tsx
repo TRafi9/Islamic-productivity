@@ -1,7 +1,7 @@
 import Head from "next/head";
 import styles from "@/styles/Home.module.css";
 import { Inter } from "next/font/google";
-import { useState } from "react";
+import { SetStateAction, useState, Dispatch } from "react";
 import React, { ChangeEvent } from "react";
 import {
   showEmailWarning,
@@ -37,6 +37,23 @@ export default function RegisterUser() {
     sanitisePassword(event.target.value, setPasswordSanitiseCheck);
   };
 
+  const [emailVerificationCode, setEmailVerificationCode] = useState<
+    number | null
+  >(null);
+  // the function below updates the value of emailVerificationCode when the user types it in
+  const handleEmailVerificationCode = (
+    event: ChangeEvent<HTMLInputElement>
+  ) => {
+    const numericValue = parseInt(event.target.value, 10);
+
+    // Check if the conversion is successful and it's a 6-digit integer
+    if (!isNaN(numericValue) && String(numericValue).length === 6) {
+      setEmailVerificationCode(numericValue);
+    }
+  };
+
+  const [verifyEmailView, setVerifyEmailView] = useState<boolean>(false);
+
   //TODO need to verify username and password sanitization here
 
   // functions for sanitising input
@@ -45,6 +62,7 @@ export default function RegisterUser() {
     if (submitResponseStatus) {
       switch (submitResponseStatus) {
         case 200:
+          setVerifyEmailView(true);
           return <p>Registration successful! You can now log in.</p>;
         case 208:
           return <p> Error creating user, email already in use</p>;
@@ -85,6 +103,7 @@ export default function RegisterUser() {
   >(null);
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
+    //TODO, rewrite maybe? no need for submitNewUser to be its own function, can directly call it in here, like in submitVerification function
     e.preventDefault();
     if (emailSanitiseCheck && passwordSanitiseCheck) {
       const SubmissionData: SubmissionData = {
@@ -94,6 +113,39 @@ export default function RegisterUser() {
       const response = await submitNewUser(SubmissionData);
 
       setSubmitResponseStatus(response);
+    }
+  }
+
+  // verification email sending form data to backend and retrieving response variables
+
+  const [verifiedUserEmailResponse, setVerifiedUserEmailResponse] = useState<
+    number | null
+  >();
+  type VerifyEmailData = {
+    userEmail: string;
+    verificationCode: number | null;
+  };
+
+  async function submitVerification(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (emailSanitiseCheck) {
+      const verifySubmissionData: VerifyEmailData = {
+        userEmail: userEmail,
+        verificationCode: emailVerificationCode,
+      };
+
+      const response = await fetch(
+        "http://localhost:8080/api/v1/handleUserVerification",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(verifySubmissionData),
+        }
+      );
+      // response needs to be response.status return on the backend when created, then create a check on if verifiedUserEmailResponse is 200, if so redirect to login page, else throw errors
+      setVerifiedUserEmailResponse(response.status);
     }
   }
 
@@ -109,41 +161,85 @@ export default function RegisterUser() {
       </Head>
       <div>
         <main className={`${styles.main} ${inter.className}`}>
-          <form className="register-form" onSubmit={(e) => submit(e)}>
-            <div className="form-group">
-              {showEmailWarning(emailSanitiseCheck)}
-              <label>Email address</label>
-              <br />
-              <input
-                type="email"
-                className="form-control"
-                id="email"
-                placeholder="name@example.com"
-                onChange={handleCreateUserEmailChange}
-              />
-            </div>
-            <div className="form-group">
-              {showPasswordWarning(passwordSanitiseCheck)}
-              <label htmlFor="exampleInputPassword1">Password</label>
-              <input
-                type="password"
-                className="form-control"
-                id="password"
-                placeholder="Password"
-                onChange={handleCreateUserPassword}
-              />
-            </div>
-            <div className="form-group">
-              {showRegistrationMessage()}
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={!emailSanitiseCheck || !passwordSanitiseCheck}
+          {!verifyEmailView ? (
+            <form className="register-form" onSubmit={(e) => submit(e)}>
+              <div className="form-group">
+                {showEmailWarning(emailSanitiseCheck)}
+                <label>Email address</label>
+                <br />
+                <input
+                  type="email"
+                  className="form-control"
+                  id="email"
+                  placeholder="name@example.com"
+                  onChange={handleCreateUserEmailChange}
+                />
+              </div>
+              <div className="form-group">
+                {showPasswordWarning(passwordSanitiseCheck)}
+                <label htmlFor="exampleInputPassword1">Password</label>
+                <input
+                  type="password"
+                  className="form-control"
+                  id="password"
+                  placeholder="Password"
+                  onChange={handleCreateUserPassword}
+                />
+              </div>
+              <div className="form-group">
+                {showRegistrationMessage()}
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={!emailSanitiseCheck || !passwordSanitiseCheck}
+                >
+                  Register
+                </button>
+              </div>
+            </form>
+          ) : (
+            // render view to confirm registration using emailed verification code, when this gets sent, calls backend api to check for registered code in DB
+            // if backend registered code exists in DB, set user verified flag to true, then redirect user to login page
+            <>
+              <form
+                className="register-form"
+                onSubmit={(e) => submitVerification(e)}
               >
-                Register
-              </button>
-            </div>
-          </form>
+                <div className="form-group">
+                  {showEmailWarning(emailSanitiseCheck)}
+                  <label>Email address</label>
+                  <br />
+                  <input
+                    type="email"
+                    className="form-control"
+                    id="email"
+                    placeholder="name@example.com"
+                    onChange={handleCreateUserEmailChange}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Verification Code</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="verification code"
+                    placeholder="Please enter your 6 digit verification code here"
+                    onChange={handleEmailVerificationCode}
+                  />
+                </div>
+                <div className="form-group">
+                  {showRegistrationMessage()}
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={!emailSanitiseCheck}
+                  >
+                    Verify
+                  </button>
+                </div>
+              </form>
+            </>
+          )}
         </main>
       </div>
     </>
