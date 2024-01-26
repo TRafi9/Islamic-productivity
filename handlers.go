@@ -412,8 +412,13 @@ func handleCreateUser(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) err
 
 	// add send email verification function here before returning registered user?
 	// generate random passphrase for email verification confirmation
-	verificationCode := generateRandomCode(6)
+	verificationCode, err := generateRandomCode(6)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not generate random code"})
+	}
+	logger.Infof("verification code is %s", verificationCode)
 	expiryTime := currentTimePlusHourPostgres()
+	logger.Infof("expiry time is %s", expiryTime)
 
 	// setup verification table in db to hold verification codes for users to register
 	createTableSQL := `
@@ -430,18 +435,25 @@ func handleCreateUser(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) err
 	}
 	logger.Info("db for user email verification created")
 
-	insertVerificationCodeSQL := `
-	INSERT INTO email_verification_check (
-		user_id, email_verification_code, expiry_time
-	) VALUES (
-		$1, $2, $3
-	);
-	`
-	_, err = db.Exec(insertVerificationCodeSQL, incomingUserRegistration.UserEmail, verificationCode, expiryTime)
+	// insertVerificationCodeSQL := `
+	// INSERT INTO email_verification_check (
+	// 	user_id, email_verification_code, expiry_time
+	// ) VALUES (
+	// 	$1, $2, $3
+	// );
+	// `
+	// _, err = db.Exec(insertVerificationCodeSQL, incomingUserRegistration.UserEmail, verificationCode, expiryTime)
+	// if err != nil {
+	// 	logger.Errorf("Failed to insert email verification code in DB, err %w", err)
+	// 	return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to upload email verification code to db"})
+	// }
+
+	err = sendEmailVerification(c, verificationCode, logger)
 	if err != nil {
-		logger.Errorf("Failed to insert email verification code in DB, err %w", err)
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to upload email verification code to db"})
+		logger.Errorf("Error sending email, err: %s", err.Error())
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Send email verification failed"})
 	}
+	logger.Info("email should have sent!")
 
 	// email user a random key to their email, (which is also set in the insert statement of a new DB table called verified_email_check)
 	// this should have created date and expiration date on it

@@ -1,15 +1,19 @@
 package main
 
 import (
+	"fmt"
+	"math/big"
 	"os"
+	"strconv"
 	"time"
 
 	"crypto/rand"
-	"io"
 
+	"net/http"
 	"net/smtp"
 
 	"github.com/go-redis/redis"
+	"github.com/labstack/echo"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -80,25 +84,54 @@ func currentTimePlusHourPostgres() string {
 	return formattedTime
 }
 
-func generateRandomCode(max int) string {
-	// [...] means size of array is determined by the number of values provided in the array itself
-	table := [...]byte{1, 2, 3, 4, 5, 6, 7, 8, 9}
-	b := make([]byte, max)
-	n, err := io.ReadAtLeast(rand.Reader, b, max)
-	if n != max {
-		panic(err)
+func generateRandomCode(codeLength int) (int, error) {
+	if codeLength <= 0 {
+		return 0, fmt.Errorf("codeLength must be a positive integer")
 	}
-	for i := 0; i < len(b); i++ {
-		b[i] = table[int(b[i])%len(table)]
+
+	// Determine the maximum value for the given codeLength
+	maxValue := big.NewInt(10)
+	maxValue.Exp(maxValue, big.NewInt(int64(codeLength)), nil)
+
+	// Generate a random number within the specified range
+	randomNum, err := rand.Int(rand.Reader, maxValue)
+	if err != nil {
+		return 0, err
 	}
-	return string(b)
+
+	return int(randomNum.Int64()), nil
 }
 
-func sendEmailVerification(verificationCode string) error {
-	email := os.Getenv("VERIFICATION_EMAIL")
+func sendEmailVerification(c echo.Context, verificationCode int, logger *zap.SugaredLogger) error {
+	email_sender := os.Getenv("VERIFICATION_EMAIL")
 	verification_email_password := os.Getenv("VERIFICATION_EMAIL_PASSWORD")
-	hostName = 
-	auth := smtp.PlainAuth("", email, verification_email_password, "smtp.gmail.com")
+
+	email_recipient := []string{"talhar9@gmail.com"}
+	auth := smtp.PlainAuth("", email_sender, verification_email_password, "smtp.gmail.com")
+
+	subject := "The Productive Muslim Verification Code"
+	body := fmt.Sprintf(`Hey!
+Here is your verification code: %s
+Please enter it at the following link to register your account!
+{s}
+Note that the code will expire within an hour!
+Kind regards,
+The Productive Muslim team`, strconv.Itoa(verificationCode))
+
+	msg := fmt.Sprintf("From: %s\nTo: %s \nSubject: %s\n\n%s",
+		email_sender, "talhar9@gmail.com", subject, body)
+
+	err := smtp.SendMail("smtp.gmail.com:587",
+		auth,
+		email_sender,
+		email_recipient,
+		[]byte(msg),
+	)
+	if err != nil {
+		logger.Errorf("could not send email to recipient err: %s", err.Error())
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "failed to send verification email to recipient"})
+	}
+
 	//https://www.youtube.com/watch?v=H0HZc4FgX7E&t=249s&ab_channel=CodingwithRobby
 	//https://pkg.go.dev/net/smtp#example-PlainAuth
 
