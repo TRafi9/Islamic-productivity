@@ -465,7 +465,79 @@ func handleCreateUser(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) err
 	return nil
 }
 
-func handleUserVerification(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) {
+type EmailVerificationDetailsFromFrontend struct {
+	UserEmail        string `json:"userEmail"`
+	VerificationCode int    `json:"verificationCode"`
+}
+
+type EmailVerificationDBResults struct {
+	UserEmail        string
+	VerificationCode int
+	ExpiryTime       time.Time
+}
+
+func handleUserVerification(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) error {
+	var EmailVerificationDetailsFromFrontend EmailVerificationDetailsFromFrontend
+
+	err := c.Bind(&EmailVerificationDetailsFromFrontend)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bind email verification details "})
+	}
+
+	// the first sql statement checks if a record exists for registered user and the email verification is false first
+	CheckRecordExistsQuery := `
+	SELECT user_id, email_verification_code, expiry_time
+	FROM email_verification_check
+	WHERE user_id = $1
+	AND email_verification_code = $2
+	`
+	rows, err := db.Query(CheckRecordExistsQuery, EmailVerificationDetailsFromFrontend.UserEmail, EmailVerificationDetailsFromFrontend.VerificationCode)
+	if err != nil {
+		logger.Error("Error in quering db for verification Email information")
+		logger.Error(err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to run query for email verification on DB"})
+	}
+
+	defer rows.Close()
+
+	var countReturnedRows int
+	var EmailVerificationDBResults EmailVerificationDBResults
+
+	for rows.Next() {
+		err := rows.Scan(&EmailVerificationDBResults.UserEmail, &EmailVerificationDBResults.VerificationCode, &EmailVerificationDBResults.ExpiryTime)
+		if err != nil {
+			logger.Errorf("Error in rows.Scan for parsing rows into EmailVerificationDBResults")
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Error in rows.Scan for parsing rows into EmailVerificationDBResults"})
+		}
+		countReturnedRows++
+	}
+
+	if countReturnedRows > 1 {
+		logger.Error("Rows returned more than 1 from DB for email verification check should only be one")
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Rows returned more than 1 from DB for email verification check should only be one"})
+	}
+
+	if EmailVerificationDBResults.VerificationCode == EmailVerificationDetailsFromFrontend.VerificationCode {
+		// update verification flag in user database
+
+		updateVerificationFlag := `
+		UPDATE users
+		SET verified_email =  $1
+		WHERE user_id = $2
+		`
+
+		_, err := db.Exec(updateVerificationFlag, true, EmailVerificationDBResults.UserEmail)
+
+		if err != nil {
+			logger.Error("Failed to set email verification flag to true in DB")
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set email verification flag to true in DB"})
+		}
+		logger.Info("Updated table successfully!")
+
+	}
+	return c.JSON(http.StatusOK, map[string]string{"msg": "Status OK, email verification has been accepted!"})
+
+	// create a new struct var to hold pulled values
 
 }
 
@@ -499,7 +571,7 @@ func handleLogin(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) error {
 		err := rows.Scan(&hashed_password_from_db, &verified_email)
 		logger.Infof("hashed password from db is: %s and verified email status is : %s", hashed_password_from_db, strconv.FormatBool(verified_email))
 		if err != nil {
-			logger.Info("rows.Next() error")
+			logger.Info("rows.Next() error in getting hashed password + verified email flag")
 			logger.Error(err)
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed in rows.Next() loop"})
 		}

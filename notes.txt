@@ -10,9 +10,7 @@ TODO - ask about how to know what image to use for docker images
 
 
 
-TODO CONTINUE -  setup user login experience, email with verification is now sending to user, need to continue sorting out user registration view on register_user frontend, and create a handler function
-to verify the user by setting verified user flag in db to true if users registration code entry matches the database value that exists
-
+TODO CONTINUE -  setup user login experience, email with verification is now sending to user, but verification_email_view is not waiting for response from server, nor is it being reached? - solve
 - need to understand and implement jwt token back and forth after login success
 
 

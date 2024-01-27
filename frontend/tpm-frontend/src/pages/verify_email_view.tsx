@@ -2,10 +2,8 @@ import Head from "next/head";
 import styles from "@/styles/Home.module.css";
 import { Inter } from "next/font/google";
 import { SetStateAction, useState, Dispatch } from "react";
-
-import Link from "next/link";
-import Router from "next/router";
 import React, { ChangeEvent } from "react";
+import Router from "next/router";
 import {
   showEmailWarning,
   showPasswordWarning,
@@ -61,21 +59,16 @@ export default function RegisterUser() {
 
   // functions for sanitising input
 
-  function showRegistrationMessage() {
-    if (submitResponseStatus) {
-      switch (submitResponseStatus) {
+  function VerificationMessage() {
+    if (verifiedUserEmailResponse) {
+      switch (verifiedUserEmailResponse) {
         case 200:
-          Router.push("verify_email_view");
+          // setVerifyEmailView(true);
+          Router.push("login");
           return null;
-        case 208:
-          return <p> Error creating user, email already in use</p>;
         case 400:
           return (
             <p>Error creating user, please contact developer: status: 400.</p>
-          );
-        case 500:
-          return (
-            <p>Error creating user, please contact developer: status: 500.</p>
           );
         default:
           return <p>Error: Unknown status code received.</p>;
@@ -84,38 +77,43 @@ export default function RegisterUser() {
     return <></>;
   }
 
-  // here we create the struct of submissionData and pass it through to the backend
-  type SubmissionData = {
+  // verification email sending form data to backend and retrieving response variables
+
+  const [verifiedUserEmailResponse, setVerifiedUserEmailResponse] = useState<
+    number | null
+  >();
+  type VerifyEmailData = {
     userEmail: string;
-    userPassword: string;
+    verificationCode: number | null;
   };
-  const submitNewUser = async (data: SubmissionData) => {
-    const response = await fetch("http://localhost:8080/api/v1/createUser", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
+
+  const submitVerificationCheck = async (data: VerifyEmailData) => {
+    const response = await fetch(
+      "http://localhost:8080/api/v1/userVerification",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      }
+    );
 
     return response.status;
   };
-  // once user submites, this updates with response code, which triggers showRegistrationMessage() to display something
-  const [submitResponseStatus, setSubmitResponseStatus] = useState<
-    number | null
-  >(null);
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
-    //TODO, rewrite maybe? no need for submitNewUser to be its own function, can directly call it in here, like in submitVerification function
     e.preventDefault();
-    if (emailSanitiseCheck && passwordSanitiseCheck) {
-      const SubmissionData: SubmissionData = {
+    if (emailSanitiseCheck) {
+      const verifySubmissionData: VerifyEmailData = {
         userEmail: userEmail,
-        userPassword: UserPassword,
+        verificationCode: emailVerificationCode,
       };
-      const response = await submitNewUser(SubmissionData);
 
-      setSubmitResponseStatus(response);
+      const response = await submitVerificationCheck(verifySubmissionData);
+
+      // response needs to be response.status return on the backend when created, then create a check on if verifiedUserEmailResponse is 200, if so redirect to login page, else throw errors
+      setVerifiedUserEmailResponse(response);
     }
   }
 
@@ -132,7 +130,7 @@ export default function RegisterUser() {
       <div>
         <main className={`${styles.main} ${inter.className}`}>
           <form className="register-form" onSubmit={(e) => submit(e)}>
-            <h1> User Registration</h1>
+            <h1>Verify Email</h1>
             <div className="form-group">
               {showEmailWarning(emailSanitiseCheck)}
               <label>Email address</label>
@@ -146,24 +144,23 @@ export default function RegisterUser() {
               />
             </div>
             <div className="form-group">
-              {showPasswordWarning(passwordSanitiseCheck)}
-              <label htmlFor="exampleInputPassword1">Password</label>
+              <label>Verification Code</label>
               <input
-                type="password"
+                type="text"
                 className="form-control"
-                id="password"
-                placeholder="Password"
-                onChange={handleCreateUserPassword}
+                id="verification code"
+                placeholder="Please enter your 6 digit verification code here"
+                onChange={handleEmailVerificationCode}
               />
             </div>
             <div className="form-group">
-              {showRegistrationMessage()}
+              {VerificationMessage()}
               <button
                 type="submit"
                 className="btn btn-primary"
-                disabled={!emailSanitiseCheck || !passwordSanitiseCheck}
+                disabled={!emailSanitiseCheck}
               >
-                Register
+                Verify
               </button>
             </div>
           </form>
