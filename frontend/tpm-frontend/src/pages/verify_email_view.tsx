@@ -64,7 +64,7 @@ export default function RegisterUser() {
       switch (verifiedUserEmailResponse) {
         case 200:
           // setVerifyEmailView(true);
-          Router.push("login");
+          //   Router.push("login");
           return null;
         case 400:
           return (
@@ -81,7 +81,7 @@ export default function RegisterUser() {
 
   const [verifiedUserEmailResponse, setVerifiedUserEmailResponse] = useState<
     number | null
-  >();
+  >(null);
   type VerifyEmailData = {
     userEmail: string;
     verificationCode: number | null;
@@ -98,7 +98,8 @@ export default function RegisterUser() {
         body: JSON.stringify(data),
       }
     );
-
+    console.log(response);
+    console.log(response.status);
     return response.status;
   };
 
@@ -110,10 +111,12 @@ export default function RegisterUser() {
         verificationCode: emailVerificationCode,
       };
 
-      const response = await submitVerificationCheck(verifySubmissionData);
+      await submitVerificationCheck(verifySubmissionData).then((response) => {
+        setVerifiedUserEmailResponse(response);
+      });
 
       // response needs to be response.status return on the backend when created, then create a check on if verifiedUserEmailResponse is 200, if so redirect to login page, else throw errors
-      setVerifiedUserEmailResponse(response);
+      // setVerifiedUserEmailResponse(response);
     }
   }
 
@@ -149,7 +152,7 @@ export default function RegisterUser() {
                 type="text"
                 className="form-control"
                 id="verification code"
-                placeholder="Please enter your 6 digit verification code here"
+                placeholder=""
                 onChange={handleEmailVerificationCode}
               />
             </div>

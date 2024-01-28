@@ -70,6 +70,7 @@ func main() {
 		AllowOrigins: []string{"http://tpm-frontend:3000", "http://localhost:3000"},
 		AllowMethods: []string{echo.GET, echo.POST},
 	}))
+
 	//TODO make getPrayerTimes return the whole month
 	// use a cron job to run get prayertimes
 	// use the same cron job to add the prayer times to a redis in memory database for that month
@@ -98,12 +99,13 @@ func main() {
 	api.POST("/createUser", func(c echo.Context) error {
 		return handleCreateUser(c, logger, db)
 	})
-	api.POST("/login", func(c echo.Context) error {
-		return handleLogin(c, logger, db)
-	})
 
 	api.POST("/userVerification", func(c echo.Context) error {
 		return handleUserVerification(c, logger, db)
+	})
+
+	api.POST("/login", func(c echo.Context) error {
+		return handleLogin(c, logger, db)
 	})
 
 	//TODO CONTINUE FROM HERE

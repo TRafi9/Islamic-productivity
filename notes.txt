@@ -10,7 +10,7 @@ TODO - ask about how to know what image to use for docker images
 
 
 
-TODO CONTINUE -  setup user login experience, email with verification is now sending to user, but verification_email_view is not waiting for response from server, nor is it being reached? - solve
+TODO CONTINUE -  setup user login experience, email with verification is now sending to user, but verification_email_view is getting cors response (still works, maybe check how to access readable stream)
 - need to understand and implement jwt token back and forth after login success
 
 
