@@ -555,8 +555,8 @@ func handleUserVerification(c echo.Context, logger *zap.SugaredLogger, db *sql.D
 	logger.Infof("Email code from frontend is %v", EmailVerificationDetailsFromFrontend.VerificationCode)
 
 	// expiryTimeValid := EmailVerificationDBResults.ExpiryTime.Before(time.Now())
-
-	if EmailVerificationDBResults.VerificationCode == EmailVerificationDetailsFromFrontend.VerificationCode {
+	// added check to see email
+	if EmailVerificationDBResults.VerificationCode == EmailVerificationDetailsFromFrontend.VerificationCode && (EmailVerificationDBResults.VerificationCode != 0) {
 		// update verification flag in user database
 
 		updateVerificationFlag := `

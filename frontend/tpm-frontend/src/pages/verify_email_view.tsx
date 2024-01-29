@@ -64,7 +64,7 @@ export default function RegisterUser() {
       switch (verifiedUserEmailResponse) {
         case 200:
           // setVerifyEmailView(true);
-          //   Router.push("login");
+          Router.push("login");
           return null;
         case 400:
           return (
