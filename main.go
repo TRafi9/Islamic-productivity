@@ -87,6 +87,8 @@ func main() {
 	//TODO add panic and recover if it fails to upload to memory
 
 	api := e.Group("/api/v1")
+	//TODO PULL SAMPLE SECRET KEY HERE FOR SIGNING JWT
+	hmacSecret := []byte("RandomSecretStringHere")
 
 	api.GET("/getPrayerTimes/:dateValue", func(c echo.Context) error {
 		return todayPrayerHandler(c, Pt, logger)
@@ -105,7 +107,7 @@ func main() {
 	})
 
 	api.POST("/login", func(c echo.Context) error {
-		return handleLogin(c, logger, db)
+		return handleLogin(c, logger, db, hmacSecret)
 	})
 
 	//TODO CONTINUE FROM HERE

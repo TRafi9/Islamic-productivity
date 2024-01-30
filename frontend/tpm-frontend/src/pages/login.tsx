@@ -2,6 +2,7 @@ import Head from "next/head";
 import styles from "@/styles/Home.module.css";
 import { Inter } from "next/font/google";
 import { useState } from "react";
+import Link from "next/link";
 import React, { ChangeEvent } from "react";
 import {
   sanitiseEmail,
@@ -49,7 +50,15 @@ export default function LoginUser() {
         case 403:
           return <p>Invalid credentials</p>;
         case 406:
-          return <p> Please verify email before logging in</p>;
+          return (
+            <>
+              <Link href={"verify_email_view"}>
+                {" "}
+                Please verify email before logging in
+              </Link>
+              <br></br>
+            </>
+          );
         case 500:
           return <p>Error logging in, please contact the developer</p>;
         default:
@@ -133,6 +142,7 @@ export default function LoginUser() {
                   >
                     Login
                   </button>
+                  <Link href={"register_user"}> Click here to register!</Link>
                 </div>
               </form>
             </div>

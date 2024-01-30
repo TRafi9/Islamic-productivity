@@ -5,6 +5,7 @@ go 1.21.3
 require (
 	github.com/go-co-op/gocron/v2 v2.1.2
 	github.com/go-redis/redis v6.15.9+incompatible
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/lib/pq v1.10.9
 	go.uber.org/zap v1.26.0

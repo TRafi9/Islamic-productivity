@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/go-redis/redis"
+	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo"
 	"go.uber.org/zap"
 )
@@ -394,8 +395,6 @@ func handleCreateUser(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) err
 	// );
 	// `
 
-	logger.Info(incomingUserRegistration.UserPassword)
-
 	insertSQL := `
     INSERT INTO users (
         user_id, password_hash, creation_timestamp, verified_email
@@ -409,6 +408,7 @@ func handleCreateUser(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) err
 		logger.Errorf("Failed to execute database sql statement, err: %w", err)
 		return c.JSON(http.StatusAlreadyReported, map[string]string{"error": "Failed to upload user data to server, is the email already in use?"})
 	}
+	logger.Info(" created submission for USERS table in DB")
 
 	// add send email verification function here before returning registered user?
 	// generate random passphrase for email verification confirmation
@@ -416,9 +416,8 @@ func handleCreateUser(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) err
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not generate random code"})
 	}
-	logger.Infof("verification code is %v", verificationCode)
+
 	expiryTime := currentTimePlusHourPostgres()
-	logger.Infof("expiry time is %s", expiryTime)
 
 	// // setup verification table in db to hold verification codes for users to register
 	// createTableSQL := `
@@ -447,7 +446,7 @@ func handleCreateUser(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) err
 		logger.Errorf("Failed to insert email verification code in DB, err %w", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to upload email verification code to db"})
 	}
-	logger.Infof("UPLOADED VERIFICATION CODE TO EMAIL VERIFICATION CHECK DB CODE IS %v", verificationCode)
+	logger.Infof("Uploaded verification code to db:  %v", verificationCode)
 
 	check_verification := `
 	SELECT user_id, email_verification_code, expiry_time
@@ -458,8 +457,6 @@ func handleCreateUser(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) err
 	if err != nil {
 		logger.Errorf("error in query to check verificationd db")
 	}
-
-	logger.Info("Queried db for verification checking")
 
 	defer rows.Close()
 
@@ -476,7 +473,6 @@ func handleCreateUser(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) err
 			logger.Errorf("Error in rows.Scan for parsing rows into EmailVerificationDBResults")
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Error in rows.Scan for parsing rows into EmailVerificationDBResults"})
 		}
-		logger.Info(EmailVerificationDBResultsCheck)
 	}
 
 	err = sendEmailVerification(c, verificationCode, logger)
@@ -484,7 +480,7 @@ func handleCreateUser(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) err
 		logger.Errorf("Error sending email, err: %s", err.Error())
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Send email verification failed"})
 	}
-	logger.Info("email should have sent!")
+	logger.Info("email should have sent to user")
 
 	// email user a random key to their email, (which is also set in the insert statement of a new DB table called verified_email_check)
 	// this should have created date and expiration date on it
@@ -528,6 +524,7 @@ func handleUserVerification(c echo.Context, logger *zap.SugaredLogger, db *sql.D
 		logger.Error(err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to run query for email verification on DB"})
 	}
+	logger.Info("user id, email verification and expiry time from email_verification_check table")
 	logger.Info(rows)
 
 	defer rows.Close()
@@ -582,7 +579,7 @@ func handleUserVerification(c echo.Context, logger *zap.SugaredLogger, db *sql.D
 }
 
 // TODO continue from here
-func handleLogin(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) error {
+func handleLogin(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hmacSecret []byte) error {
 	// gets hashed pass from db, compares it to users logged in password, then allows auth to continue or stops it
 
 	var loginCredentials UserCredentials
@@ -619,15 +616,29 @@ func handleLogin(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) error {
 	}
 
 	isPassHashed := checkPasswordHash(loginCredentials.UserPassword, hashed_password_from_db)
+	logger.Infof("user trying to login with the email verified setting as %s, and isPassHashed is %s", verified_email, isPassHashed)
 
 	if isPassHashed {
 		logger.Infof("password is hashed correctly and login details match!")
 		if verified_email {
-			logger.Info("email is verified as well")
-			// returning nil will return status OK by default
+			logger.Info("email verified and password correct")
+			logger.Infof("hmac signing secret is %s", hmacSecret)
+
+			// Create a new token object, specifying signing method and the claims
+			// you would like it to contain.
+			token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+				"foo": "bar",
+				"nbf": time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
+			})
+
+			// Sign and get the complete encoded token as a string using the secret
+
+			tokenString, err := token.SignedString(hmacSecret)
+			logger.Info("JWT TOKEN IS: ")
+			logger.Info(tokenString, err)
 			return nil
 		} else {
-			logger.Info("email is not verified")
+			logger.Info("email is not verified, password is correct")
 			return c.JSON(http.StatusNotAcceptable, map[string]string{"error": "Email is not verified"})
 		}
 		//TODO return OK if email verified, otherwise return error asking to verify email
