@@ -15,6 +15,7 @@ TODO CONTINUE -
   this works successfully now
 - login is successfully blocked if user has not verified email
 - next step is to double check login /create user workflow and then figure out how to handle the JWT token that has been created
+- need to also add/ uncomment check on if expiry time is valid before allowing verification code to be accepted
 
 
 
