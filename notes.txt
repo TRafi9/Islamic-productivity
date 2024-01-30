@@ -10,9 +10,11 @@ TODO - ask about how to know what image to use for docker images
 
 
 
-TODO CONTINUE -  user login experience is working sometimes, sometimes verify step doesnt work?, still need to wrap user login around main app, also added JWT to handleLogin
-- next step check implementation again, see how to wrap other views if the user is authorized with a jwt token?
-- need to understand and implement jwt token back and forth after login success
+TODO CONTINUE -  
+- verify email view backend function checks to see if verification code coming in can be converted to string, before sending it to server to check
+  this works successfully now
+- login is successfully blocked if user has not verified email
+- next step is to double check login /create user workflow and then figure out how to handle the JWT token that has been created
 
 
 

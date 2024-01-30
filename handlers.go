@@ -494,7 +494,7 @@ func handleCreateUser(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) err
 
 type EmailVerificationDetailsFromFrontend struct {
 	UserEmail        string `json:"userEmail"`
-	VerificationCode int    `json:"verificationCode"`
+	VerificationCode string `json:"verificationCode"`
 }
 
 type EmailVerificationDBResults struct {
@@ -505,11 +505,19 @@ type EmailVerificationDBResults struct {
 
 func handleUserVerification(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) error {
 	var EmailVerificationDetailsFromFrontend EmailVerificationDetailsFromFrontend
-
+	logger.Info("binding data from frontend...")
 	if err := c.Bind(&EmailVerificationDetailsFromFrontend); err != nil {
+		logger.Errorf("failed to bind data from frontend err", err.Error())
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body for email verification check"})
 	}
+	// converts verification code from frontend to a int if possible before comparing it against DB verification code entry
+	verificationCodeFromFrontend, err := strconv.Atoi(EmailVerificationDetailsFromFrontend.VerificationCode)
+	if err != nil {
+		logger.Error("Verification code from frontend cannot be converted to integer, returning 500")
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid verification code"})
+	}
 	logger.Info("Binded value")
+	logger.Info(EmailVerificationDetailsFromFrontend)
 
 	// the first sql statement checks if a record exists for registered user and the email verification is false first
 	CheckRecordExistsQuery := `
@@ -518,7 +526,7 @@ func handleUserVerification(c echo.Context, logger *zap.SugaredLogger, db *sql.D
 	WHERE user_id = $1
 	AND email_verification_code = $2
 	`
-	rows, err := db.Query(CheckRecordExistsQuery, EmailVerificationDetailsFromFrontend.UserEmail, EmailVerificationDetailsFromFrontend.VerificationCode)
+	rows, err := db.Query(CheckRecordExistsQuery, EmailVerificationDetailsFromFrontend.UserEmail, verificationCodeFromFrontend)
 	if err != nil {
 		logger.Error("Error in quering db for verification Email information")
 		logger.Error(err)
@@ -549,11 +557,11 @@ func handleUserVerification(c echo.Context, logger *zap.SugaredLogger, db *sql.D
 	}
 	logger.Info("rows not more than 1")
 	logger.Infof("Email verification code from db is %v", EmailVerificationDBResults.VerificationCode)
-	logger.Infof("Email code from frontend is %v", EmailVerificationDetailsFromFrontend.VerificationCode)
+	logger.Infof("Email code from frontend is %s", EmailVerificationDetailsFromFrontend.VerificationCode)
 
 	// expiryTimeValid := EmailVerificationDBResults.ExpiryTime.Before(time.Now())
 	// if verificationcode from db is 0 then it is because there is no result so it is a default value, so check to see if not 0
-	if EmailVerificationDBResults.VerificationCode == EmailVerificationDetailsFromFrontend.VerificationCode && (EmailVerificationDBResults.VerificationCode != 0) {
+	if EmailVerificationDBResults.VerificationCode == verificationCodeFromFrontend && (EmailVerificationDBResults.VerificationCode != 0) {
 		// update verification flag in user database
 
 		updateVerificationFlag := `

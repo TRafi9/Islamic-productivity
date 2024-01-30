@@ -39,21 +39,20 @@ export default function RegisterUser() {
   };
 
   const [emailVerificationCode, setEmailVerificationCode] = useState<
-    number | null
+    any | null
   >(null);
   // the function below updates the value of emailVerificationCode when the user types it in
   const handleEmailVerificationCode = (
     event: ChangeEvent<HTMLInputElement>
   ) => {
-    const numericValue = parseInt(event.target.value, 10);
+    // const numericValue = parseInt(event.target.value, 10);
 
     // Check if the conversion is successful and it's a 6-digit integer
-    if (!isNaN(numericValue) && String(numericValue).length === 6) {
-      setEmailVerificationCode(numericValue);
-    }
+    // if (!isNaN(numericValue) && String(numericValue).length === 6) {
+    //   setEmailVerificationCode(numericValue);
+    // }
+    setEmailVerificationCode(event.target.value);
   };
-
-  const [verifyEmailView, setVerifyEmailView] = useState<boolean>(false);
 
   //TODO need to verify username and password sanitization here
 
@@ -84,7 +83,7 @@ export default function RegisterUser() {
   >(null);
   type VerifyEmailData = {
     userEmail: string;
-    verificationCode: number | null;
+    verificationCode: any;
   };
 
   const submitVerificationCheck = async (data: VerifyEmailData) => {
