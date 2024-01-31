@@ -11,12 +11,10 @@ TODO - ask about how to know what image to use for docker images
 
 
 TODO CONTINUE -  
-- verify email view backend function checks to see if verification code coming in can be converted to string, before sending it to server to check
-  this works successfully now
-- login is successfully blocked if user has not verified email
+- continue developing reset verification code handler
 - next step is to double check login /create user workflow and then figure out how to handle the JWT token that has been created
-- need to also add/ uncomment check on if expiry time is valid before allowing verification code to be accepted
-
+- need to also add in resend email verification as there is now an expirytime value check
+- need to add loading spinner when user creates a login and hits register, make a component for this
 
 
 DOCKER COMPOSE STUFF

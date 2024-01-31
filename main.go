@@ -110,6 +110,10 @@ func main() {
 		return handleLogin(c, logger, db, hmacSecret)
 	})
 
+	api.POST("/resetUserVerification", func(c echo.Context) error {
+		return handleResetUserVerification(c, logger, db)
+	})
+
 	//TODO CONTINUE FROM HERE
 	// also look at serialisation of prayerData so you dont have to convert and revert between time.Time and string values, can store serialized strings in redis that are
 	// time.time values instead?

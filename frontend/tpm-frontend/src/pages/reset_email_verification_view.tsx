@@ -33,38 +33,12 @@ export default function RegisterUser() {
     sanitiseEmail(event.target.value, setEmailSanitiseCheck);
   };
 
-  const handleCreateUserPassword = (event: ChangeEvent<HTMLInputElement>) => {
-    // sets password and sanitises input
-    setUserPassword(event.target.value);
-    sanitisePassword(event.target.value, setPasswordSanitiseCheck);
-  };
-
-  const [emailVerificationCode, setEmailVerificationCode] = useState<
-    any | null
-  >(null);
-  // the function below updates the value of emailVerificationCode when the user types it in
-  const handleEmailVerificationCode = (
-    event: ChangeEvent<HTMLInputElement>
-  ) => {
-    // const numericValue = parseInt(event.target.value, 10);
-
-    // Check if the conversion is successful and it's a 6-digit integer
-    // if (!isNaN(numericValue) && String(numericValue).length === 6) {
-    //   setEmailVerificationCode(numericValue);
-    // }
-    setEmailVerificationCode(event.target.value);
-  };
-
-  //TODO need to verify username and password sanitization here
-
-  // functions for sanitising input
-
-  function VerificationMessage() {
+  function ResendVerificationMessage() {
     if (verifiedUserEmailResponse) {
       switch (verifiedUserEmailResponse) {
         case 200:
           // setVerifyEmailView(true);
-          Router.push("login");
+          Router.push("verify_email_view");
           return null;
         case 400:
           return <p>Error: Verification code incorrect or may be expired.</p>;
@@ -82,14 +56,14 @@ export default function RegisterUser() {
   const [verifiedUserEmailResponse, setVerifiedUserEmailResponse] = useState<
     number | null
   >(null);
-  type VerifyEmailData = {
+
+  type ReverifyEmailData = {
     userEmail: string;
-    verificationCode: any;
   };
 
-  const submitVerificationCheck = async (data: VerifyEmailData) => {
+  const submitVerificationCheck = async (data: ReverifyEmailData) => {
     const response = await fetch(
-      "http://localhost:8080/api/v1/userVerification",
+      "http://localhost:8080/api/v1/resetUserVerification",
       {
         method: "POST",
         headers: {
@@ -106,9 +80,8 @@ export default function RegisterUser() {
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (emailSanitiseCheck) {
-      const verifySubmissionData: VerifyEmailData = {
+      const verifySubmissionData: ReverifyEmailData = {
         userEmail: userEmail,
-        verificationCode: emailVerificationCode,
       };
 
       await submitVerificationCheck(verifySubmissionData).then((response) => {
@@ -147,28 +120,13 @@ export default function RegisterUser() {
               />
             </div>
             <div className="form-group">
-              <label>Verification Code</label>
-              <input
-                type="text"
-                className="form-control"
-                id="verification code"
-                placeholder=""
-                onChange={handleEmailVerificationCode}
-              />
-            </div>
-            <div className="form-group">
-              {VerificationMessage()}
+              {ResendVerificationMessage()}
               <button
                 type="submit"
                 className="btn btn-primary"
                 disabled={!emailSanitiseCheck}
               >
                 Verify
-              </button>
-              <button className="btn btn-primary">
-                <Link href={"/reset_email_verification_view"}>
-                  Resend Verification Code
-                </Link>
               </button>
             </div>
           </form>

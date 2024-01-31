@@ -1,0 +1,7 @@
+- need to add loading spinner when register button is clicked
+
+- can add button disables for 10s etc to make sure user cannot spam buttons to call backend for ddos attacks e.g. reset email verification button can be disabled for 10s
+after clicked
+
+
+- could have had a db that matched GUID to users email instead of using email as primary key as that isnt great practice

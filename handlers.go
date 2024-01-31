@@ -482,13 +482,6 @@ func handleCreateUser(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) err
 	}
 	logger.Info("email should have sent to user")
 
-	// email user a random key to their email, (which is also set in the insert statement of a new DB table called verified_email_check)
-	// this should have created date and expiration date on it
-	// once user registers, if successful, pop up a verify email button, taking user to a new page (or have it change from greyed out)
-	// this page takes user to a new form page, asking for email + verification code
-	// this page makes a query to verified_email_check db, checking if there is a record where email + verification code exists + login expiry time<current time
-	// if record exists,return 200 and display registration verified, else 404 verification not valid/ expired and show message on frontend
-	// pop up resend email verification button -> this reruns email verification somehow?
 	return nil
 }
 
@@ -508,7 +501,7 @@ func handleUserVerification(c echo.Context, logger *zap.SugaredLogger, db *sql.D
 	logger.Info("binding data from frontend...")
 	if err := c.Bind(&EmailVerificationDetailsFromFrontend); err != nil {
 		logger.Errorf("failed to bind data from frontend err", err.Error())
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body for email verification check"})
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Invalid request body for email verification check"})
 	}
 	// converts verification code from frontend to a int if possible before comparing it against DB verification code entry
 	verificationCodeFromFrontend, err := strconv.Atoi(EmailVerificationDetailsFromFrontend.VerificationCode)
@@ -559,9 +552,10 @@ func handleUserVerification(c echo.Context, logger *zap.SugaredLogger, db *sql.D
 	logger.Infof("Email verification code from db is %v", EmailVerificationDBResults.VerificationCode)
 	logger.Infof("Email code from frontend is %s", EmailVerificationDetailsFromFrontend.VerificationCode)
 
-	// expiryTimeValid := EmailVerificationDBResults.ExpiryTime.Before(time.Now())
+	expiryTimeValid := time.Now().Before(EmailVerificationDBResults.ExpiryTime)
+
 	// if verificationcode from db is 0 then it is because there is no result so it is a default value, so check to see if not 0
-	if EmailVerificationDBResults.VerificationCode == verificationCodeFromFrontend && (EmailVerificationDBResults.VerificationCode != 0) {
+	if EmailVerificationDBResults.VerificationCode == verificationCodeFromFrontend && (EmailVerificationDBResults.VerificationCode != 0) && expiryTimeValid {
 		// update verification flag in user database
 
 		updateVerificationFlag := `
@@ -580,13 +574,51 @@ func handleUserVerification(c echo.Context, logger *zap.SugaredLogger, db *sql.D
 		return nil
 
 	}
-	return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Email verification code recieved is incorrect!"})
+	return c.JSON(http.StatusBadRequest, map[string]string{"error": "Email verification code recieved is incorrect!"})
 
 	// create a new struct var to hold pulled values
 
 }
 
-// TODO continue from here
+type ResetVerificationCodeCheck struct {
+	user_id        string
+	verified_email bool
+}
+
+func handleResetUserVerification(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) error {
+	// this function allows user to reset the verification code
+	// it gets the data from the frontend
+	// it does this by first getting the data for the user from the user db and parsing it into a struct
+	// it then checks the struct to see if the user exists, if the user doesnt exist it returns the correct response and asks user to create a login first
+	// it then checks to see if a user is verified, if user is verified, it returns a response which asks the user to just login, if not it proceeds to the next part
+	// we then generate a verification code for the user
+	// any rows that match the users ID in the verification email db are then deleted, and a new row is inserted for the user with the new verification code
+	// email is then sent again to the user
+	// return OK to user, if OK is recieved from frontend redirect user to login page
+	// it pulls the data for the user from the users db
+	var (
+		UserEmail        string
+		verificationCode int
+	)
+
+	var ResetVerificationCodeCheck ResetVerificationCodeCheck
+
+	if err := c.Bind(&UserEmail); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Failed to bind user Email from frontend for resetting verification"})
+	}
+
+	queryUser := `
+	SELECT user_id, verified_email FROM users
+	WHERE user_id = $1`
+	// queryRow is used here as it is expected at most 1 row for user
+	err := db.QueryRow(queryUser, UserEmail).Scan(&ResetVerificationCodeCheck.user_id, &ResetVerificationCodeCheck.verified_email)
+	if err == sql.ErrNoRows {
+		// return this when no rows are found i.e. user has not even registered
+		return c.JSON(http.StatusNotFound, map[string]string{"error": "User has not registered for an account yet"})
+	}
+
+}
+
 func handleLogin(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hmacSecret []byte) error {
 	// gets hashed pass from db, compares it to users logged in password, then allows auth to continue or stops it
 

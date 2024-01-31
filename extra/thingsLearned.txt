@@ -1,0 +1,19 @@
+- setting up postgres SQL instances in GCP and connecting through cloud proxy
+- setting up redis NOSQL DB to cache and persist data to reduce external API calls
+- calling from external API and parsing data into structs
+
+- Querying data from DB's and parsing into structs
+- echo handler functions for POST/GET calls
+- creating post/get requests in tsx/js to call backend
+- creating docker files for front/backend
+- creating docker compose files to run unanymously and passing env vars in 
+- storing secret credentials outside of code and calling through env vars
+- setting up user login experience which includes parsing form data coming from frontend, uploading to DB, verifying emails and authenticating user during login
+- sometimes setting a var to type any in tsx is useful, e.g. allowing users to sending strings instead of ints for verification, this allows the backend to first check
+  if user string can be converted to an int before wasting more resources trying to query the db with a string, this can be further improved by checking length of int etc
+- blocking user login if user has not verified email
+
+
+what this project demonstrates
+
+- understanding of writing sql statements for postgres
