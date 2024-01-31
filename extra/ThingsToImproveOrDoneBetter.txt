@@ -5,3 +5,5 @@ after clicked
 
 
 - could have had a db that matched GUID to users email instead of using email as primary key as that isnt great practice
+
+- could create a config for components that could be altered in the future, e.g. table names and database names and pass them through using viper

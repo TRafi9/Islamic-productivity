@@ -11,10 +11,11 @@ TODO - ask about how to know what image to use for docker images
 
 
 TODO CONTINUE -  
-- continue developing reset verification code handler
+- finish testing login workflow, also fix cors responses: https://stackoverflow.com/questions/52897253/fetch-request-returning-status-cors-and-readable-stream
 - next step is to double check login /create user workflow and then figure out how to handle the JWT token that has been created
 - need to also add in resend email verification as there is now an expirytime value check
 - need to add loading spinner when user creates a login and hits register, make a component for this
+- update error messages on verification code reset page on frontend + backend handler func and test to see if correct errs are displayed to user
 
 
 DOCKER COMPOSE STUFF

@@ -1,16 +1,11 @@
 import Head from "next/head";
 import styles from "@/styles/Home.module.css";
 import { Inter } from "next/font/google";
-import { SetStateAction, useState, Dispatch } from "react";
+import { useState } from "react";
 import React, { ChangeEvent } from "react";
 import Router from "next/router";
-import Link from "next/link";
-import {
-  showEmailWarning,
-  showPasswordWarning,
-  sanitiseEmail,
-  sanitisePassword,
-} from "@/functions/loginFunctions";
+
+import { showEmailWarning, sanitiseEmail } from "@/functions/loginFunctions";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -73,6 +68,7 @@ export default function RegisterUser() {
       }
     );
     console.log(response);
+    console.log(response.body);
     console.log(response.status);
     return response.status;
   };
