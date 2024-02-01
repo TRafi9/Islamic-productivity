@@ -5,12 +5,7 @@ import { SetStateAction, useState, Dispatch } from "react";
 import React, { ChangeEvent } from "react";
 import Router from "next/router";
 import Link from "next/link";
-import {
-  showEmailWarning,
-  showPasswordWarning,
-  sanitiseEmail,
-  sanitisePassword,
-} from "@/functions/loginFunctions";
+import { showEmailWarning, sanitiseEmail } from "@/functions/loginFunctions";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,8 +17,6 @@ export default function RegisterUser() {
   const [userEmail, setCreateUserEmail] = useState<string>("");
   const [emailSanitiseCheck, setEmailSanitiseCheck] = useState<boolean>(false);
 
-  const [UserPassword, setUserPassword] = useState<string>("");
-
   const [passwordSanitiseCheck, setPasswordSanitiseCheck] =
     useState<boolean>(false);
   const handleCreateUserEmailChange = (
@@ -31,12 +24,6 @@ export default function RegisterUser() {
   ) => {
     setCreateUserEmail(event.target.value);
     sanitiseEmail(event.target.value, setEmailSanitiseCheck);
-  };
-
-  const handleCreateUserPassword = (event: ChangeEvent<HTMLInputElement>) => {
-    // sets password and sanitises input
-    setUserPassword(event.target.value);
-    sanitisePassword(event.target.value, setPasswordSanitiseCheck);
   };
 
   const [emailVerificationCode, setEmailVerificationCode] = useState<
@@ -48,10 +35,6 @@ export default function RegisterUser() {
   ) => {
     // const numericValue = parseInt(event.target.value, 10);
 
-    // Check if the conversion is successful and it's a 6-digit integer
-    // if (!isNaN(numericValue) && String(numericValue).length === 6) {
-    //   setEmailVerificationCode(numericValue);
-    // }
     setEmailVerificationCode(event.target.value);
   };
 
@@ -59,19 +42,16 @@ export default function RegisterUser() {
 
   // functions for sanitising input
 
+  const [responseErr, setResponseErr] = useState<string>("");
+
   function VerificationMessage() {
     if (verifiedUserEmailResponse) {
       switch (verifiedUserEmailResponse) {
         case 200:
-          // setVerifyEmailView(true);
           Router.push("login");
           return null;
-        case 400:
-          return <p>Error: Verification code incorrect or may be expired.</p>;
-        // case 500:
-        //   return <p> Server error</p>;
         default:
-          return <p>Server error.</p>;
+          return <p>{responseErr}</p>;
       }
     }
     return <></>;
@@ -98,8 +78,10 @@ export default function RegisterUser() {
         body: JSON.stringify(data),
       }
     );
-    console.log(response);
-    console.log(response.status);
+    // can use responseData to pull error code out to frontend
+    const responseData = await response.json();
+    setResponseErr(responseData["error"]);
+
     return response.status;
   };
 

@@ -17,16 +17,13 @@ export default function RegisterUser() {
   const [userEmail, setCreateUserEmail] = useState<string>("");
   const [emailSanitiseCheck, setEmailSanitiseCheck] = useState<boolean>(false);
 
-  const [UserPassword, setUserPassword] = useState<string>("");
-
-  const [passwordSanitiseCheck, setPasswordSanitiseCheck] =
-    useState<boolean>(false);
   const handleCreateUserEmailChange = (
     event: ChangeEvent<HTMLInputElement>
   ) => {
     setCreateUserEmail(event.target.value);
     sanitiseEmail(event.target.value, setEmailSanitiseCheck);
   };
+  const [responseErr, setResponseErr] = useState<string>("");
 
   function ResendVerificationMessage() {
     if (verifiedUserEmailResponse) {
@@ -35,12 +32,9 @@ export default function RegisterUser() {
           // setVerifyEmailView(true);
           Router.push("verify_email_view");
           return null;
-        case 400:
-          return <p>Error: Verification code incorrect or may be expired.</p>;
-        // case 500:
-        //   return <p> Server error</p>;
+
         default:
-          return <p>Server error.</p>;
+          return <p>{responseErr}.</p>;
       }
     }
     return <></>;
@@ -67,9 +61,9 @@ export default function RegisterUser() {
         body: JSON.stringify(data),
       }
     );
-    console.log(response);
-    console.log(response.body);
-    console.log(response.status);
+    // can use responseData to pull error code out to frontend
+    const responseData = await response.json();
+    setResponseErr(responseData["error"]);
     return response.status;
   };
 

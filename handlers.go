@@ -480,7 +480,7 @@ func handleCreateUser(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) err
 	}
 	logger.Info("email should have sent to user")
 
-	return nil
+	return c.JSON(http.StatusOK, map[string]string{"error": ""})
 }
 
 type EmailVerificationDetailsFromFrontend struct {
@@ -569,7 +569,7 @@ func handleUserVerification(c echo.Context, logger *zap.SugaredLogger, db *sql.D
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set email verification flag to true in DB"})
 		}
 		logger.Info("Updated table successfully!")
-		return nil
+		return c.JSON(http.StatusOK, map[string]string{"error": ""})
 
 	}
 	return c.JSON(http.StatusBadRequest, map[string]string{"error": "Email verification code recieved is incorrect!"})
@@ -661,7 +661,7 @@ func handleResetUserVerification(c echo.Context, logger *zap.SugaredLogger, db *
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Send email verification failed"})
 	}
 
-	return nil
+	return c.JSON(http.StatusOK, map[string]string{"error": ""})
 
 }
 
@@ -733,5 +733,4 @@ func handleLogin(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hmacSecr
 		return c.JSON(http.StatusForbidden, map[string]string{"error": "User credentials invalid"})
 	}
 
-	return nil
 }
