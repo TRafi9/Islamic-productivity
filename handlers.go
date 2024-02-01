@@ -722,7 +722,7 @@ func handleLogin(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hmacSecr
 			tokenString, err := token.SignedString(hmacSecret)
 			logger.Info("JWT TOKEN IS: ")
 			logger.Info(tokenString, err)
-			return nil
+			return c.JSON(http.StatusOK, map[string]string{"error": ""})
 		} else {
 			logger.Info("email is not verified, password is correct")
 			return c.JSON(http.StatusNotAcceptable, map[string]string{"error": "Email is not verified"})

@@ -60,25 +60,25 @@ export default function RegisterUser() {
   //TODO need to verify username and password sanitization here
 
   // functions for sanitising input
-
+  const [responseErr, setResponseErr] = useState<string>("");
   function showRegistrationMessage() {
     if (submitResponseStatus) {
       switch (submitResponseStatus) {
         case 200:
           Router.push("verify_email_view");
           return null;
-        case 208:
-          return <p> Error creating user, email already in use</p>;
-        case 400:
-          return (
-            <p>Error creating user, please contact developer: status: 400.</p>
-          );
-        case 500:
-          return (
-            <p>Error creating user, please contact developer: status: 500.</p>
-          );
+        // case 208:
+        //   return <p> Error creating user, email already in use</p>;
+        // case 400:
+        //   return (
+        //     <p>Error creating user, please contact developer: status: 400.</p>
+        //   );
+        // case 500:
+        //   return (
+        //     <p>Error creating user, please contact developer: status: 500.</p>
+        //   );
         default:
-          return <p>Error: Unknown status code received.</p>;
+          return <p>{responseErr}</p>;
       }
     }
     return <></>;
@@ -97,6 +97,8 @@ export default function RegisterUser() {
       },
       body: JSON.stringify(data),
     });
+    const responseData = await response.json();
+    setResponseErr(responseData["error"]);
 
     return response.status;
   };

@@ -17,8 +17,7 @@ export default function RegisterUser() {
   const [userEmail, setCreateUserEmail] = useState<string>("");
   const [emailSanitiseCheck, setEmailSanitiseCheck] = useState<boolean>(false);
 
-  const [passwordSanitiseCheck, setPasswordSanitiseCheck] =
-    useState<boolean>(false);
+
   const handleCreateUserEmailChange = (
     event: ChangeEvent<HTMLInputElement>
   ) => {

@@ -36,6 +36,7 @@ export default function LoginUser() {
     sanitisePassword(event.target.value, setPasswordSanitiseCheck);
   };
 
+  const [responseErr, setResponseErr] = useState<string>("");
   function showLoginMessage() {
     if (loading) {
       return <p>Loading...</p>;
@@ -45,10 +46,10 @@ export default function LoginUser() {
       switch (submitResponseStatus) {
         case 200:
           return <p>Login successful!</p>;
-        case 401:
-          return <p>Incorrect email or password</p>;
-        case 403:
-          return <p>Invalid credentials</p>;
+        // case 401:
+        //   return <p>Incorrect email or password</p>;
+        // case 403:
+        //   return <p>Invalid credentials</p>;
         case 406:
           return (
             <>
@@ -59,10 +60,10 @@ export default function LoginUser() {
               <br></br>
             </>
           );
-        case 500:
-          return <p>Error logging in, please contact the developer</p>;
+        // case 500:
+        //   return <p>Error logging in, please contact the developer</p>;
         default:
-          return <p>Error: Unknown status code received</p>;
+          return <p>{responseErr}</p>;
       }
     }
 
@@ -82,6 +83,9 @@ export default function LoginUser() {
         userPassword,
       }),
     });
+
+    const responseData = await response.json();
+    setResponseErr(responseData["error"]);
 
     setSubmitResponseStatus(response.status);
     setLoading(false);
