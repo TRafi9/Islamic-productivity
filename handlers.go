@@ -708,13 +708,13 @@ func handleLogin(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hmacSecr
 		logger.Infof("password is hashed correctly and login details match!")
 		if verified_email {
 			logger.Info("email verified and password correct")
-			logger.Infof("hmac signing secret is %s", hmacSecret)
-
 			// Create a new token object, specifying signing method and the claims
 			// you would like it to contain.
 			token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-				"foo": "bar",
-				"nbf": time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
+				"iss":       "tpm",
+				"user_type": "user",
+				"sub":       loginCredentials.UserEmail,
+				"nbf":       time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
 			})
 
 			// Sign and get the complete encoded token as a string using the secret
@@ -722,7 +722,7 @@ func handleLogin(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hmacSecr
 			tokenString, err := token.SignedString(hmacSecret)
 			logger.Info("JWT TOKEN IS: ")
 			logger.Info(tokenString, err)
-			return c.JSON(http.StatusOK, map[string]string{"error": ""})
+			return c.JSON(http.StatusOK, map[string]string{"JWTtoken": tokenString})
 		} else {
 			logger.Info("email is not verified, password is correct")
 			return c.JSON(http.StatusNotAcceptable, map[string]string{"error": "Email is not verified"})

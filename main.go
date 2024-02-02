@@ -71,6 +71,10 @@ func main() {
 		AllowMethods: []string{echo.GET, echo.POST},
 	}))
 
+	// provides protection against cross-site scripting (XSS) attack, content type sniffing,
+	// clickjacking, insecure connection and other code injection attacks.
+	e.Use(middleware.Secure())
+
 	//TODO make getPrayerTimes return the whole month
 	// use a cron job to run get prayertimes
 	// use the same cron job to add the prayer times to a redis in memory database for that month
