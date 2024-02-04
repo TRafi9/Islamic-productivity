@@ -720,9 +720,22 @@ func handleLogin(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hmacSecr
 			// Sign and get the complete encoded token as a string using the secret
 
 			tokenString, err := token.SignedString(hmacSecret)
-			logger.Info("JWT TOKEN IS: ")
-			logger.Info(tokenString, err)
-			return c.JSON(http.StatusOK, map[string]string{"JWTtoken": tokenString})
+			if err != nil {
+				logger.Errorf("token.SignedString failed, err: ", err.Error())
+			}
+			cookie := &http.Cookie{
+				Name:     "jwt",
+				Value:    tokenString,
+				HttpOnly: false,
+				Secure:   true,                  // set true if using HTTPS
+				SameSite: http.SameSiteNoneMode, //TODO write down what this does
+				Expires:  time.Now().Add(24 * time.Hour),
+			}
+			// TODO understand why c.Response is passed as responseWriter arg?
+			c.Response().Header().Set("Access-Control-Expose-Headers", "Authorization, Set-Cookie")
+			c.SetCookie(cookie)
+			c.Response().Header().Set("Authorization", "Bearer "+tokenString)
+			return c.JSON(http.StatusOK, map[string]string{"error": ""})
 		} else {
 			logger.Info("email is not verified, password is correct")
 			return c.JSON(http.StatusNotAcceptable, map[string]string{"error": "Email is not verified"})

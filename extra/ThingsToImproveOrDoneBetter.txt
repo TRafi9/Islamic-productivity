@@ -9,3 +9,6 @@ after clicked
 - could create a config for components that could be altered in the future, e.g. table names and database names and pass them through using viper
 - could hold all sql under one sql files area and call them correctly
 - could have created a struct for error messages so {"error":"blah blah"} would always have a key string of "error" and therefore would reduce potential of bugs when developing
+
+
+-LEARN - whats the best way to send JWT to frontend? cookies or headers? or something else?

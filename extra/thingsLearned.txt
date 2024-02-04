@@ -14,6 +14,8 @@
 - blocking user login if user has not verified email
 - how to send error responses from the backend and display those responses on the frontend for user
 
+
+- CURRENTLY - learning implementing JWT Auth and storing JWT securely
 what this project demonstrates
 
 - understanding of writing sql statements for postgres

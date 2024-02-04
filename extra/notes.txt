@@ -17,6 +17,8 @@ TODO CONTINUE -
 - need to test functionality on resend verification code
 - need to add loading spinner when user creates a login and hits register, make a component for this
 
+- https://chat.openai.com/c/82f4f98e-448f-4db9-a831-4ecb7addfd28
+
 
 DOCKER COMPOSE STUFF
 docker-compose up --build

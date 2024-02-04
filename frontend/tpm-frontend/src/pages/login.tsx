@@ -1,7 +1,7 @@
 import Head from "next/head";
 import styles from "@/styles/Home.module.css";
 import { Inter } from "next/font/google";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import React, { ChangeEvent } from "react";
 import {
@@ -35,6 +35,8 @@ export default function LoginUser() {
     setUserPassword(event.target.value);
     sanitisePassword(event.target.value, setPasswordSanitiseCheck);
   };
+
+  const [jwt, setJwt] = useState<string>("");
 
   const [responseErr, setResponseErr] = useState<string>("");
   function showLoginMessage() {
@@ -86,6 +88,12 @@ export default function LoginUser() {
 
     const responseData = await response.json();
     setResponseErr(responseData["error"]);
+
+    const authorizationHeader = response.headers.get("Authorization");
+
+    if (authorizationHeader !== null && authorizationHeader !== "") {
+      sessionStorage.setItem("jwt", authorizationHeader);
+    }
 
     setSubmitResponseStatus(response.status);
     setLoading(false);
