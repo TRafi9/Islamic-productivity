@@ -20,6 +20,12 @@ export default function Home() {
   // checkDate is used as a value to check if the currentDate has been changed
   const [checkDate, setCheckDate] = useState("");
 
+  // get JWT from session
+  useEffect(() => {
+    // Perform localStorage action
+    const jwt = sessionStorage.getItem("jwt");
+  }, []);
+
   // add cron job to reexecute current date setup and useeffect setup, needs to run every 24 hours
   // update currentDate every 24 hours
   // in the same loop check if the formatted current date isnt the same

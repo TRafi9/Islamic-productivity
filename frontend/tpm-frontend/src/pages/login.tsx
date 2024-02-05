@@ -93,6 +93,7 @@ export default function LoginUser() {
 
     if (authorizationHeader !== null && authorizationHeader !== "") {
       sessionStorage.setItem("jwt", authorizationHeader);
+      console.log("stored jwt in session");
     }
 
     setSubmitResponseStatus(response.status);
