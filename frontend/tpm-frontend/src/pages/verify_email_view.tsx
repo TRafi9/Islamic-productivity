@@ -17,7 +17,6 @@ export default function RegisterUser() {
   const [userEmail, setCreateUserEmail] = useState<string>("");
   const [emailSanitiseCheck, setEmailSanitiseCheck] = useState<boolean>(false);
 
-
   const handleCreateUserEmailChange = (
     event: ChangeEvent<HTMLInputElement>
   ) => {
@@ -47,7 +46,7 @@ export default function RegisterUser() {
     if (verifiedUserEmailResponse) {
       switch (verifiedUserEmailResponse) {
         case 200:
-          Router.push("login");
+          Router.push("/");
           return null;
         default:
           return <p>{responseErr}</p>;

@@ -12,3 +12,5 @@ after clicked
 
 
 -LEARN - whats the best way to send JWT to frontend? cookies or headers? or something else?
+
+- need to add testing of functions

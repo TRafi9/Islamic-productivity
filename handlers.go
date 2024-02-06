@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -277,7 +278,15 @@ type UserDataRequestBody struct {
 
 func handlePostUserData(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) error {
 	// this function parses the incoming data and uploads it to the postgres database
-
+	token, ok := c.Get("user").(*jwt.Token) // by default token is stored under `user` key
+	if !ok {
+		return errors.New("JWT token missing or invalid")
+	}
+	claims, ok := token.Claims.(jwt.MapClaims) // by default claims is of type `jwt.MapClaims`
+	if !ok {
+		return errors.New("failed to cast claims as jwt.MapClaims")
+	}
+	logger.Info(claims)
 	var incomingData UserDataRequestBody
 	if err := c.Bind(&incomingData); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body for incoming user submission"})

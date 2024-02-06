@@ -77,6 +77,10 @@ func main() {
 	// provides protection against cross-site scripting (XSS) attack, content type sniffing,
 	// clickjacking, insecure connection and other code injection attacks.
 	e.Use(middleware.Secure())
+	// pass env var for secret here
+	hmacSecret := []byte("RandomSecretStringHere")
+	//TODO fix middleware implementation to check if incoming JWT is valid
+	// e.Use(echojwt.JWT(hmacSecret))
 
 	//TODO make getPrayerTimes return the whole month
 	// use a cron job to run get prayertimes
@@ -95,7 +99,6 @@ func main() {
 
 	api := e.Group("/api/v1")
 	//TODO PULL SAMPLE SECRET KEY HERE FOR SIGNING JWT
-	hmacSecret := []byte("RandomSecretStringHere")
 
 	api.GET("/getPrayerTimes/:dateValue", func(c echo.Context) error {
 		return todayPrayerHandler(c, Pt, logger)

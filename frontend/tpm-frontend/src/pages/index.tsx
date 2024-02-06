@@ -1,243 +1,167 @@
 import Head from "next/head";
-import Image from "next/image";
-import { Inter } from "next/font/google";
 import styles from "@/styles/Home.module.css";
+import { Inter } from "next/font/google";
 import { useEffect, useState } from "react";
-
-import getTodaysPrayers from "@/functions/getTodaysPrayers";
-import getNextPrayer from "@/functions/getNextPrayer";
-import Countdown from "react-countdown";
-import getCurrentPrayer from "@/functions/getCurrentPrayer";
-import ProductiveStateView from "@/functions/productiveStateView";
-
-import getLastPrayer from "@/functions/getLastPrayer";
-import calculateTimeTillRefresh from "@/functions/calculateTimeTillRefresh";
+import Link from "next/link";
+import React, { ChangeEvent } from "react";
+import Router from "next/router";
+import {
+  sanitiseEmail,
+  sanitisePassword,
+  showEmailWarning,
+  showPasswordWarning,
+} from "@/functions/loginFunctions";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export default function Home() {
-  const [displayType, setDisplayType] = useState("countdown");
-  // checkDate is used as a value to check if the currentDate has been changed
-  const [checkDate, setCheckDate] = useState("");
+export default function LoginUser() {
+  const [userEmail, setUserEmail] = useState<string>("");
+  const [emailSanitiseCheck, setEmailSanitiseCheck] = useState<boolean>(false);
 
-  // get JWT from session
-  useEffect(() => {
-    // Perform localStorage action
-    const jwt = sessionStorage.getItem("jwt");
-  }, []);
+  const [userPassword, setUserPassword] = useState<string>("");
+  const [passwordSanitiseCheck, setPasswordSanitiseCheck] =
+    useState<boolean>(false);
 
-  // add cron job to reexecute current date setup and useeffect setup, needs to run every 24 hours
-  // update currentDate every 24 hours
-  // in the same loop check if the formatted current date isnt the same
-  function updateDate() {
-    console.log("running update Date, which returns a formattedDate val!");
-    var newDate = new Date();
-    var year = newDate.getFullYear();
-    var month = String(newDate.getMonth() + 1).padStart(2, "0"); // Months are zero-based
-    var day = String(newDate.getDate()).padStart(2, "0");
-    // const formattedDate = `${year}-${month}-${day}`;
-    const formattedDate = `2024-01-14`;
-    return formattedDate;
-  }
-
-  var currentDate = new Date();
-  // // TODO REMOVE for testing as need to move it 1 day up, remove later
-  // currentDate.setDate(currentDate.getDate() + 1);
-  var year = currentDate.getFullYear();
-  var month = String(currentDate.getMonth() + 1).padStart(2, "0"); // Months are zero-based
-  var day = String(currentDate.getDate()).padStart(2, "0");
-  // Create the formatted date string to match api call date type
-  let [formattedDate, setFormattedDate] = useState(`${year}-${month}-${day}`);
-
-  // initial delay before running the refresh via setInterval
-  var initialDelay = calculateTimeTillRefresh();
-  console.log("initial delay is, ", initialDelay);
-
-  //test this code to see if it works, adjust the time in the calculateTimeTillRefresh code to test
-  setTimeout(() => {
-    setFormattedDate(updateDate);
-    setInterval(() => {
-      console.log("interval running, setting formatted date");
-      setFormattedDate(updateDate);
-    }, 24 * 60 * 60 * 1000);
-  }, initialDelay);
-
-  interface PrayerData {
-    Asr: string;
-    Dhuhr: string;
-    Fajr: string;
-    Isha: string;
-    Maghrib: string;
-  }
-  // create the var which is the same structure as the response
-  const [todaysPrayers, setTodaysPrayers] = useState<PrayerData>({
-    Asr: "",
-    Dhuhr: "",
-    Fajr: "",
-    Isha: "",
-    Maghrib: "",
-  });
-
-  // check if its first load, or the day has changed, if so call the API to get new results in todaysPrayers
-  //TODO IMPORTANT need to update formattedDate daily/hourly to run this constantly
-  useEffect(() => {
-    console.log("use effect triggered from formattedDate");
-    const fetchData = async () => {
-      try {
-        const result = await getTodaysPrayers(formattedDate);
-        // const result = {
-        //   Asr: "2024-01-17T15:01:00Z",
-        //   Dhuhr: "2024-01-17T08:18:00Z",
-        //   Fajr: "2024-01-17T06:59:00Z",
-        //   Isha: "2024-01-17T19:14:00Z",
-        //   Maghrib: "2024-01-17T17:28:00Z",
-        // };
-
-        if (result) {
-          console.log("results for prayers today...");
-          console.log(result);
-          setTodaysPrayers(result);
-        } else {
-          console.log("Results undefined couldnt get todays prayers");
-        }
-      } catch (error) {
-        console.error("Error fetching todays prayers", error);
-      }
-    };
-    fetchData();
-  }, [formattedDate]);
-
-  const [nextPrayerName, setNextPrayerName] = useState<string | null>(null);
-  const [nextPrayerTime, setNextPrayerTime] = useState<Date | null>(null);
-  const [currentPrayerName, setCurrentPrayerName] = useState<string | null>(
-    null
-  );
-  const [currentPrayerTime, setCurrentPrayerTime] = useState<Date | null>(null);
-  const [lastPrayerName, setLastPrayerName] = useState<string | null>(null);
-  const [lastPrayerTime, setLastPrayerTime] = useState<Date | null>(null);
-
-  interface ClosestPrayer {
-    name: string;
-    time: string;
-    difference: number;
-  }
-
-  // used to update currentPrayer values when date/time changes
-  var [currentPrayer, setCurrentPrayer] = useState<ClosestPrayer | null>(null);
-
-  interface LastPrayer {
-    name: string;
-    time: string;
-  }
-  var [lastPrayer, setLastPrayer] = useState<LastPrayer | null>(null);
-
-  // used in a use effect to trigger a rerun of the getNextPrayer function, it runs when the time passes that of the next prayer
-  const [nextPrayerTimeActivator, setNextPrayerTimeActivator] = useState<
+  const [submitResponseStatus, setSubmitResponseStatus] = useState<
     number | null
   >(null);
-  const [productiveState, setProductiveState] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (todaysPrayers != null) {
-        console.log(todaysPrayers);
-        const nextPrayer = getNextPrayer(todaysPrayers);
-        // currPrayer and currentPrayer are different because currPrayer
-        // is used in the if statement below, as setting parts of usestate
-        // may not be resolved before if statement runs below if it called if(currentPrayer),
-        // same for constLastPrayer
-        const currPrayer = await getCurrentPrayer(todaysPrayers);
-        console.log("curr prayer set!");
-        console.log(currPrayer);
-        setCurrentPrayer(currPrayer);
-        const constLastPrayer = await getLastPrayer(todaysPrayers, currPrayer);
-        setLastPrayer(constLastPrayer);
-        if (nextPrayer && currPrayer && constLastPrayer) {
-          console.log("promises resolved, setting times & names");
-          setNextPrayerTime(new Date(nextPrayer.time));
-          setNextPrayerName(nextPrayer.name);
-          setCurrentPrayerName(currPrayer.name);
-          setCurrentPrayerTime(new Date(currPrayer.time));
-          setLastPrayerName(constLastPrayer.name);
-          setLastPrayerTime(new Date(constLastPrayer.time));
-        }
+  const handleUserEmailChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setUserEmail(event.target.value);
+    sanitiseEmail(event.target.value, setEmailSanitiseCheck);
+  };
+
+  const handleUserPasswordChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setUserPassword(event.target.value);
+    sanitisePassword(event.target.value, setPasswordSanitiseCheck);
+  };
+
+  const [responseErr, setResponseErr] = useState<string>("");
+  function showLoginMessage() {
+    if (loading) {
+      return <p>Loading...</p>;
+    }
+
+    if (submitResponseStatus !== null) {
+      switch (submitResponseStatus) {
+        case 200:
+          Router.push("main_page");
+          return <p>Login successful!</p>;
+        // case 401:
+        //   return <p>Incorrect email or password</p>;
+        // case 403:
+        //   return <p>Invalid credentials</p>;
+        case 406:
+          return (
+            <>
+              <Link href={"verify_email_view"}>
+                {" "}
+                Please verify email before logging in
+              </Link>
+              <br></br>
+            </>
+          );
+        // case 500:
+        //   return <p>Error logging in, please contact the developer</p>;
+        default:
+          return <p>{responseErr}</p>;
       }
-    };
-    fetchData();
-  }, [todaysPrayers, nextPrayerTimeActivator]);
-
-  // if a nextPrayerTime exists (should do after first load), start timer to see when it goes past nextPrayerTime
-  useEffect(() => {
-    let intervalId: NodeJS.Timeout;
-
-    if (nextPrayerTime && nextPrayerName) {
-      // Pass a function reference, not an invocation
-      intervalId = setInterval(
-        () => updateNextPrayer(nextPrayerTime, nextPrayerName),
-        1000
-      );
     }
 
-    // Cleanup function to clear the interval when the component unmounts
-    return () => clearInterval(intervalId);
-  }, [nextPrayerTime, nextPrayerName]);
-
-  // if timer in this function goes past nextPrayerTime, it will know and will hit the activator which will rerun the useeffect to call a new prayer time
-  function updateNextPrayer(nextPrayerTime: Date, nextPrayerName: string) {
-    const timer = new Date();
-    console.log("timer running...");
-    if (timer > nextPrayerTime && nextPrayerName == "Isha") {
-      setNextPrayerName("AFTER ISHA");
-      setDisplayType("after isha");
-      // timer is past prayer time, show productive state
-    } else if (timer > nextPrayerTime) {
-      setProductiveState(true);
-
-      setNextPrayerTimeActivator(1);
-    }
+    return null;
   }
 
-  const countdownKey = nextPrayerTime ? nextPrayerTime.toString() : null;
+  const loginUser = async () => {
+    setLoading(true);
+
+    const response = await fetch("http://localhost:8080/api/v1/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        userEmail,
+        userPassword,
+      }),
+    });
+
+    const responseData = await response.json();
+    setResponseErr(responseData["error"]);
+
+    const authorizationHeader = response.headers.get("Authorization");
+
+    if (authorizationHeader !== null && authorizationHeader !== "") {
+      sessionStorage.setItem("jwt", authorizationHeader);
+      console.log("stored jwt in session");
+    }
+
+    setSubmitResponseStatus(response.status);
+    setLoading(false);
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (emailSanitiseCheck && passwordSanitiseCheck) {
+      await loginUser();
+    }
+  };
 
   return (
     <>
       <Head>
-        <title>The productive muslim</title>
-        <meta name="description" content="Generated by create next app" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
+          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+          crossOrigin="anonymous"
+        />
       </Head>
-      <main className={`${styles.main} ${inter.className}`}>
-        {displayType == "countdown" && productiveState == false && (
-          <div>
-            <p>
-              {" "}
-              the next Prayer is {nextPrayerName} at {String(nextPrayerTime)}
-            </p>
-            <br></br>
-            <p> Time left till {nextPrayerName} is</p>
-            <p>
-              {nextPrayerTime !== null && (
-                <Countdown key={countdownKey} date={nextPrayerTime} />
-              )}
-            </p>
+      <div>
+        <main className={`${styles.main} ${inter.className}`}>
+          <div className="card">
+            <div className="card-body">
+              <h5 className="card-title">User Login</h5>
+              <form className="login-form" onSubmit={(e) => handleSubmit(e)}>
+                <div className="form-group">
+                  {showEmailWarning(emailSanitiseCheck)}
+                  <label>Email address</label>
+                  <input
+                    type="email"
+                    className="form-control"
+                    id="email"
+                    placeholder="name@example.com"
+                    onChange={handleUserEmailChange}
+                  />
+                </div>
+                <div className="form-group">
+                  {showPasswordWarning(passwordSanitiseCheck)}
+                  <label>Password</label>
+                  <input
+                    type="password"
+                    className="form-control"
+                    id="password"
+                    placeholder="Password"
+                    onChange={handleUserPasswordChange}
+                  />
+                </div>
+                <div className="form-group">
+                  {showLoginMessage()}
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={!emailSanitiseCheck || !passwordSanitiseCheck}
+                  >
+                    Login
+                  </button>
+                  <Link href={"register_user"}> Click here to register!</Link>
+                </div>
+              </form>
+            </div>
           </div>
-        )}
-        {displayType == "after isha" && (
-          <div>
-            <p> after isha, come back tomorrow</p>
-          </div>
-        )}
-        {productiveState == true && (
-          <ProductiveStateView
-            setProductiveState={setProductiveState}
-            currentPrayerName={currentPrayerName}
-            currentPrayerTime={currentPrayerTime}
-            lastPrayerName={lastPrayerName}
-            lastPrayerTime={lastPrayerTime}
-          />
-        )}
-      </main>
+        </main>
+      </div>
     </>
   );
 }
