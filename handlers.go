@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -277,16 +276,35 @@ type UserDataRequestBody struct {
 }
 
 func handlePostUserData(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) error {
+	logger.Info("hit postUserData")
+
 	// this function parses the incoming data and uploads it to the postgres database
-	token, ok := c.Get("user").(*jwt.Token) // by default token is stored under `user` key
-	if !ok {
-		return errors.New("JWT token missing or invalid")
+
+	// token, ok := c.Get("user").(*jwt.Token) // by default token is stored under `user` key
+
+	tokenString := c.Request().Header.Get("Authorization")
+	if tokenString == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "No valid JWT token"})
+
 	}
-	claims, ok := token.Claims.(jwt.MapClaims) // by default claims is of type `jwt.MapClaims`
-	if !ok {
-		return errors.New("failed to cast claims as jwt.MapClaims")
-	}
-	logger.Info(claims)
+	logger.Info(tokenString)
+	// token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error)){
+	// 	return
+	// }
+
+	// token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	// 	// Add your JWT signing key validation logic here
+	// 	return []byte("your-secret-key"), nil
+	// })
+	// if err != nil {
+	// 	// Handle error
+	// }
+
+	// claims, ok := token.Claims.(jwt.MapClaims) // by default claims is of type `jwt.MapClaims`
+	// if !ok {
+	// 	return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to cast claims as jwt.mapclaims"})
+	// }
+	// logger.Info(claims)
 	var incomingData UserDataRequestBody
 	if err := c.Bind(&incomingData); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body for incoming user submission"})
@@ -732,18 +750,29 @@ func handleLogin(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hmacSecr
 			if err != nil {
 				logger.Errorf("token.SignedString failed, err: ", err.Error())
 			}
-			// cookie := &http.Cookie{
-			// 	Name:     "jwt",
-			// 	Value:    tokenString,
-			// 	HttpOnly: false,
-			// 	Secure:   true,                  // set true if using HTTPS
-			// 	SameSite: http.SameSiteNoneMode, //TODO write down what this does
-			// 	Expires:  time.Now().Add(24 * time.Hour),
-			// }
+			cookie := &http.Cookie{
+				Name:  "jwt",
+				Value: tokenString,
+				Path:  "/",
+				// HttpOnly: false,
+				// Secure:   true,
+				HttpOnly: false,
+				SameSite: http.SameSiteNoneMode,
+				Secure:   false, // set true if using HTTPS
+
+				Expires: time.Now().Add(24 * time.Hour),
+			}
+			c.SetCookie(cookie)
+			// cookie := new(http.Cookie)
+			// cookie.Name = "jwt"
+			// cookie.Value = tokenString
+			// cookie.Expires = time.Now().Add(24 * time.Hour)
+
 			// TODO understand why c.Response is passed as responseWriter arg?
 			c.Response().Header().Set("Access-Control-Expose-Headers", "Authorization, Set-Cookie")
 			// c.SetCookie(cookie)
 			c.Response().Header().Set("Authorization", "Bearer "+tokenString)
+			// c.SetCookie(cookie)
 			return c.JSON(http.StatusOK, map[string]string{"error": ""})
 		} else {
 			logger.Info("email is not verified, password is correct")

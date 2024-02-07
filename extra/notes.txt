@@ -11,7 +11,7 @@ TODO - ask about how to know what image to use for docker images
 
 
 TODO CONTINUE -  
-- continue debugging why authorization on productive state view erroring
+- continue sorting jwt middleware check for productive view - https://www.sohamkamani.com/golang/jwt-authentication/
 - finish testing login workflow
 - next step is to double check login /create user workflow and then figure out how to handle the JWT token that has been created
 - adding claims to jwt token, passing in response to frontend, also adding secure middleware"
