@@ -105,7 +105,7 @@ func main() {
 	})
 
 	api.POST("/userData", func(c echo.Context) error {
-		return handlePostUserData(c, logger, db)
+		return handlePostUserData(c, logger, db, hmacSecret)
 	})
 
 	api.POST("/createUser", func(c echo.Context) error {

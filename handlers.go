@@ -12,7 +12,8 @@ import (
 	"time"
 
 	"github.com/go-redis/redis"
-	"github.com/golang-jwt/jwt"
+	// "github.com/golang-jwt/jwt"
+	jwt "github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo"
 	"go.uber.org/zap"
 )
@@ -246,6 +247,12 @@ type PrayerItem struct {
 	Isha    string `json:"isha"`
 }
 
+// We add jwt.RegisteredClaims as an embedded type, to provide fields like expiry time
+type Claims struct {
+	UserType string
+	jwt.RegisteredClaims
+}
+
 func todayPrayerHandler(c echo.Context, pt map[string]map[string]time.Time, logger *zap.SugaredLogger) error {
 
 	incomingDate := c.Param("dateValue")
@@ -275,7 +282,7 @@ type UserDataRequestBody struct {
 	ProductiveValue   bool   `json:"productiveValue"`
 }
 
-func handlePostUserData(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) error {
+func handlePostUserData(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hmacSecret []byte) error {
 	logger.Info("hit postUserData")
 
 	// this function parses the incoming data and uploads it to the postgres database
@@ -284,34 +291,43 @@ func handlePostUserData(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) e
 
 	tokenString := c.Request().Header.Get("Authorization")
 	if tokenString == "" {
+		logger.Error("token string empty")
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "No valid JWT token"})
 
 	}
 	logger.Info(tokenString)
-	// token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error)){
-	// 	return
-	// }
+	// initialise new instance of claims
+	claims := &Claims{}
 
-	// token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-	// 	// Add your JWT signing key validation logic here
-	// 	return []byte("your-secret-key"), nil
-	// })
-	// if err != nil {
-	// 	// Handle error
-	// }
+	// Parse the JWT string and store the result in `claims`.
+	// Note that we are passing the key in this method as well. This method will return an error
+	// if the token is invalid (if it has expired according to the expiry time we set on sign in),
+	// or if the signature does not match
+	tkn, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (any, error) {
+		return hmacSecret, nil
+	})
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
+			logger.Error("Invalid jwt signature")
+			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized access, invalid jwt signature"})
+		}
+		logger.Error("Bad request returned")
+		logger.Error(err.Error())
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Bad request parsing jwt claims"})
+	}
+	if !tkn.Valid {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Bad request, Invalid token."})
+	}
 
-	// claims, ok := token.Claims.(jwt.MapClaims) // by default claims is of type `jwt.MapClaims`
-	// if !ok {
-	// 	return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to cast claims as jwt.mapclaims"})
-	// }
-	// logger.Info(claims)
+	logger.Infof("token valid!")
+
 	var incomingData UserDataRequestBody
 	if err := c.Bind(&incomingData); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body for incoming user submission"})
 	}
 	logger.Infof("User posted Data %s", incomingData)
 
-	err := uploadUserInput(c, logger, db, incomingData)
+	err = uploadUserInput(c, logger, db, incomingData)
 	if err != nil {
 		logger.Errorf("Failed to upload users input! err: %s", err.Error())
 	}
@@ -737,12 +753,19 @@ func handleLogin(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hmacSecr
 			logger.Info("email verified and password correct")
 			// Create a new token object, specifying signing method and the claims
 			// you would like it to contain.
-			token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-				"iss":       "tpm",
-				"user_type": "user",
-				"sub":       loginCredentials.UserEmail,
-				"nbf":       time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
-			})
+
+			claims := &Claims{
+				UserType: "user",
+				RegisteredClaims: jwt.RegisteredClaims{
+					// In JWT, the expiry time is expressed as unix milliseconds
+
+					// ExpiresAt: jwt.NewNumericDate(expirationTime),
+					Issuer:    "tpm",
+					ExpiresAt: jwt.NewNumericDate((time.Now().Add(24 * time.Hour))),
+				},
+			}
+
+			token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 			// Sign and get the complete encoded token as a string using the secret
 
@@ -762,6 +785,7 @@ func handleLogin(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hmacSecr
 
 				Expires: time.Now().Add(24 * time.Hour),
 			}
+
 			c.SetCookie(cookie)
 			// cookie := new(http.Cookie)
 			// cookie.Name = "jwt"
@@ -771,7 +795,7 @@ func handleLogin(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hmacSecr
 			// TODO understand why c.Response is passed as responseWriter arg?
 			c.Response().Header().Set("Access-Control-Expose-Headers", "Authorization, Set-Cookie")
 			// c.SetCookie(cookie)
-			c.Response().Header().Set("Authorization", "Bearer "+tokenString)
+			c.Response().Header().Set("Authorization", tokenString)
 			// c.SetCookie(cookie)
 			return c.JSON(http.StatusOK, map[string]string{"error": ""})
 		} else {
