@@ -7,8 +7,11 @@ import (
 
 	"github.com/go-co-op/gocron/v2"
 	"github.com/go-redis/redis"
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
+
+	// "github.com/labstack/echo"
+	// "github.com/labstack/echo/middleware"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	_ "github.com/lib/pq"
 	"go.uber.org/zap"
 )
