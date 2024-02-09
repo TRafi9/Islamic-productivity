@@ -254,6 +254,40 @@ type Claims struct {
 }
 
 func todayPrayerHandler(c echo.Context, pt map[string]map[string]time.Time, logger *zap.SugaredLogger, hmacSecret []byte) error {
+	logger.Info("accessing todaysPrayerHandler")
+
+	// below is the scode to parse jwt token & get claims from it + error handling
+	tokenString := c.Request().Header.Get("Authorization")
+
+	if tokenString == "" {
+		logger.Error("token string empty")
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "No valid JWT token"})
+
+	}
+	// // initialise new instance of claims
+	claims := &Claims{}
+
+	// // Parse the JWT string and store the result in `claims`.
+	// // Note that we are passing the key in this method as well. This method will return an error
+	// // if the token is invalid (if it has expired according to the expiry time we set on sign in),
+	// // or if the signature does not match
+	_, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (any, error) {
+		return hmacSecret, nil
+	})
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
+			logger.Error("Invalid jwt signature")
+			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized access, invalid jwt signature"})
+		}
+		logger.Error("Bad request returned")
+		logger.Error(err.Error())
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Bad request parsing jwt claims"})
+	}
+	// note - this is not a security check and is redundant because an altered jwt is blocked at middleware level
+	// this is just to show what we can do with claims, this code will never be reached
+	if claims.UserType != "user" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid claims"})
+	}
 
 	incomingDate := c.Param("dateValue")
 	logger.Info(incomingDate)

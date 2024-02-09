@@ -105,7 +105,7 @@ func main() {
 	api := e.Group("/api/v1")
 
 	apiRestricted := e.Group("/api/v1/restricted")
-
+	// middleware to stop invalid or unauthorized jwt's from accessing these functions
 	apiRestricted.Use(echojwt.WithConfig(echojwt.Config{
 		SigningKey:  hmacSecret,
 		TokenLookup: "header:Authorization",
