@@ -11,6 +11,7 @@ TODO - ask about how to know what image to use for docker images
 
 
 TODO CONTINUE -  
+getting cookies to send from backend to frontend and cookies reading from todaysPrayerHandler send from frontend to backend
 continue implementing echo jwt middleware, need to switch packages, already replaced labstack echo to v4 https://github.com/labstack/echo-jwt
 - continue sorting jwt middleware check for productive view - https://www.sohamkamani.com/golang/jwt-authentication/
 - finish testing login workflow
