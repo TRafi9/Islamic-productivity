@@ -1,6 +1,6 @@
 import Head from "next/head";
 import Image from "next/image";
-import { Inter } from "next/font/google";
+import { Cookie, Inter } from "next/font/google";
 import styles from "@/styles/Home.module.css";
 import { useEffect, useState } from "react";
 
@@ -18,13 +18,14 @@ const inter = Inter({ subsets: ["latin"] });
 export default function Home() {
   const [displayType, setDisplayType] = useState("countdown");
   // checkDate is used as a value to check if the currentDate has been changed
-  const [checkDate, setCheckDate] = useState("");
+  const [checkDate, setCheckDate] = useState(null);
 
+  const [jwt, setJwt] = useState<string | null>(null);
   // get JWT from session
   useEffect(() => {
     // Perform localStorage action
-    const jwt = sessionStorage.getItem("jwt");
-    console.log(jwt);
+    const jwtToken = sessionStorage.getItem("jwt");
+    setJwt(jwtToken);
   }, []);
 
   // add cron job to reexecute current date setup and useeffect setup, needs to run every 24 hours
@@ -85,14 +86,14 @@ export default function Home() {
     console.log("use effect triggered from formattedDate");
     const fetchData = async () => {
       try {
-        // const result = await getTodaysPrayers(formattedDate);
-        const result = {
-          Asr: "2024-02-08T15:32:00Z",
-          Dhuhr: "2024-02-08T13:47:00Z",
-          Fajr: "2024-02-08T06:36:00Z",
-          Isha: "2024-02-08T19:46:00Z",
-          Maghrib: "2024-02-08T17:56:00Z",
-        };
+        const result = await getTodaysPrayers(formattedDate, jwt);
+        // const result = {
+        //   Asr: "2024-02-08T15:32:00Z",
+        //   Dhuhr: "2024-02-08T13:47:00Z",
+        //   Fajr: "2024-02-08T06:36:00Z",
+        //   Isha: "2024-02-08T19:46:00Z",
+        //   Maghrib: "2024-02-08T17:56:00Z",
+        // };
 
         if (result) {
           console.log("results for prayers today...");

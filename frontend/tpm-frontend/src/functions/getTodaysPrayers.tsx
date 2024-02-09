@@ -1,4 +1,4 @@
-const getTodaysPrayers = async (date: string) => {
+const getTodaysPrayers = async (date: string, jwt: string | null) => {
   if (date) {
     try {
       // const graphResponse = await instance.acquireTokenSilent(request);
@@ -8,6 +8,7 @@ const getTodaysPrayers = async (date: string) => {
         `api/getTodaysPrayers?date=${date}`,
         {
           method: "GET",
+          credentials: "include",
         }
       );
       console.log("awaiting response...");

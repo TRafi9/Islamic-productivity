@@ -10,6 +10,8 @@ import (
 
 	// "github.com/labstack/echo"
 	// "github.com/labstack/echo/middleware"
+
+	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	_ "github.com/lib/pq"
@@ -73,7 +75,7 @@ func main() {
 		AllowOrigins:     []string{"http://tpm-frontend:3000", "http://localhost:3000"},
 		AllowMethods:     []string{echo.GET, echo.POST},
 		AllowHeaders:     []string{"Authorization", "Content-Type", "Set-Cookie"},
-		ExposeHeaders:    []string{"Authorization, Set-Cookie"}, // Add this line
+		ExposeHeaders:    []string{"Authorization", "Set-Cookie"}, // Add this line
 		AllowCredentials: true,
 	}))
 
@@ -101,10 +103,14 @@ func main() {
 	//TODO add panic and recover if it fails to upload to memory
 
 	api := e.Group("/api/v1")
-	//TODO PULL SAMPLE SECRET KEY HERE FOR SIGNING JWT
+	apiRestricted := e.Group("/api/v1/restricted")
+
+	apiRestricted.Use(echojwt.WithConfig(echojwt.Config{
+		SigningKey: hmacSecret,
+	}))
 
 	api.GET("/getPrayerTimes/:dateValue", func(c echo.Context) error {
-		return todayPrayerHandler(c, Pt, logger)
+		return todayPrayerHandler(c, Pt, logger, hmacSecret)
 	})
 
 	api.POST("/userData", func(c echo.Context) error {

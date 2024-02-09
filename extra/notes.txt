@@ -11,6 +11,7 @@ TODO - ask about how to know what image to use for docker images
 
 
 TODO CONTINUE -  
+continue implementing echo jwt middleware, need to switch packages, already replaced labstack echo to v4 https://github.com/labstack/echo-jwt
 - continue sorting jwt middleware check for productive view - https://www.sohamkamani.com/golang/jwt-authentication/
 - finish testing login workflow
 - next step is to double check login /create user workflow and then figure out how to handle the JWT token that has been created
@@ -20,6 +21,9 @@ TODO CONTINUE -
 
 - https://chat.openai.com/c/82f4f98e-448f-4db9-a831-4ecb7addfd28
 
+1. check if prayerTimes are running
+2. get jwt from prayerTimes function in backend from cookie
+3. add middleware, remove getting cookie, see if it is blocking
 
 DOCKER COMPOSE STUFF
 docker-compose up --build
