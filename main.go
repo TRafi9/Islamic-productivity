@@ -103,13 +103,15 @@ func main() {
 	//TODO add panic and recover if it fails to upload to memory
 
 	api := e.Group("/api/v1")
+
 	apiRestricted := e.Group("/api/v1/restricted")
 
 	apiRestricted.Use(echojwt.WithConfig(echojwt.Config{
-		SigningKey: hmacSecret,
+		SigningKey:  hmacSecret,
+		TokenLookup: "header:Authorization",
 	}))
 
-	api.GET("/getPrayerTimes/:dateValue", func(c echo.Context) error {
+	apiRestricted.GET("/getPrayerTimes/:dateValue", func(c echo.Context) error {
 		return todayPrayerHandler(c, Pt, logger, hmacSecret)
 	})
 

@@ -254,41 +254,6 @@ type Claims struct {
 }
 
 func todayPrayerHandler(c echo.Context, pt map[string]map[string]time.Time, logger *zap.SugaredLogger, hmacSecret []byte) error {
-	logger.Info("hitting today prayer handler")
-	logger.Infof("the cookie from the frontend is... ")
-	logger.Info(c.Cookie("jwt"))
-
-	// tokenString := c.Request().Header.Get("Authorization")
-	// if tokenString == "" {
-	// 	logger.Error("token string empty")
-	// 	return c.JSON(http.StatusBadRequest, map[string]string{"error": "No valid JWT token"})
-
-	// }
-	// logger.Info(tokenString)
-	// // initialise new instance of claims
-	// claims := &Claims{}
-
-	// // Parse the JWT string and store the result in `claims`.
-	// // Note that we are passing the key in this method as well. This method will return an error
-	// // if the token is invalid (if it has expired according to the expiry time we set on sign in),
-	// // or if the signature does not match
-	// tkn, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (any, error) {
-	// 	return hmacSecret, nil
-	// })
-	// if err != nil {
-	// 	if err == jwt.ErrSignatureInvalid {
-	// 		logger.Error("Invalid jwt signature")
-	// 		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized access, invalid jwt signature"})
-	// 	}
-	// 	logger.Error("Bad request returned")
-	// 	logger.Error(err.Error())
-	// 	return c.JSON(http.StatusBadRequest, map[string]string{"error": "Bad request parsing jwt claims"})
-	// }
-	// if !tkn.Valid {
-	// 	return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Bad request, Invalid token."})
-	// }
-
-	// logger.Infof("token valid!")
 
 	incomingDate := c.Param("dateValue")
 	logger.Info(incomingDate)
