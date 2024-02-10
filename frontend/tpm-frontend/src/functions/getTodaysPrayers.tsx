@@ -1,15 +1,10 @@
 const getTodaysPrayers = async (date: string) => {
   if (date) {
     try {
-      // const graphResponse = await instance.acquireTokenSilent(request);
-      // const token = `Bearer ${graphResponse.accessToken}`;
-      const response = await fetch(
-        // `api/getTodaysPrayers?bearer=${token}&id=${id}`,
-        `api/getTodaysPrayers?date=${date}`,
-        {
-          method: "GET",
-        }
-      );
+      const response = await fetch(`api/getTodaysPrayers?date=${date}`, {
+        method: "GET",
+        credentials: "include",
+      });
       console.log("awaiting response...");
 
       const data = await response.json();

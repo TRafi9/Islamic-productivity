@@ -84,6 +84,7 @@ export default function LoginUser() {
         userEmail,
         userPassword,
       }),
+      credentials: "include",
     });
 
     const responseData = await response.json();

@@ -7,8 +7,13 @@ import (
 
 	"github.com/go-co-op/gocron/v2"
 	"github.com/go-redis/redis"
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
+
+	// "github.com/labstack/echo"
+	// "github.com/labstack/echo/middleware"
+
+	echojwt "github.com/labstack/echo-jwt/v4"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	_ "github.com/lib/pq"
 	"go.uber.org/zap"
 )
@@ -49,14 +54,13 @@ func main() {
 	dbName := os.Getenv("DB_NAME")
 	connectionString := fmt.Sprintf("host=localhost user=%s password=%s dbname=%s sslmode=disable", user, password, dbName)
 
-	// logger.Info(connectionString)
-
 	db, err := sql.Open("postgres", connectionString)
 
 	if err != nil {
 		logger.Fatalf("Failed to open sql connection, err: %w", err)
 	}
 	defer db.Close()
+
 	// verify connection to db by pinging it
 	err = db.Ping()
 	if err != nil {
@@ -70,7 +74,7 @@ func main() {
 		AllowOrigins:     []string{"http://tpm-frontend:3000", "http://localhost:3000"},
 		AllowMethods:     []string{echo.GET, echo.POST},
 		AllowHeaders:     []string{"Authorization", "Content-Type", "Set-Cookie"},
-		ExposeHeaders:    []string{"Authorization, Set-Cookie"}, // Add this line
+		ExposeHeaders:    []string{"Authorization", "Set-Cookie"}, // Add this line
 		AllowCredentials: true,
 	}))
 
@@ -95,16 +99,23 @@ func main() {
 		logger.Errorf("error executing GetPrayerTimes, err %w", err)
 	}
 
-	//TODO add panic and recover if it fails to upload to memory
+	e.Use(middleware.Recover())
 
 	api := e.Group("/api/v1")
-	//TODO PULL SAMPLE SECRET KEY HERE FOR SIGNING JWT
 
-	api.GET("/getPrayerTimes/:dateValue", func(c echo.Context) error {
-		return todayPrayerHandler(c, Pt, logger)
+	apiRestricted := e.Group("/api/v1/restricted")
+
+	// middleware to stop invalid or unauthorized jwt's from accessing these functions
+	apiRestricted.Use(echojwt.WithConfig(echojwt.Config{
+		SigningKey:  hmacSecret,
+		TokenLookup: "header:Authorization",
+	}))
+
+	apiRestricted.GET("/getPrayerTimes/:dateValue", func(c echo.Context) error {
+		return todayPrayerHandler(c, Pt, logger, hmacSecret)
 	})
 
-	api.POST("/userData", func(c echo.Context) error {
+	apiRestricted.POST("/userData", func(c echo.Context) error {
 		return handlePostUserData(c, logger, db, hmacSecret)
 	})
 
