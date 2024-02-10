@@ -189,7 +189,9 @@ export default function Home() {
               </p>
             </Row>
             <div>
-              <p className={`${Bebas.className} text-center-p`}>
+              <p
+                className={`${Bebas.className} text-center-p countdown-display`}
+              >
                 {nextPrayerTime !== null && (
                   <Countdown
                     key={countdownKey}
