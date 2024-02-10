@@ -1,4 +1,4 @@
-const getTodaysPrayers = async (date: string, jwt: string | null) => {
+const getTodaysPrayers = async (date: string) => {
   if (date) {
     try {
       const response = await fetch(`api/getTodaysPrayers?date=${date}`, {

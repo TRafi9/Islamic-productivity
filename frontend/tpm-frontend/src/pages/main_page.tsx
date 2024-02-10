@@ -66,13 +66,14 @@ export default function Home() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const result = {
-          Asr: "2024-02-10T15:32:00Z",
-          Dhuhr: "2024-02-10T08:59:00Z",
-          Fajr: "2024-02-10T06:36:00Z",
-          Isha: "2024-02-10T19:46:00Z",
-          Maghrib: "2024-02-10T17:56:00Z",
-        };
+        const result = await getTodaysPrayers(formattedDate);
+        // const result = {
+        //   Asr: "2024-02-10T15:32:00Z",
+        //   Dhuhr: "2024-02-10T08:59:00Z",
+        //   Fajr: "2024-02-10T06:36:00Z",
+        //   Isha: "2024-02-10T19:46:00Z",
+        //   Maghrib: "2024-02-10T17:56:00Z",
+        // };
 
         if (result) {
           setTodaysPrayers(result);
