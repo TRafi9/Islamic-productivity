@@ -1,26 +1,18 @@
 import Button from "react-bootstrap/Button";
+
 // need to send data to handleSendData from getCurrentPrayer + next prayer
 const ProductiveStateView = (props: any) => {
-  const bearer = sessionStorage.getItem("jwt");
-  console.log(bearer);
   // set productiveState back to false after person has clicked button
   const handleSendData = async (data: any) => {
     console.log("data in handleSendData but strignified");
     console.log(JSON.stringify(data));
 
-    if (!bearer) {
-      // Handle the case where the bearer token is null
-      console.error("Bearer token is null.");
-      return;
-    }
-    console.log(bearer);
-
     try {
-      const response = await fetch("http://localhost:8080/api/v1/userData", {
+      const response = await fetch(`api/postProductivityValue`, {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          Authorization: bearer,
         },
         body: JSON.stringify(data),
       });
