@@ -54,14 +54,13 @@ func main() {
 	dbName := os.Getenv("DB_NAME")
 	connectionString := fmt.Sprintf("host=localhost user=%s password=%s dbname=%s sslmode=disable", user, password, dbName)
 
-	// logger.Info(connectionString)
-
 	db, err := sql.Open("postgres", connectionString)
 
 	if err != nil {
 		logger.Fatalf("Failed to open sql connection, err: %w", err)
 	}
 	defer db.Close()
+
 	// verify connection to db by pinging it
 	err = db.Ping()
 	if err != nil {
@@ -100,11 +99,12 @@ func main() {
 		logger.Errorf("error executing GetPrayerTimes, err %w", err)
 	}
 
-	//TODO add panic and recover if it fails to upload to memory
+	e.Use(middleware.Recover())
 
 	api := e.Group("/api/v1")
 
 	apiRestricted := e.Group("/api/v1/restricted")
+
 	// middleware to stop invalid or unauthorized jwt's from accessing these functions
 	apiRestricted.Use(echojwt.WithConfig(echojwt.Config{
 		SigningKey:  hmacSecret,
@@ -115,7 +115,7 @@ func main() {
 		return todayPrayerHandler(c, Pt, logger, hmacSecret)
 	})
 
-	api.POST("/userData", func(c echo.Context) error {
+	apiRestricted.POST("/userData", func(c echo.Context) error {
 		return handlePostUserData(c, logger, db, hmacSecret)
 	})
 
