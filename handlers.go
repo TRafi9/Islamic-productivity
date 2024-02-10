@@ -317,43 +317,8 @@ type UserDataRequestBody struct {
 }
 
 func handlePostUserData(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hmacSecret []byte) error {
-	logger.Info("hit postUserData")
-
 	// this function parses the incoming data and uploads it to the postgres database
-
-	// token, ok := c.Get("user").(*jwt.Token) // by default token is stored under `user` key
-
-	tokenString := c.Request().Header.Get("Authorization")
-	if tokenString == "" {
-		logger.Error("token string empty")
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "No valid JWT token"})
-
-	}
-	logger.Info(tokenString)
-	// initialise new instance of claims
-	claims := &Claims{}
-
-	// Parse the JWT string and store the result in `claims`.
-	// Note that we are passing the key in this method as well. This method will return an error
-	// if the token is invalid (if it has expired according to the expiry time we set on sign in),
-	// or if the signature does not match
-	tkn, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (any, error) {
-		return hmacSecret, nil
-	})
-	if err != nil {
-		if err == jwt.ErrSignatureInvalid {
-			logger.Error("Invalid jwt signature")
-			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized access, invalid jwt signature"})
-		}
-		logger.Error("Bad request returned")
-		logger.Error(err.Error())
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Bad request parsing jwt claims"})
-	}
-	if !tkn.Valid {
-		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Bad request, Invalid token."})
-	}
-
-	logger.Infof("token valid!")
+	logger.Info("hit postUserData")
 
 	var incomingData UserDataRequestBody
 	if err := c.Bind(&incomingData); err != nil {
@@ -361,7 +326,7 @@ func handlePostUserData(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, h
 	}
 	logger.Infof("User posted Data %s", incomingData)
 
-	err = uploadUserInput(c, logger, db, incomingData)
+	err := uploadUserInput(c, logger, db, incomingData)
 	if err != nil {
 		logger.Errorf("Failed to upload users input! err: %s", err.Error())
 	}
@@ -397,7 +362,7 @@ func uploadUserInput(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, user
 
 	_, err := db.Exec(insertSQL)
 	if err != nil {
-		logger.Fatalf("Failed to execute database sql statement, err: %w", err)
+		logger.Errorf("Failed to execute database sql statement, err: %w", err)
 		return err
 	} else {
 		// this is how you query data that has been sent to the database
@@ -429,8 +394,6 @@ func uploadUserInput(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, user
 			}
 		}
 
-		// logger.Info(random_primary_key, user_id, productive_val, first_prayer_name, second_prayer_name, first_prayer_time, second_prayer_time, ingestion_timestamp)
-		///
 		logger.Info("SUCCESSFULLY UPLOADED TO POSTGRES DB!")
 		return nil
 	}
@@ -483,7 +446,6 @@ func handleCreateUser(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) err
 		logger.Errorf("Failed to execute database sql statement, err: %w", err)
 		return c.JSON(http.StatusAlreadyReported, map[string]string{"error": "Failed to upload user data to server, is the email already in use?"})
 	}
-	logger.Info(" created submission for USERS table in DB")
 
 	// add send email verification function here before returning registered user?
 	// generate random passphrase for email verification confirmation
@@ -507,7 +469,6 @@ func handleCreateUser(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) err
 	// 	logger.Errorf("Failed to execute database sql statement, err: %w", err)
 	// 	return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to upload user data to server, is the email already in use?"})
 	// }
-	// logger.Info("db for user email verification created")
 
 	insertVerificationCodeSQL := `
 	INSERT INTO email_verification_check (
@@ -521,34 +482,6 @@ func handleCreateUser(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) err
 		logger.Errorf("Failed to insert email verification code in DB, err %w", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to upload email verification code to db"})
 	}
-	logger.Infof("Uploaded verification code to db:  %v", verificationCode)
-
-	// check_verification := `
-	// SELECT user_id, email_verification_code, expiry_time
-	// FROM email_verification_check
-	// WHERE user_id = $1`
-
-	// rows, err := db.Query(check_verification, incomingUserRegistration.UserEmail)
-	// if err != nil {
-	// 	logger.Errorf("error in query to check verificationd db")
-	// }
-
-	// defer rows.Close()
-
-	// type EmailVerificationDBResultsCheck1 struct {
-	// 	UserEmail        string
-	// 	VerificationCode int
-	// 	ExpiryTime       string
-	// }
-	// var EmailVerificationDBResultsCheck EmailVerificationDBResultsCheck1
-
-	// for rows.Next() {
-	// 	err := rows.Scan(&EmailVerificationDBResultsCheck.UserEmail, &EmailVerificationDBResultsCheck.VerificationCode, &EmailVerificationDBResultsCheck.ExpiryTime)
-	// 	if err != nil {
-	// 		logger.Errorf("Error in rows.Scan for parsing rows into EmailVerificationDBResults")
-	// 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Error in rows.Scan for parsing rows into EmailVerificationDBResults"})
-	// 	}
-	// }
 
 	err = sendEmailVerification(c, verificationCode, logger)
 	if err != nil {
@@ -584,8 +517,6 @@ func handleUserVerification(c echo.Context, logger *zap.SugaredLogger, db *sql.D
 		logger.Error("Verification code from frontend cannot be converted to integer, returning 500")
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid verification code"})
 	}
-	logger.Info("Binded value")
-	logger.Info(EmailVerificationDetailsFromFrontend)
 
 	// the first sql statement checks if a record exists for registered user and the email verification is false first
 	CheckRecordExistsQuery := `
@@ -600,8 +531,6 @@ func handleUserVerification(c echo.Context, logger *zap.SugaredLogger, db *sql.D
 		logger.Error(err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to run query for email verification on DB"})
 	}
-	logger.Info("user id, email verification and expiry time from email_verification_check table")
-	logger.Info(rows)
 
 	defer rows.Close()
 
@@ -616,7 +545,7 @@ func handleUserVerification(c echo.Context, logger *zap.SugaredLogger, db *sql.D
 		}
 
 		countReturnedRows++
-		logger.Info("count gone up")
+
 	}
 
 	if countReturnedRows > 1 {
@@ -650,8 +579,6 @@ func handleUserVerification(c echo.Context, logger *zap.SugaredLogger, db *sql.D
 
 	}
 	return c.JSON(http.StatusBadRequest, map[string]string{"error": "Email verification code recieved is incorrect!"})
-
-	// create a new struct var to hold pulled values
 
 }
 
@@ -779,7 +706,6 @@ func handleLogin(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hmacSecr
 	}
 
 	isPassHashed := checkPasswordHash(loginCredentials.UserPassword, hashed_password_from_db)
-	logger.Infof("user trying to login with the email verified setting as %s, and isPassHashed is %s", verified_email, isPassHashed)
 
 	if isPassHashed {
 		logger.Infof("password is hashed correctly and login details match!")
@@ -808,10 +734,9 @@ func handleLogin(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hmacSecr
 				logger.Errorf("token.SignedString failed, err: ", err.Error())
 			}
 			cookie := &http.Cookie{
-				Name:  "jwt",
-				Value: tokenString,
-				Path:  "/",
-
+				Name:     "jwt",
+				Value:    tokenString,
+				Path:     "/",
 				HttpOnly: true,
 				SameSite: http.SameSiteNoneMode,
 				Secure:   true, // set true if using HTTPS
@@ -820,22 +745,18 @@ func handleLogin(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hmacSecr
 			}
 
 			c.SetCookie(cookie)
-			// cookie := new(http.Cookie)
-			// cookie.Name = "jwt"
-			// cookie.Value = tokenString
-			// cookie.Expires = time.Now().Add(24 * time.Hour)
 
 			// TODO understand why c.Response is passed as responseWriter arg?
 			c.Response().Header().Set("Access-Control-Expose-Headers", "Authorization, Set-Cookie")
-			// c.SetCookie(cookie)
+
 			c.Response().Header().Set("Authorization", tokenString)
-			// c.SetCookie(cookie)
+
 			return c.JSON(http.StatusOK, map[string]string{"error": ""})
 		} else {
 			logger.Info("email is not verified, password is correct")
 			return c.JSON(http.StatusNotAcceptable, map[string]string{"error": "Email is not verified"})
 		}
-		//TODO return OK if email verified, otherwise return error asking to verify email
+
 	} else {
 		logger.Info("password hash is incorrect!")
 		return c.JSON(http.StatusForbidden, map[string]string{"error": "User credentials invalid"})
