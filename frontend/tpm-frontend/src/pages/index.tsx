@@ -40,7 +40,11 @@ export default function LoginUser() {
   const [responseErr, setResponseErr] = useState<string>("");
   function showLoginMessage() {
     if (loading) {
-      return <p>Loading...</p>;
+      return (
+        <div className="spinner-border" role="status">
+          <span className="sr-only">Loading...</span>
+        </div>
+      );
     }
 
     if (submitResponseStatus !== null) {
@@ -147,15 +151,17 @@ export default function LoginUser() {
                     onChange={handleUserPasswordChange}
                   />
                 </div>
-                <div className="form-group">
-                  {showLoginMessage()}
-                  <button
-                    type="submit"
-                    className="btn btn-primary"
-                    disabled={!emailSanitiseCheck || !passwordSanitiseCheck}
-                  >
-                    Login
-                  </button>
+                <div className="form-group center">
+                  <div>{showLoginMessage()}</div>
+                  {loading ? null : ( // Render login button only if loading is false
+                    <button
+                      type="submit"
+                      className="btn btn-primary"
+                      disabled={!emailSanitiseCheck || !passwordSanitiseCheck}
+                    >
+                      Login
+                    </button>
+                  )}
                   <Link href={"register_user"}> Click here to register!</Link>
                 </div>
               </form>
