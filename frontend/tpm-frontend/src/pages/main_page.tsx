@@ -1,6 +1,6 @@
 import Head from "next/head";
 import Image from "next/image";
-import { Cookie, Inter } from "next/font/google";
+import { Roboto_Mono, Bebas_Neue } from "next/font/google";
 import styles from "@/styles/Home.module.css";
 import { useEffect, useState } from "react";
 
@@ -13,17 +13,20 @@ import ProductiveStateView from "@/functions/productiveStateView";
 import getLastPrayer from "@/functions/getLastPrayer";
 import calculateTimeTillRefresh from "@/functions/calculateTimeTillRefresh";
 import NavbarComponent from "@/components/NavBar";
+import { Row, Col } from "react-bootstrap";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Roboto_Mono({
+  weight: "400",
+  subsets: ["latin"],
+});
+const Bebas = Bebas_Neue({
+  weight: "400",
+  subsets: ["latin"],
+});
 
 export default function Home() {
   const [displayType, setDisplayType] = useState("countdown");
   const [checkDate, setCheckDate] = useState(null);
-  const [jwt, setJwt] = useState<string | null>(null);
-  useEffect(() => {
-    const jwtToken = sessionStorage.getItem("jwt");
-    setJwt(jwtToken);
-  }, []);
 
   function updateDate() {
     var newDate = new Date();
@@ -175,20 +178,29 @@ export default function Home() {
       <main className={`${styles.main} ${inter.className}`}>
         <NavbarComponent />
         {displayType == "countdown" && productiveState == false && (
-          <div className="container mt-5">
-            <div className="row">
-              <div className="col">
-                <p className="lead">
-                  The next Prayer is {nextPrayerName} at{" "}
-                  {String(nextPrayerTime)}
-                </p>
-                <p className="lead">Time left till {nextPrayerName} is</p>
-                <p>
-                  {nextPrayerTime !== null && (
-                    <Countdown key={countdownKey} date={nextPrayerTime} />
-                  )}
-                </p>
-              </div>
+          <div>
+            <Row>
+              <br></br>
+              <br></br>
+            </Row>
+            <Row>
+              <p className="display-4 col-center">
+                Time left till {nextPrayerName} is
+              </p>
+            </Row>
+            <div>
+              <p
+                className={`${Bebas.className} text-center-p countdown-display`}
+              >
+                {nextPrayerTime !== null && (
+                  <Countdown
+                    key={countdownKey}
+                    className="countdown-display"
+                    date={nextPrayerTime}
+                    daysInHours={true}
+                  />
+                )}
+              </p>
             </div>
           </div>
         )}

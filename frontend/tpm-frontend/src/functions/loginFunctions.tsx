@@ -1,16 +1,22 @@
 // warning functions expect a usestate boolean value to be passed to display warnings
 
 export function showEmailWarning(emailSanitiseCheck: boolean) {
+  const errorMsg = "Please enter a valid email address";
+  const whitespace = "\u00A0".repeat(errorMsg.length);
+
   if (emailSanitiseCheck) {
-    return <></>;
+    return <p>{whitespace}</p>;
   } else {
-    return <p>Please enter a valid email address</p>;
+    return <p>{errorMsg}</p>;
   }
 }
 
 export function showPasswordWarning(passwordSanitiseCheck: boolean) {
+  const errorMsg =
+    "Password needs to be 10+ letters, have a special character and a number";
+  const whitespace = "\u00A0".repeat(errorMsg.length);
   if (passwordSanitiseCheck) {
-    return <></>;
+    return <p>{whitespace}</p>;
   } else {
     return (
       <p>
