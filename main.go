@@ -114,6 +114,9 @@ func main() {
 	apiRestricted.GET("/getPrayerTimes/:dateValue", func(c echo.Context) error {
 		return todayPrayerHandler(c, Pt, logger, hmacSecret)
 	})
+	apiRestricted.GET("/getAllStats", func(c echo.Context) error {
+		return handleGetAllStats(c, logger, db, hmacSecret)
+	})
 
 	apiRestricted.POST("/userData", func(c echo.Context) error {
 		return handlePostUserData(c, logger, db, hmacSecret)

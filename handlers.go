@@ -250,6 +250,7 @@ type PrayerItem struct {
 // We add jwt.RegisteredClaims as an embedded type, to provide fields like expiry time
 type Claims struct {
 	UserType string
+	User     string
 	jwt.RegisteredClaims
 }
 
@@ -680,6 +681,7 @@ func handleLogin(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hmacSecr
 
 			claims := &Claims{
 				UserType: "user",
+				User:     loginCredentials.UserEmail,
 				RegisteredClaims: jwt.RegisteredClaims{
 					// In JWT, the expiry time is expressed as unix milliseconds
 
@@ -726,4 +728,103 @@ func handleLogin(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hmacSecr
 		return c.JSON(http.StatusForbidden, map[string]string{"error": "User credentials invalid"})
 	}
 
+}
+
+func handleGetAllStats(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hmacSecret []byte) error {
+	// this function gets all the users stats to be surfaced to the frontend, it also calls functions
+	// which will populate empty areas for the data e.g. weekly data gaps
+
+	// get date value for sql query
+	today := time.Now()
+	last_week := time.Now().AddDate(0, 0, -7)
+	logger.Infof("date is %s, last week date is %s", today, last_week)
+
+	// get user login data from jwt token for sql query
+	tokenString := c.Request().Header.Get("Authorization")
+
+	if tokenString == "" {
+		logger.Error("token string empty")
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "No valid JWT token"})
+
+	}
+	// // initialise new instance of claims
+	claims := &Claims{}
+
+	// parse jwt claims into claims var using secret
+	_, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (any, error) {
+		return hmacSecret, nil
+	})
+
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
+			logger.Error("Invalid jwt signature")
+			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized access, invalid jwt signature"})
+		}
+		logger.Error("Bad request returned")
+		logger.Error(err.Error())
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Bad request parsing jwt claims"})
+	}
+
+	if claims.UserType != "user" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid claims"})
+	}
+
+	userEmail := claims.User
+	if userEmail == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "User not logged in"})
+	}
+
+	userEmail = "test80@gmail.com"
+	last_week = time.Now().AddDate(0, 0, -7)
+
+	full_week_sql_query := `
+	SELECT 
+	productive_val,
+	first_prayer_name,
+	second_prayer_name,
+	first_prayer_time,
+	second_prayer_time,
+	ingestion_timestamp
+	FROM user_submissions
+	WHERE
+	ingestion_timestamp >= $1
+	AND
+	user_id = $2
+	`
+	var (
+		productive_val      bool
+		first_prayer_name   string
+		second_prayer_name  string
+		first_prayer_time   time.Time
+		second_prayer_time  time.Time
+		ingestion_timestamp time.Time
+	)
+	rows, err := db.Query(full_week_sql_query, last_week, userEmail)
+	if err != nil {
+		logger.Errorf("Rows errored in get stats, err: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		err := rows.Scan(&productive_val, &first_prayer_name, &second_prayer_name, &first_prayer_time, &second_prayer_time, &ingestion_timestamp)
+		if err != nil {
+			// Handle the error, perhaps by logging it or returning it.
+			logger.Error("failed to scan variables in get all stats db query!")
+		}
+
+		// Convert boolean to string
+		productiveValString := strconv.FormatBool(productive_val)
+		// Convert time.Time variables to string
+		firstPrayerTimeString := first_prayer_time.Format(time.RFC3339)
+		secondPrayerTimeString := second_prayer_time.Format(time.RFC3339)
+		ingestionTimestampString := ingestion_timestamp.Format(time.RFC3339)
+
+		// Print the scanned variables
+		logger.Infof("SCANNED VARIABLES:\nproductive_val: %s, first_prayer_name: %s, second_prayer_name: %s, first_prayer_time: %s, second_prayer_time: %s, ingestion_timestamp: %s",
+			productiveValString, first_prayer_name, second_prayer_name, firstPrayerTimeString, secondPrayerTimeString, ingestionTimestampString)
+	}
+
+	// now we have the user email and date we can get the values from user table specifically for the user
+
+	return c.JSON(http.StatusOK, map[string]string{"error": ""})
 }
