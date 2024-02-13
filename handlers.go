@@ -778,7 +778,6 @@ func handleGetAllStats(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hm
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "User not logged in"})
 	}
 
-	userEmail = "test80@gmail.com"
 	last_week = time.Now().AddDate(0, 0, -7)
 
 	full_week_sql_query := `
@@ -803,13 +802,17 @@ func handleGetAllStats(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hm
 		second_prayer_time  time.Time
 		ingestion_timestamp time.Time
 	)
+
+	logger.Info("querying db for stats")
 	rows, err := db.Query(full_week_sql_query, last_week, userEmail)
 	if err != nil {
 		logger.Errorf("Rows errored in get stats, err: %w", err)
 	}
 	defer rows.Close()
-
+	count := 1
 	for rows.Next() {
+		logger.Infof("row number %s", strconv.Itoa(count))
+		count += 1
 		err := rows.Scan(&productive_val, &first_prayer_name, &second_prayer_name, &first_prayer_time, &second_prayer_time, &ingestion_timestamp)
 		if err != nil {
 			// Handle the error, perhaps by logging it or returning it.
