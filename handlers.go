@@ -737,7 +737,7 @@ func handleGetAllStats(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hm
 
 	// get date value for sql query
 	// today := time.Now()
-	last_week := time.Now().AddDate(0, 0, -7)
+	// last_week := time.Now().AddDate(0, 0, -7)
 	// logger.Infof("date is %s, last week date is %s", today, last_week)
 
 	// get user login data from jwt token for sql query
@@ -778,7 +778,7 @@ func handleGetAllStats(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hm
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "User not logged in"})
 	}
 
-	last_week = time.Now().AddDate(0, 0, -7)
+	// last_week = time.Now().AddDate(0, 0, -7)
 
 	full_week_sql_query := `
 	SELECT 
@@ -790,9 +790,7 @@ func handleGetAllStats(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hm
 	ingestion_timestamp
 	FROM user_submissions
 	WHERE
-	ingestion_timestamp >= $1
-	AND
-	user_id = $2
+	user_id = $1
 	`
 	var (
 		productive_val      bool
@@ -804,7 +802,7 @@ func handleGetAllStats(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hm
 	)
 
 	logger.Info("querying db for stats")
-	rows, err := db.Query(full_week_sql_query, last_week, userEmail)
+	rows, err := db.Query(full_week_sql_query, userEmail)
 	if err != nil {
 		logger.Errorf("Rows errored in get stats, err: %w", err)
 	}
