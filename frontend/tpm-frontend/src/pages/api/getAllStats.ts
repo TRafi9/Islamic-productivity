@@ -14,14 +14,13 @@ export default async function getAllStats(
   req: RequestObject,
   res: NextApiResponse
 ) {
-  const { date } = req.query;
   const cookies = parseCookies({ req });
 
   // Extract the jwt cookie
   const jwtCookie = cookies.jwt;
 
   const response = await fetch(
-    `http://localhost:8080/api/v1/restricted/getAllStats}`,
+    `http://localhost:8080/api/v1/restricted/getAllStats`,
     {
       method: "GET",
       credentials: "include",

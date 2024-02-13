@@ -731,16 +731,18 @@ func handleLogin(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hmacSecr
 }
 
 func handleGetAllStats(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hmacSecret []byte) error {
+	logger.Info("handleGetAllStats hit!")
 	// this function gets all the users stats to be surfaced to the frontend, it also calls functions
 	// which will populate empty areas for the data e.g. weekly data gaps
 
 	// get date value for sql query
-	today := time.Now()
+	// today := time.Now()
 	last_week := time.Now().AddDate(0, 0, -7)
-	logger.Infof("date is %s, last week date is %s", today, last_week)
+	// logger.Infof("date is %s, last week date is %s", today, last_week)
 
 	// get user login data from jwt token for sql query
 	tokenString := c.Request().Header.Get("Authorization")
+	logger.Infof("token string is ... %s", tokenString)
 
 	if tokenString == "" {
 		logger.Error("token string empty")
@@ -766,10 +768,12 @@ func handleGetAllStats(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hm
 	}
 
 	if claims.UserType != "user" {
+		logger.Error(" user type is not - user")
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid claims"})
 	}
 
 	userEmail := claims.User
+	logger.Infof("user email is ... %s", userEmail)
 	if userEmail == "" {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "User not logged in"})
 	}
