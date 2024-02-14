@@ -7,14 +7,18 @@ note - to add to readme, instructions on how to launch via docker, make sure to 
 
 TODO - ask about how to know what image to use for docker images
 
+BUG FIXES-
+after submission from user,next productive state view isnt updated to show new prayers
+- when isha arrives, only maghrib and asr are displayed on productive state view
 
 
 
 TODO CONTINUE - 
 - need to update user posting data capability, right now user is automatically set to talha_1, need to pass user email into this function and add it accordingly to the getstats
 getting jwt sent via cookies back and forth and created restricted api, need to continue implementing for all restricted paths,
+- there is a bug where 
 
-- implemented jwt token passing user email, need to check if this is correct,
+
 - also need to check if frontend my stats page is hitting backend api call correctly
 - jwt Auth is good as checks against secret value, but need to check in handler if claims from token are correct, and if so can continue function - set this up for todaysPrayers
 

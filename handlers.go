@@ -321,13 +321,52 @@ func handlePostUserData(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, h
 	// this function parses the incoming data and uploads it to the postgres database
 	logger.Info("hit postUserData")
 
+	// TODO the following code is repeated in getAllStats, functionalise this and test this properly to make sure all is okay:
+	// gets user email from authorization header
+	tokenString := c.Request().Header.Get("Authorization")
+	logger.Infof("token string is ... %s", tokenString)
+
+	if tokenString == "" {
+		logger.Error("token string empty")
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "No valid JWT token"})
+
+	}
+	// // initialise new instance of claims
+	claims := &Claims{}
+
+	// parse jwt claims into claims var using secret
+	_, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (any, error) {
+		return hmacSecret, nil
+	})
+
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
+			logger.Error("Invalid jwt signature")
+			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized access, invalid jwt signature"})
+		}
+		logger.Error("Bad request returned")
+		logger.Error(err.Error())
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Bad request parsing jwt claims"})
+	}
+
+	if claims.UserType != "user" {
+		logger.Error(" user type is not - user")
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid claims"})
+	}
+
+	userEmail := claims.User
+	logger.Infof("user email is ... %s", userEmail)
+	if userEmail == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "User not logged in"})
+	}
+	// upload incoming user data to db
 	var incomingData UserDataRequestBody
 	if err := c.Bind(&incomingData); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body for incoming user submission"})
 	}
 	logger.Infof("User posted Data %s", incomingData)
 
-	err := uploadUserInput(c, logger, db, incomingData)
+	err = uploadUserInput(c, logger, db, incomingData, userEmail)
 	if err != nil {
 		logger.Errorf("Failed to upload users input! err: %s", err.Error())
 	}
@@ -335,7 +374,7 @@ func handlePostUserData(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, h
 	return c.JSON(http.StatusOK, incomingData)
 }
 
-func uploadUserInput(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, userData UserDataRequestBody) error {
+func uploadUserInput(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, userData UserDataRequestBody, userEmail string) error {
 
 	insertSQL := fmt.Sprintf(`
 	INSERT INTO user_submissions (
@@ -343,11 +382,11 @@ func uploadUserInput(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, user
 		second_prayer_name, first_prayer_time,
 		second_prayer_time, ingestion_timestamp
 	) VALUES (
-		'talha_1', %s, '%s', '%s',
+		'%s', %s, '%s', '%s',
 		'%s', '%s',
 		'2023-12-18 12:34:56'
 	);
-	`, strconv.FormatBool(userData.ProductiveValue), userData.LastPrayerName, userData.CurrentPrayerName, userData.LastPrayerTime, userData.CurrentPrayerTime)
+	`, userEmail, strconv.FormatBool(userData.ProductiveValue), userData.LastPrayerName, userData.CurrentPrayerName, userData.LastPrayerTime, userData.CurrentPrayerTime)
 
 	_, err := db.Exec(insertSQL)
 	if err != nil {
@@ -792,14 +831,6 @@ func handleGetAllStats(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hm
 	WHERE
 	user_id = $1
 	`
-	var (
-		productive_val      bool
-		first_prayer_name   string
-		second_prayer_name  string
-		first_prayer_time   time.Time
-		second_prayer_time  time.Time
-		ingestion_timestamp time.Time
-	)
 
 	logger.Info("querying db for stats")
 	rows, err := db.Query(full_week_sql_query, userEmail)
@@ -808,27 +839,62 @@ func handleGetAllStats(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hm
 	}
 	defer rows.Close()
 	count := 1
+	type UserProductivitySubmissions struct {
+		productive_val      bool
+		first_prayer_name   string
+		second_prayer_name  string
+		first_prayer_time   time.Time
+		second_prayer_time  time.Time
+		ingestion_timestamp time.Time
+	}
+
+	var userProductivitySubmission UserProductivitySubmissions
+
+	type SingleRowSubmission map[string]string
+	singleRowSubmission := make(SingleRowSubmission)
+
+	var allUserProductivitySubmissions []SingleRowSubmission
+
 	for rows.Next() {
 		logger.Infof("row number %s", strconv.Itoa(count))
 		count += 1
-		err := rows.Scan(&productive_val, &first_prayer_name, &second_prayer_name, &first_prayer_time, &second_prayer_time, &ingestion_timestamp)
+		err := rows.Scan(&userProductivitySubmission.productive_val, &userProductivitySubmission.first_prayer_name,
+			&userProductivitySubmission.second_prayer_name, &userProductivitySubmission.first_prayer_time,
+			&userProductivitySubmission.second_prayer_time, &userProductivitySubmission.ingestion_timestamp)
+
 		if err != nil {
 			// Handle the error, perhaps by logging it or returning it.
 			logger.Error("failed to scan variables in get all stats db query!")
 		}
 
 		// Convert boolean to string
-		productiveValString := strconv.FormatBool(productive_val)
+		productiveValString := strconv.FormatBool(userProductivitySubmission.productive_val)
 		// Convert time.Time variables to string
-		firstPrayerTimeString := first_prayer_time.Format(time.RFC3339)
-		secondPrayerTimeString := second_prayer_time.Format(time.RFC3339)
-		ingestionTimestampString := ingestion_timestamp.Format(time.RFC3339)
+		firstPrayerTimeString := userProductivitySubmission.first_prayer_time.Format(time.RFC3339)
+		secondPrayerTimeString := userProductivitySubmission.second_prayer_time.Format(time.RFC3339)
+		ingestionTimestampString := userProductivitySubmission.ingestion_timestamp.Format(time.RFC3339)
+
+		singleRowSubmission["productive_val"] = productiveValString
+		singleRowSubmission["first_prayer_name"] = userProductivitySubmission.first_prayer_name
+		singleRowSubmission["first_prayer_time"] = firstPrayerTimeString
+		singleRowSubmission["second_prayer_name"] = userProductivitySubmission.second_prayer_name
+		singleRowSubmission["second_prayer_time"] = secondPrayerTimeString
+		singleRowSubmission["ingestion_timestamp"] = ingestionTimestampString
 
 		// Print the scanned variables
 		logger.Infof("SCANNED VARIABLES:\nproductive_val: %s, first_prayer_name: %s, second_prayer_name: %s, first_prayer_time: %s, second_prayer_time: %s, ingestion_timestamp: %s",
-			productiveValString, first_prayer_name, second_prayer_name, firstPrayerTimeString, secondPrayerTimeString, ingestionTimestampString)
+			productiveValString, userProductivitySubmission.first_prayer_name, userProductivitySubmission.second_prayer_name,
+			firstPrayerTimeString, secondPrayerTimeString, ingestionTimestampString)
 	}
+	allUserProductivitySubmissions = append(allUserProductivitySubmissions, singleRowSubmission)
+	logger.Info(allUserProductivitySubmissions)
 
+	jsonData, err := json.Marshal(allUserProductivitySubmissions)
+	if err != nil {
+		logger.Error("failed to marshal user submissions to JSON!")
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to marshal data into json in get all stats"})
+	}
+	logger.Info(jsonData)
 	// now we have the user email and date we can get the values from user table specifically for the user
 
 	return c.JSON(http.StatusOK, map[string]string{"error": ""})
