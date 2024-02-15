@@ -9,7 +9,8 @@ TODO - ask about how to know what image to use for docker images
 
 BUG FIXES-
 after submission from user,next productive state view isnt updated to show new prayers -> fixed
-- when isha arrives, only maghrib and asr are displayed on productive state view -> need to still figure out why this is happening
+- when isha arrives, only maghrib and asr are displayed on productive state view -> fixed
+- after submitting maghrib-isha productive value the productive state view doesnt go away -> fixed
 
 
 

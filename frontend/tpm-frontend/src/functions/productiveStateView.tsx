@@ -41,6 +41,9 @@ const ProductiveStateView = (props: any) => {
     const statusResponse = await handleSendData(data);
     console.log(statusResponse);
 
+    if (props.nextPrayerName == "Isha") {
+      props.setDisplayType("after isha");
+    }
     props.setProductiveState(false);
   }
 
