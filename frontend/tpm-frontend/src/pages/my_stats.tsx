@@ -3,7 +3,7 @@ import Image from "next/image";
 import { Roboto_Mono, Bebas_Neue } from "next/font/google";
 import styles from "@/styles/Home.module.css";
 import { Inter } from "next/font/google";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 import getTodaysPrayers from "@/functions/getTodaysPrayers";
 import getNextPrayer from "@/functions/getNextPrayer";
@@ -15,8 +15,24 @@ import getLastPrayer from "@/functions/getLastPrayer";
 import calculateTimeTillRefresh from "@/functions/calculateTimeTillRefresh";
 import NavbarComponent from "@/components/NavBar";
 import { Row, Col } from "react-bootstrap";
+import getAllStats from "@/functions/getAllStats";
+
 const inter = Inter({ subsets: ["latin"] });
+// const [allStats, setAllStats] = useState<string | null>(null);
+
 export default function myStats() {
+  useEffect(() => {
+    const fetchData = async () => {
+      const myStats = await getAllStats();
+
+      if (myStats) {
+        console.log(myStats);
+      } else {
+        console.log("no stats from api");
+      }
+    };
+    fetchData();
+  }, []);
   return (
     <>
       <Head>

@@ -7,11 +7,22 @@ note - to add to readme, instructions on how to launch via docker, make sure to 
 
 TODO - ask about how to know what image to use for docker images
 
+BUG FIXES-
+after submission from user,next productive state view isnt updated to show new prayers -> fixed
+- when isha arrives, only maghrib and asr are displayed on productive state view -> fixed
+- after submitting maghrib-isha productive value the productive state view doesnt go away -> fixed
+- loading main page after isha time has passed shows no useful information, create a view for this
 
 
 
-TODO CONTINUE -  
-getting jwt sent via cookies back and forth and created restricted api, need to continue implementing for all restricted paths
+
+TODO CONTINUE - 
+- test get all stats functionality, need to check logs to see if json data is returning properly on server side
+getting jwt sent via cookies back and forth and created restricted api, need to continue implementing for all restricted paths,
+- there is a bug where 
+
+
+- also need to check if frontend my stats page is hitting backend api call correctly
 - jwt Auth is good as checks against secret value, but need to check in handler if claims from token are correct, and if so can continue function - set this up for todaysPrayers
 
 - finish testing login workflow
