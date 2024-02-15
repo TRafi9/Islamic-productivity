@@ -4,3 +4,4 @@ tpm_key.json
 dockerCommand.txt
 .envrc
 .env
+application_default_credentials.json
