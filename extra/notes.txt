@@ -11,6 +11,8 @@ BUG FIXES-
 after submission from user,next productive state view isnt updated to show new prayers -> fixed
 - when isha arrives, only maghrib and asr are displayed on productive state view -> fixed
 - after submitting maghrib-isha productive value the productive state view doesnt go away -> fixed
+- loading main page after isha time has passed shows no useful information, create a view for this
+
 
 
 
