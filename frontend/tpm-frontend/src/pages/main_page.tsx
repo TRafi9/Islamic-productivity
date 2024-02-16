@@ -72,11 +72,11 @@ export default function Home() {
       try {
         // const result = await getTodaysPrayers(formattedDate);
         const result = {
-          Asr: "2024-02-15T08:43:00Z",
-          Dhuhr: "2024-02-15T08:42:00Z",
-          Fajr: "2024-02-15T06:23:00Z",
-          Isha: "2024-02-15T18:02:00Z",
-          Maghrib: "2024-02-15T09:10:00Z",
+          Asr: "2024-02-16T14:43:00Z",
+          Dhuhr: "2024-02-16T11:40:00Z",
+          Fajr: "2024-02-16T08:23:00Z",
+          Isha: "2024-02-16T11:42:00Z",
+          Maghrib: "2024-02-16T14:10:00Z",
         };
 
         if (result) {
