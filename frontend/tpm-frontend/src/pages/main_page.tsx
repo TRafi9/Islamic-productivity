@@ -69,23 +69,25 @@ export default function Home() {
 
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        // const result = await getTodaysPrayers(formattedDate);
-        const result = {
-          Asr: "2024-02-17T10:11:00Z",
-          Dhuhr: "2024-02-17T10:04:00Z",
-          Fajr: "2024-02-17T10:00:00Z",
-          Isha: "2024-02-17T10:13:00Z",
-          Maghrib: "2024-02-17T10:12:00Z",
-        };
+      if (displayType !== "after isha") {
+        try {
+          // const result = await getTodaysPrayers(formattedDate);
+          const result = {
+            Asr: "2024-02-17T10:41:00Z",
+            Dhuhr: "2024-02-17T10:28:00Z",
+            Fajr: "2024-02-17T10:00:00Z",
+            Isha: "2024-02-17T10:43:00Z",
+            Maghrib: "2024-02-17T10:42:00Z",
+          };
 
-        if (result) {
-          setTodaysPrayers(result);
-        } else {
-          console.log("Results undefined couldnt get todays prayers");
+          if (result) {
+            setTodaysPrayers(result);
+          } else {
+            console.log("Results undefined couldnt get todays prayers");
+          }
+        } catch (error) {
+          console.error("Error fetching todays prayers", error);
         }
-      } catch (error) {
-        console.error("Error fetching todays prayers", error);
       }
     };
     fetchData();
@@ -119,10 +121,13 @@ export default function Home() {
   >(null);
   const [productiveState, setProductiveState] = useState(false);
 
+  const [nextPrayer, setNextPrayer] = useState<ClosestPrayer | null>(null);
+
   useEffect(() => {
     const fetchData = async () => {
       const nextPrayer = getNextPrayer(todaysPrayers);
-      console.log(nextPrayer);
+
+      setNextPrayer(nextPrayer);
       if (todaysPrayers != null) {
         const currPrayer = await getCurrentPrayer(todaysPrayers);
         setCurrentPrayer(currPrayer);
@@ -144,6 +149,9 @@ export default function Home() {
         setCurrentPrayerTime(new Date(todaysPrayers.Isha));
         setLastPrayerName("Maghrib");
         setLastPrayerTime(new Date(todaysPrayers.Maghrib));
+        //upcoming isha is used to tell productiveStateView that after next submission
+        // it needs to change to after isha screen
+        // setDisplayType("upcoming isha");
       }
       console.log("next prayer is...");
       console.log(nextPrayer);
@@ -171,7 +179,10 @@ export default function Home() {
     //   setNextPrayerName("AFTER ISHA");
     //   setDisplayType("after isha");
     // } else
-    if (timer > nextPrayerTime) {
+    if (
+      timer > nextPrayerTime &&
+      displayType !== ("upcoming isha" || "after isha")
+    ) {
       setProductiveState(true);
       setNextPrayerTimeActivator(1);
     }
@@ -230,6 +241,8 @@ export default function Home() {
             lastPrayerTime={lastPrayerTime}
             nextPrayerName={nextPrayerName}
             setDisplayType={setDisplayType}
+            displayType={displayType}
+            nextPrayer={nextPrayer}
           />
         )}
       </main>

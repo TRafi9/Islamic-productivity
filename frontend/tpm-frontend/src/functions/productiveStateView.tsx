@@ -3,10 +3,6 @@ import AfterIshaView from "./afterIshaView";
 
 // need to send data to handleSendData from getCurrentPrayer + next prayer
 const ProductiveStateView = (props: any) => {
-  if (!props.nextPrayerName) {
-    props.setDisplayType("after isha");
-    props.setProductiveState(false);
-  }
   // set productiveState back to false after person has clicked button
   const handleSendData = async (data: any) => {
     console.log("data in handleSendData but strignified");
@@ -33,6 +29,13 @@ const ProductiveStateView = (props: any) => {
     } catch (error) {
       console.error("Error:");
     }
+
+    console.log(".....!");
+    console.log(props.nextPrayerName);
+    if (!props.nextPrayer) {
+      props.setDisplayType("after isha");
+      props.setProductiveState(false);
+    }
   };
 
   async function sendData(value: boolean) {
@@ -46,16 +49,18 @@ const ProductiveStateView = (props: any) => {
     const statusResponse = await handleSendData(data);
     console.log(statusResponse);
 
-    // if (!props.nextPrayerName) {
-    //   props.setDisplayType("after isha");
-    //   props.setProductiveState(false);
-    // }
+    if (!props.nextPrayerName) {
+      props.setDisplayType("after isha");
+      props.setProductiveState(false);
+      props.setAfterIshaDisplayTrigger;
+    }
     props.setProductiveState(false);
   }
 
-  return !props.nextPrayerName ? (
-    <AfterIshaView />
-  ) : (
+  // return !props.nextPrayerName ? (
+  //   <AfterIshaView />
+  // ) : (
+  return (
     <div>
       <p>
         {props.currentPrayerName} & {props.lastPrayerName}
@@ -64,6 +69,7 @@ const ProductiveStateView = (props: any) => {
       <Button onClick={() => sendData(false)}>No</Button>
     </div>
   );
+  // );
 };
 
 export default ProductiveStateView;
