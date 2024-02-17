@@ -72,11 +72,11 @@ export default function Home() {
       try {
         // const result = await getTodaysPrayers(formattedDate);
         const result = {
-          Asr: "2024-02-16T14:43:00Z",
-          Dhuhr: "2024-02-16T11:40:00Z",
-          Fajr: "2024-02-16T08:23:00Z",
-          Isha: "2024-02-16T11:42:00Z",
-          Maghrib: "2024-02-16T14:10:00Z",
+          Asr: "2024-02-17T10:11:00Z",
+          Dhuhr: "2024-02-17T10:04:00Z",
+          Fajr: "2024-02-17T10:00:00Z",
+          Isha: "2024-02-17T10:13:00Z",
+          Maghrib: "2024-02-17T10:12:00Z",
         };
 
         if (result) {
@@ -122,6 +122,7 @@ export default function Home() {
   useEffect(() => {
     const fetchData = async () => {
       const nextPrayer = getNextPrayer(todaysPrayers);
+      console.log(nextPrayer);
       if (todaysPrayers != null) {
         const currPrayer = await getCurrentPrayer(todaysPrayers);
         setCurrentPrayer(currPrayer);
@@ -138,6 +139,7 @@ export default function Home() {
       }
       if (!nextPrayer) {
         // no nextPrayer value means that isha is the currentPrayer
+        console.log("setting no next prayer if statement");
         setCurrentPrayerName("Isha");
         setCurrentPrayerTime(new Date(todaysPrayers.Isha));
         setLastPrayerName("Maghrib");
