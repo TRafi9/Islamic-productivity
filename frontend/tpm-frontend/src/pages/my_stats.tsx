@@ -30,24 +30,47 @@ const inter = Inter({ subsets: ["latin"] });
 
 const MyPieChart = () => {
   const data = {
-    labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],
+    labels: ["Productive", "Unproductive"],
     datasets: [
       {
         label: "My First Dataset",
-        data: [12, 19, 3, 5, 2, 3],
-        backgroundColor: ["red", "blue", "yellow", "green", "purple", "orange"],
+        data: [12, 19],
+        backgroundColor: ["#36A2EB", "#FF6384"], // Use custom colors
         hoverOffset: 4,
+        borderWidth: 1, // Add border width
+        borderColor: "#fff", // Add border color
       },
     ],
   };
 
   const options = {
-    // Add your chart options here (e.g., title, legend, etc.)
+    plugins: {
+      title: {
+        display: true,
+        // text: "Your total",
+        font: {
+          size: 16,
+        },
+      },
+      legend: {
+        display: true,
+        position: "bottom",
+      },
+      tooltip: {
+        enabled: true,
+      },
+    },
+    animation: {
+      animateRotate: true, // Enable rotation animation
+      animateScale: true, // Enable scaling animation
+    },
+    rotation: -0.5 * Math.PI, // Rotate the chart to a specific angle
+    responsive: true, // Make the chart responsive
   };
 
   return (
     <div>
-      <h2>Pie Chart Example</h2>
+      <h2>Todays productivity</h2>
       <Pie data={data} options={options} />
     </div>
   );
