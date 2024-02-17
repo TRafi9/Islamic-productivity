@@ -5,6 +5,9 @@ import styles from "@/styles/Home.module.css";
 import { Inter } from "next/font/google";
 import { useEffect } from "react";
 
+import React from "react";
+import { Pie } from "react-chartjs-2";
+
 import getTodaysPrayers from "@/functions/getTodaysPrayers";
 import getNextPrayer from "@/functions/getNextPrayer";
 import Countdown from "react-countdown";
@@ -17,8 +20,38 @@ import NavbarComponent from "@/components/NavBar";
 import { Row, Col } from "react-bootstrap";
 import getAllStats from "@/functions/getAllStats";
 
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, Title } from "chart.js";
+import { Doughnut } from "react-chartjs-2";
+
+ChartJS.register(ArcElement, Tooltip, Legend, Title);
+
 const inter = Inter({ subsets: ["latin"] });
 // const [allStats, setAllStats] = useState<string | null>(null);
+
+const MyPieChart = () => {
+  const data = {
+    labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],
+    datasets: [
+      {
+        label: "My First Dataset",
+        data: [12, 19, 3, 5, 2, 3],
+        backgroundColor: ["red", "blue", "yellow", "green", "purple", "orange"],
+        hoverOffset: 4,
+      },
+    ],
+  };
+
+  const options = {
+    // Add your chart options here (e.g., title, legend, etc.)
+  };
+
+  return (
+    <div>
+      <h2>Pie Chart Example</h2>
+      <Pie data={data} options={options} />
+    </div>
+  );
+};
 
 export default function myStats() {
   useEffect(() => {
@@ -44,6 +77,7 @@ export default function myStats() {
         />
       </Head>
       <main className={`${styles.main} ${inter.className}`}>
+        <MyPieChart></MyPieChart>
         <div>
           <h1>my stats </h1>
         </div>

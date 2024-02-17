@@ -881,12 +881,14 @@ func handleGetAllStats(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hm
 		singleRowSubmission["second_prayer_time"] = secondPrayerTimeString
 		singleRowSubmission["ingestion_timestamp"] = ingestionTimestampString
 
+		allUserProductivitySubmissions = append(allUserProductivitySubmissions, singleRowSubmission)
+
 		// Print the scanned variables
 		logger.Infof("SCANNED VARIABLES:\nproductive_val: %s, first_prayer_name: %s, second_prayer_name: %s, first_prayer_time: %s, second_prayer_time: %s, ingestion_timestamp: %s",
 			productiveValString, userProductivitySubmission.first_prayer_name, userProductivitySubmission.second_prayer_name,
 			firstPrayerTimeString, secondPrayerTimeString, ingestionTimestampString)
 	}
-	allUserProductivitySubmissions = append(allUserProductivitySubmissions, singleRowSubmission)
+
 	logger.Info(allUserProductivitySubmissions)
 
 	jsonData, err := json.Marshal(allUserProductivitySubmissions)
@@ -897,5 +899,5 @@ func handleGetAllStats(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hm
 	logger.Info(jsonData)
 	// now we have the user email and date we can get the values from user table specifically for the user
 
-	return c.JSON(http.StatusOK, map[string]string{"error": ""})
+	return c.JSON(http.StatusOK, string(jsonData))
 }

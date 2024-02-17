@@ -13,6 +13,7 @@ after submission from user,next productive state view isnt updated to show new p
 - after submitting maghrib-isha productive value the productive state view doesnt go away -> fixed
 - loading main page after isha time has passed shows no useful information, create a view for this
 - need to add loading spinner when user is being registered before the verify email page loads
+- if time is before fajr, it does a  countdown till fajr, have it saying a page saying come back after fajr
 
 
 
