@@ -52,14 +52,10 @@ const ProductiveStateView = (props: any) => {
     if (!props.nextPrayerName) {
       props.setDisplayType("after isha");
       props.setProductiveState(false);
-      props.setAfterIshaDisplayTrigger;
     }
     props.setProductiveState(false);
   }
 
-  // return !props.nextPrayerName ? (
-  //   <AfterIshaView />
-  // ) : (
   return (
     <div>
       <p>
@@ -69,7 +65,6 @@ const ProductiveStateView = (props: any) => {
       <Button onClick={() => sendData(false)}>No</Button>
     </div>
   );
-  // );
 };
 
 export default ProductiveStateView;

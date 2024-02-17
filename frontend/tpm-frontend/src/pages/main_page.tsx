@@ -73,11 +73,11 @@ export default function Home() {
         try {
           // const result = await getTodaysPrayers(formattedDate);
           const result = {
-            Asr: "2024-02-17T10:41:00Z",
-            Dhuhr: "2024-02-17T10:28:00Z",
+            Asr: "2024-02-17T10:46:00Z",
+            Dhuhr: "2024-02-17T10:45:00Z",
             Fajr: "2024-02-17T10:00:00Z",
-            Isha: "2024-02-17T10:43:00Z",
-            Maghrib: "2024-02-17T10:42:00Z",
+            Isha: "2024-02-17T10:48:00Z",
+            Maghrib: "2024-02-17T10:47:00Z",
           };
 
           if (result) {
@@ -114,7 +114,7 @@ export default function Home() {
     name: string;
     time: string;
   }
-  var [lastPrayer, setLastPrayer] = useState<LastPrayer | null>(null);
+  // var [lastPrayer, setLastPrayer] = useState<LastPrayer | null>(null);
 
   const [nextPrayerTimeActivator, setNextPrayerTimeActivator] = useState<
     number | null
@@ -132,7 +132,7 @@ export default function Home() {
         const currPrayer = await getCurrentPrayer(todaysPrayers);
         setCurrentPrayer(currPrayer);
         const constLastPrayer = await getLastPrayer(todaysPrayers, currPrayer);
-        setLastPrayer(constLastPrayer);
+        // setLastPrayer(constLastPrayer);
         if (nextPrayer && currPrayer && constLastPrayer) {
           setNextPrayerTime(new Date(nextPrayer.time));
           setNextPrayerName(nextPrayer.name);
@@ -149,9 +149,6 @@ export default function Home() {
         setCurrentPrayerTime(new Date(todaysPrayers.Isha));
         setLastPrayerName("Maghrib");
         setLastPrayerTime(new Date(todaysPrayers.Maghrib));
-        //upcoming isha is used to tell productiveStateView that after next submission
-        // it needs to change to after isha screen
-        // setDisplayType("upcoming isha");
       }
       console.log("next prayer is...");
       console.log(nextPrayer);
@@ -175,14 +172,7 @@ export default function Home() {
   function updateNextPrayer(nextPrayerTime: Date, nextPrayerName: string) {
     const timer = new Date();
 
-    // if (timer > nextPrayerTime && nextPrayerName == "Isha") {
-    //   setNextPrayerName("AFTER ISHA");
-    //   setDisplayType("after isha");
-    // } else
-    if (
-      timer > nextPrayerTime &&
-      displayType !== ("upcoming isha" || "after isha")
-    ) {
+    if (timer > nextPrayerTime && displayType !== "after isha") {
       setProductiveState(true);
       setNextPrayerTimeActivator(1);
     }
