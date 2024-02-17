@@ -1,12 +1,10 @@
 import Button from "react-bootstrap/Button";
+import AfterIshaView from "./afterIshaView";
 
 // need to send data to handleSendData from getCurrentPrayer + next prayer
 const ProductiveStateView = (props: any) => {
   // set productiveState back to false after person has clicked button
   const handleSendData = async (data: any) => {
-    console.log("data in handleSendData but strignified");
-    console.log(JSON.stringify(data));
-
     try {
       const response = await fetch(`api/postProductivityValue`, {
         method: "POST",
@@ -28,6 +26,11 @@ const ProductiveStateView = (props: any) => {
     } catch (error) {
       console.error("Error:");
     }
+
+    if (!props.nextPrayer) {
+      props.setDisplayType("after isha");
+      props.setProductiveState(false);
+    }
   };
 
   async function sendData(value: boolean) {
@@ -41,8 +44,9 @@ const ProductiveStateView = (props: any) => {
     const statusResponse = await handleSendData(data);
     console.log(statusResponse);
 
-    if (props.nextPrayerName == "Isha") {
+    if (!props.nextPrayerName) {
       props.setDisplayType("after isha");
+      props.setProductiveState(false);
     }
     props.setProductiveState(false);
   }
