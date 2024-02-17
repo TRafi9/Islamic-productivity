@@ -150,8 +150,6 @@ export default function Home() {
         setLastPrayerName("Maghrib");
         setLastPrayerTime(new Date(todaysPrayers.Maghrib));
       }
-      console.log("next prayer is...");
-      console.log(nextPrayer);
     };
     fetchData();
   }, [todaysPrayers, nextPrayerTimeActivator, productiveState]);

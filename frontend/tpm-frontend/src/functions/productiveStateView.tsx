@@ -5,9 +5,6 @@ import AfterIshaView from "./afterIshaView";
 const ProductiveStateView = (props: any) => {
   // set productiveState back to false after person has clicked button
   const handleSendData = async (data: any) => {
-    console.log("data in handleSendData but strignified");
-    console.log(JSON.stringify(data));
-
     try {
       const response = await fetch(`api/postProductivityValue`, {
         method: "POST",
@@ -30,8 +27,6 @@ const ProductiveStateView = (props: any) => {
       console.error("Error:");
     }
 
-    console.log(".....!");
-    console.log(props.nextPrayerName);
     if (!props.nextPrayer) {
       props.setDisplayType("after isha");
       props.setProductiveState(false);
