@@ -375,6 +375,8 @@ func handlePostUserData(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, h
 }
 
 func uploadUserInput(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, userData UserDataRequestBody, userEmail string) error {
+	currentTime := time.Now()
+	currentTimeFormatted := currentTime.Format("2006-01-02 15:04:05")
 
 	insertSQL := fmt.Sprintf(`
 	INSERT INTO user_submissions (
@@ -382,11 +384,12 @@ func uploadUserInput(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, user
 		second_prayer_name, first_prayer_time,
 		second_prayer_time, ingestion_timestamp
 	) VALUES (
-		'%s', %s, '%s', '%s',
+		'%s', %t, '%s', '%s',
 		'%s', '%s',
-		'2023-12-18 12:34:56'
+		'%s'
 	);
-	`, userEmail, strconv.FormatBool(userData.ProductiveValue), userData.LastPrayerName, userData.CurrentPrayerName, userData.LastPrayerTime, userData.CurrentPrayerTime)
+	`, userEmail, userData.ProductiveValue, userData.LastPrayerName, userData.CurrentPrayerName,
+		userData.LastPrayerTime, userData.CurrentPrayerTime, currentTimeFormatted)
 
 	_, err := db.Exec(insertSQL)
 	if err != nil {
@@ -900,6 +903,7 @@ func handleGetAllStats(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hm
 	}
 	logger.Info(jsonData)
 	// now we have the user email and date we can get the values from user table specifically for the user
-	x := dailyStats(c, logger, db, userEmail)
-	return c.JSON(http.StatusOK, x)
+	dailyStats := dailyStats(c, logger, db, userEmail)
+
+	return c.JSON(http.StatusOK, dailyStats)
 }
