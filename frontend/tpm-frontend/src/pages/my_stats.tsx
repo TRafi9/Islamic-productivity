@@ -3,7 +3,10 @@ import Image from "next/image";
 import { Roboto_Mono, Bebas_Neue } from "next/font/google";
 import styles from "@/styles/Home.module.css";
 import { Inter } from "next/font/google";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+
+import React from "react";
+import { Pie } from "react-chartjs-2";
 
 import getTodaysPrayers from "@/functions/getTodaysPrayers";
 import getNextPrayer from "@/functions/getNextPrayer";
@@ -16,16 +19,26 @@ import calculateTimeTillRefresh from "@/functions/calculateTimeTillRefresh";
 import NavbarComponent from "@/components/NavBar";
 import { Row, Col } from "react-bootstrap";
 import getAllStats from "@/functions/getAllStats";
+import PieChartProductiveVal from "@/components/PieChartProductiveVal";
+
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, Title } from "chart.js";
+import { Doughnut } from "react-chartjs-2";
+
+ChartJS.register(ArcElement, Tooltip, Legend, Title);
 
 const inter = Inter({ subsets: ["latin"] });
 // const [allStats, setAllStats] = useState<string | null>(null);
 
 export default function myStats() {
+  const [dailyStats, setDailyStats] = useState(null);
+
   useEffect(() => {
     const fetchData = async () => {
-      const myStats = await getAllStats();
+      var myStats = await getAllStats();
 
       if (myStats) {
+        myStats = JSON.parse(myStats);
+        myStats = setDailyStats(myStats);
         console.log(myStats);
       } else {
         console.log("no stats from api");
@@ -44,6 +57,7 @@ export default function myStats() {
         />
       </Head>
       <main className={`${styles.main} ${inter.className}`}>
+        <PieChartProductiveVal dailyStats={dailyStats} />
         <div>
           <h1>my stats </h1>
         </div>

@@ -113,10 +113,10 @@ func sendEmailVerification(c echo.Context, verificationCode int, logger *zap.Sug
 	body := fmt.Sprintf(`Hey!
 Here is your verification code: %s
 Please enter it at the following link to register your account!
-{s}
+%s
 Note that the code will expire within an hour!
 Kind regards,
-The Productive Muslim team`, strconv.Itoa(verificationCode))
+The Productive Muslim team`, strconv.Itoa(verificationCode), "http://localhost:3000/verify_email_view")
 
 	msg := fmt.Sprintf("From: %s\nTo: %s \nSubject: %s\n\n%s",
 		email_sender, "talhar9@gmail.com", subject, body)

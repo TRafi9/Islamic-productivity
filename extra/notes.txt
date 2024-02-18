@@ -13,11 +13,15 @@ after submission from user,next productive state view isnt updated to show new p
 - after submitting maghrib-isha productive value the productive state view doesnt go away -> fixed
 - loading main page after isha time has passed shows no useful information, create a view for this
 - need to add loading spinner when user is being registered before the verify email page loads
+- if time is before fajr, it does a  countdown till fajr, have it saying a page saying come back after fajr
 
 
 
 
 TODO CONTINUE - 
+- married up view of backend daily stats and frontend pie chart, need to functionalise further and add more stats
+- can add last week bar graph that is split between productive/unproductive values
+- currently using weekly pull from DB for daily productivity pie charts
 - test get all stats functionality, need to check logs to see if json data is returning properly on server side
 getting jwt sent via cookies back and forth and created restricted api, need to continue implementing for all restricted paths,
 - there is a bug where 

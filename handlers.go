@@ -375,6 +375,8 @@ func handlePostUserData(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, h
 }
 
 func uploadUserInput(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, userData UserDataRequestBody, userEmail string) error {
+	currentTime := time.Now()
+	currentTimeFormatted := currentTime.Format("2006-01-02 15:04:05")
 
 	insertSQL := fmt.Sprintf(`
 	INSERT INTO user_submissions (
@@ -382,11 +384,12 @@ func uploadUserInput(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, user
 		second_prayer_name, first_prayer_time,
 		second_prayer_time, ingestion_timestamp
 	) VALUES (
-		'%s', %s, '%s', '%s',
+		'%s', %t, '%s', '%s',
 		'%s', '%s',
-		'2023-12-18 12:34:56'
+		'%s'
 	);
-	`, userEmail, strconv.FormatBool(userData.ProductiveValue), userData.LastPrayerName, userData.CurrentPrayerName, userData.LastPrayerTime, userData.CurrentPrayerTime)
+	`, userEmail, userData.ProductiveValue, userData.LastPrayerName, userData.CurrentPrayerName,
+		userData.LastPrayerTime, userData.CurrentPrayerTime, currentTimeFormatted)
 
 	_, err := db.Exec(insertSQL)
 	if err != nil {
@@ -817,7 +820,7 @@ func handleGetAllStats(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hm
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "User not logged in"})
 	}
 
-	// last_week = time.Now().AddDate(0, 0, -7)
+	last_week := time.Now().AddDate(0, 0, -7)
 
 	full_week_sql_query := `
 	SELECT 
@@ -830,10 +833,12 @@ func handleGetAllStats(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hm
 	FROM user_submissions
 	WHERE
 	user_id = $1
+	and 
+	ingestion_timestamp >= $2
 	`
 
 	logger.Info("querying db for stats")
-	rows, err := db.Query(full_week_sql_query, userEmail)
+	rows, err := db.Query(full_week_sql_query, userEmail, last_week)
 	if err != nil {
 		logger.Errorf("Rows errored in get stats, err: %w", err)
 	}
@@ -848,15 +853,14 @@ func handleGetAllStats(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hm
 		ingestion_timestamp time.Time
 	}
 
-	var userProductivitySubmission UserProductivitySubmissions
-
 	type SingleRowSubmission map[string]string
-	singleRowSubmission := make(SingleRowSubmission)
 
 	var allUserProductivitySubmissions []SingleRowSubmission
 
 	for rows.Next() {
-		logger.Infof("row number %s", strconv.Itoa(count))
+		var userProductivitySubmission UserProductivitySubmissions
+		singleRowSubmission := make(SingleRowSubmission)
+
 		count += 1
 		err := rows.Scan(&userProductivitySubmission.productive_val, &userProductivitySubmission.first_prayer_name,
 			&userProductivitySubmission.second_prayer_name, &userProductivitySubmission.first_prayer_time,
@@ -881,13 +885,16 @@ func handleGetAllStats(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hm
 		singleRowSubmission["second_prayer_time"] = secondPrayerTimeString
 		singleRowSubmission["ingestion_timestamp"] = ingestionTimestampString
 
+		allUserProductivitySubmissions = append(allUserProductivitySubmissions, singleRowSubmission)
+
 		// Print the scanned variables
-		logger.Infof("SCANNED VARIABLES:\nproductive_val: %s, first_prayer_name: %s, second_prayer_name: %s, first_prayer_time: %s, second_prayer_time: %s, ingestion_timestamp: %s",
-			productiveValString, userProductivitySubmission.first_prayer_name, userProductivitySubmission.second_prayer_name,
-			firstPrayerTimeString, secondPrayerTimeString, ingestionTimestampString)
+		// logger.Infof("SCANNED VARIABLES:\nproductive_val: %s, first_prayer_name: %s, second_prayer_name: %s, first_prayer_time: %s, second_prayer_time: %s, ingestion_timestamp: %s",
+		// 	productiveValString, userProductivitySubmission.first_prayer_name, userProductivitySubmission.second_prayer_name,
+		// 	firstPrayerTimeString, secondPrayerTimeString, ingestionTimestampString)
 	}
-	allUserProductivitySubmissions = append(allUserProductivitySubmissions, singleRowSubmission)
-	logger.Info(allUserProductivitySubmissions)
+
+	// logger.Info(allUserProductivitySubmissions)
+	logger.Infof("row number %s", strconv.Itoa(count))
 
 	jsonData, err := json.Marshal(allUserProductivitySubmissions)
 	if err != nil {
@@ -896,6 +903,7 @@ func handleGetAllStats(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hm
 	}
 	logger.Info(jsonData)
 	// now we have the user email and date we can get the values from user table specifically for the user
+	dailyStats := dailyStats(c, logger, db, userEmail)
 
-	return c.JSON(http.StatusOK, map[string]string{"error": ""})
+	return c.JSON(http.StatusOK, dailyStats)
 }
