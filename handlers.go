@@ -900,6 +900,6 @@ func handleGetAllStats(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hm
 	}
 	logger.Info(jsonData)
 	// now we have the user email and date we can get the values from user table specifically for the user
-
-	return c.JSON(http.StatusOK, string(jsonData))
+	x := dailyStats(c, logger, db, userEmail)
+	return c.JSON(http.StatusOK, x)
 }
