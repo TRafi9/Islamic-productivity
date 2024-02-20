@@ -13,14 +13,12 @@ import (
 type TrueFalseSqlSingleRowSubmissions map[string]int
 
 type ProductiveValPieChart struct {
-	// this struct can be marshalled into a json value to return json string to frontend
+	// this struct is marshalled in allStats before being parsed by frontend
 	Productive   int
 	Unproductive int
 }
 
 func dailyStats(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, userEmail string) ProductiveValPieChart {
-	// returns string of json data
-	// returns empty string when error
 
 	query := `
 	SELECT 
@@ -32,7 +30,6 @@ func dailyStats(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, userEmail
 	AND DATE(ingestion_timestamp) = CURRENT_DATE;
 	`
 
-	// 2024-02-18 00:00:00 +0000 UTC is currentDay
 	rows, err := db.Query(query, userEmail)
 	if err != nil {
 		logger.Errorf("Rows errored in get stats, err: %w", err)
@@ -75,17 +72,11 @@ func dailyStats(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, userEmail
 		Productive:   productiveValTrue,
 		Unproductive: productiveValFalse,
 	}
-	// json, err := json.Marshal(productiveValPieChart)
-	// if err != nil {
-	// 	logger.Error("failed to marshal user submissions to JSON!")
-	// 	return nil
-	// }
+
 	return productiveValPieChart
 }
 
 func weeklyStats(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, userEmail string) ProductiveValPieChart {
-	// returns string of json data
-	// returns empty string when error
 
 	query := `
 	SELECT 
@@ -142,11 +133,7 @@ func weeklyStats(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, userEmai
 		Productive:   productiveValTrue,
 		Unproductive: productiveValFalse,
 	}
-	// json, err := json.Marshal(productiveValPieChart)
-	// if err != nil {
-	// 	logger.Error("failed to marshal user submissions to JSON!")
-	// 	return nil
-	// }
+
 	return productiveValPieChart
 }
 
@@ -172,5 +159,4 @@ func getAllStats(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, userEmai
 	logger.Info(string(json))
 
 	return (string(json))
-
 }
