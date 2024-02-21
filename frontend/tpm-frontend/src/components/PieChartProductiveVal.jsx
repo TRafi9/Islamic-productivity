@@ -42,10 +42,10 @@ function PieChartProductiveVal(props) {
         {
           //  label: "My First Dataset",
           data: dataValues,
-          backgroundColor: ["#36A2EB", "#FF6384"], // Use custom colors
+          backgroundColor: ["#36A2EB", "#FF6384"],
           hoverOffset: 4,
-          borderWidth: 5, // Add border width
-          borderColor: "#fff", // Add border color
+          borderWidth: 5,
+          borderColor: "#fff",
         },
       ],
     };
@@ -58,9 +58,9 @@ function PieChartProductiveVal(props) {
         ) : (
           <div
             style={{
-              width: "280px", // slightly smaller width
-              height: "280px", // slightly smaller height
-              border: "8px solid #888", // darker outline
+              width: "280px",
+              height: "280px",
+              border: "8px solid #888",
               borderRadius: "50%",
             }}
           ></div>
