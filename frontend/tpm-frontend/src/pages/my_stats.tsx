@@ -27,11 +27,8 @@ import { Doughnut } from "react-chartjs-2";
 ChartJS.register(ArcElement, Tooltip, Legend, Title);
 
 const inter = Inter({ subsets: ["latin"] });
-// const [allStats, setAllStats] = useState<string | null>(null);
 
 export default function myStats() {
-  // const [dailyStats, setDailyStats] = useState(null);
-  // const [allStats, setAllStats] = useState(null);
   const [dailyStats, setDailyStats] = useState<null | Object>(null);
   const [weeklyStats, setWeeklyStats] = useState<null | Object>(null);
 
