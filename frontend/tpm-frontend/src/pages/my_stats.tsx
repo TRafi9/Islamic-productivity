@@ -27,10 +27,10 @@ import { Doughnut } from "react-chartjs-2";
 ChartJS.register(ArcElement, Tooltip, Legend, Title);
 
 const inter = Inter({ subsets: ["latin"] });
-// const [allStats, setAllStats] = useState<string | null>(null);
 
 export default function myStats() {
-  const [dailyStats, setDailyStats] = useState(null);
+  const [dailyStats, setDailyStats] = useState<null | Object>(null);
+  const [weeklyStats, setWeeklyStats] = useState<null | Object>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -38,14 +38,19 @@ export default function myStats() {
 
       if (myStats) {
         myStats = JSON.parse(myStats);
-        myStats = setDailyStats(myStats);
-        console.log(myStats);
+
+        const { DailyStats, WeeklyStats } = myStats;
+        const formattedDailyStats = { DailyStats };
+        const formattedWeeklyStats = { WeeklyStats };
+        setDailyStats(formattedDailyStats);
+        setWeeklyStats(formattedWeeklyStats);
       } else {
         console.log("no stats from api");
       }
     };
     fetchData();
   }, []);
+
   return (
     <>
       <Head>
@@ -57,10 +62,9 @@ export default function myStats() {
         />
       </Head>
       <main className={`${styles.main} ${inter.className}`}>
-        <PieChartProductiveVal dailyStats={dailyStats} />
-        <div>
-          <h1>my stats </h1>
-        </div>
+        <NavbarComponent />
+        <PieChartProductiveVal stats={dailyStats} />
+        <PieChartProductiveVal stats={weeklyStats} />
       </main>
     </>
   );

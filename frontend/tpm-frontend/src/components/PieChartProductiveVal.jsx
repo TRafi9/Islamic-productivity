@@ -4,22 +4,37 @@ import React from "react";
 import { Pie } from "react-chartjs-2";
 
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, Title } from "chart.js";
+import getPieChartTitle from "@/functions/getPieChartTitle";
 
 ChartJS.register(ArcElement, Tooltip, Legend, Title);
 
 const inter = Inter({ subsets: ["latin"] });
 
 function PieChartProductiveVal(props) {
-  const dailyStats = props.dailyStats;
+  const stats = props.stats;
   const labels = [];
   const dataValues = [];
-  console.log(dailyStats);
-  if (dailyStats) {
+
+  if (stats) {
+    const title = getPieChartTitle(stats);
+    const innerStatsKey = Object.keys(stats)[0];
+    console.log(innerStatsKey);
+    const innerObjectStats = stats[innerStatsKey];
     console.log("daily stats exist");
-    Object.entries(dailyStats).forEach(([key, value]) => {
+    Object.entries(innerObjectStats).forEach(([key, value]) => {
       labels.push(key);
       dataValues.push(value);
     });
+
+    console.log(dataValues);
+    var hasData = true;
+    if (
+      dataValues.length === 2 &&
+      dataValues.every((element) => element === 0)
+    ) {
+      console.log("data values empty");
+      hasData = false;
+    }
 
     const data = {
       labels: labels,
@@ -27,43 +42,29 @@ function PieChartProductiveVal(props) {
         {
           //  label: "My First Dataset",
           data: dataValues,
-          backgroundColor: ["#36A2EB", "#FF6384"], // Use custom colors
+          backgroundColor: ["#36A2EB", "#FF6384"],
           hoverOffset: 4,
-          borderWidth: 1, // Add border width
-          borderColor: "#fff", // Add border color
+          borderWidth: 5,
+          borderColor: "#fff",
         },
       ],
     };
 
-    const options = {
-      plugins: {
-        title: {
-          display: true,
-          // text: "Your total",
-          font: {
-            size: 16,
-          },
-        },
-        legend: {
-          display: true,
-          position: "bottom",
-        },
-        tooltip: {
-          enabled: true,
-        },
-      },
-      animation: {
-        animateRotate: true, // Enable rotation animation
-        animateScale: true, // Enable scaling animation
-      },
-      rotation: -0.5 * Math.PI, // Rotate the chart to a specific angle
-      responsive: true, // Make the chart responsive
-    };
-
     return (
       <div>
-        <h2>Todays productivity</h2>
-        <Pie data={data} />
+        <h1 className="text-center-p">{title}</h1>
+        {hasData ? (
+          <Pie data={data} />
+        ) : (
+          <div
+            style={{
+              width: "280px",
+              height: "280px",
+              border: "8px solid #888",
+              borderRadius: "50%",
+            }}
+          ></div>
+        )}
       </div>
     );
   } else {

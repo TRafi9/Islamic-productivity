@@ -71,14 +71,14 @@ export default function Home() {
     const fetchData = async () => {
       if (displayType !== "after isha") {
         try {
-          // const result = await getTodaysPrayers(formattedDate);
-          const result = {
-            Asr: "2024-02-18T13:05:00Z",
-            Dhuhr: "2024-02-18T13:04:00Z",
-            Fajr: "2024-02-18T13:18:00Z",
-            Isha: "2024-02-18T13:08:00Z",
-            Maghrib: "2024-02-18T13:06:00Z",
-          };
+          const result = await getTodaysPrayers(formattedDate);
+          // const result = {
+          //   Asr: "2024-02-18T13:05:00Z",
+          //   Dhuhr: "2024-02-18T13:04:00Z",
+          //   Fajr: "2024-02-18T13:18:00Z",
+          //   Isha: "2024-02-18T13:08:00Z",
+          //   Maghrib: "2024-02-18T13:06:00Z",
+          // };
 
           if (result) {
             setTodaysPrayers(result);
