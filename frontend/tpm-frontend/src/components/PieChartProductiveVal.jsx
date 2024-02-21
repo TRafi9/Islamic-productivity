@@ -26,6 +26,16 @@ function PieChartProductiveVal(props) {
       dataValues.push(value);
     });
 
+    console.log(dataValues);
+    var hasData = true;
+    if (
+      dataValues.length === 2 &&
+      dataValues.every((element) => element === 0)
+    ) {
+      console.log("data values empty");
+      hasData = false;
+    }
+
     const data = {
       labels: labels,
       datasets: [
@@ -34,7 +44,7 @@ function PieChartProductiveVal(props) {
           data: dataValues,
           backgroundColor: ["#36A2EB", "#FF6384"], // Use custom colors
           hoverOffset: 4,
-          borderWidth: 1, // Add border width
+          borderWidth: 5, // Add border width
           borderColor: "#fff", // Add border color
         },
       ],
@@ -43,7 +53,18 @@ function PieChartProductiveVal(props) {
     return (
       <div>
         <h1 className="text-center-p">{title}</h1>
-        <Pie data={data} />
+        {hasData ? (
+          <Pie data={data} />
+        ) : (
+          <div
+            style={{
+              width: "280px", // slightly smaller width
+              height: "280px", // slightly smaller height
+              border: "8px solid #888", // darker outline
+              borderRadius: "50%",
+            }}
+          ></div>
+        )}
       </div>
     );
   } else {
