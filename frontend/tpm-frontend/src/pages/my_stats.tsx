@@ -62,6 +62,7 @@ export default function myStats() {
         />
       </Head>
       <main className={`${styles.main} ${inter.className}`}>
+        <NavbarComponent />
         <PieChartProductiveVal stats={dailyStats} />
         <PieChartProductiveVal stats={weeklyStats} />
       </main>
