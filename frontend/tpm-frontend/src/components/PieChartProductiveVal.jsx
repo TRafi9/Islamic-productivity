@@ -4,19 +4,24 @@ import React from "react";
 import { Pie } from "react-chartjs-2";
 
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, Title } from "chart.js";
+import getPieChartTitle from "@/functions/getPieChartTitle";
 
 ChartJS.register(ArcElement, Tooltip, Legend, Title);
 
 const inter = Inter({ subsets: ["latin"] });
 
 function PieChartProductiveVal(props) {
-  const dailyStats = props.dailyStats;
+  const stats = props.stats;
   const labels = [];
   const dataValues = [];
-  console.log(dailyStats);
-  if (dailyStats) {
+
+  if (stats) {
+    const title = getPieChartTitle(stats);
+    const innerStatsKey = Object.keys(stats)[0];
+    console.log(innerStatsKey);
+    const innerObjectStats = stats[innerStatsKey];
     console.log("daily stats exist");
-    Object.entries(dailyStats).forEach(([key, value]) => {
+    Object.entries(innerObjectStats).forEach(([key, value]) => {
       labels.push(key);
       dataValues.push(value);
     });
@@ -35,34 +40,9 @@ function PieChartProductiveVal(props) {
       ],
     };
 
-    const options = {
-      plugins: {
-        title: {
-          display: true,
-          // text: "Your total",
-          font: {
-            size: 16,
-          },
-        },
-        legend: {
-          display: true,
-          position: "bottom",
-        },
-        tooltip: {
-          enabled: true,
-        },
-      },
-      animation: {
-        animateRotate: true, // Enable rotation animation
-        animateScale: true, // Enable scaling animation
-      },
-      rotation: -0.5 * Math.PI, // Rotate the chart to a specific angle
-      responsive: true, // Make the chart responsive
-    };
-
     return (
       <div>
-        <h2>Todays productivity</h2>
+        <h1 className="text-center-p">{title}</h1>
         <Pie data={data} />
       </div>
     );
