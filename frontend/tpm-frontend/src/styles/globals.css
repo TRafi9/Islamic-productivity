@@ -119,3 +119,9 @@ a {
 .text-center-p {
   text-align: center;
 }
+
+.pie-chart-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center; /* Centers the items horizontally */
+}

@@ -66,9 +66,11 @@ export default function myStats() {
       </Head>
       <main className={`${styles.main} ${inter.className}`}>
         <NavbarComponent />
-        <PieChartProductiveVal stats={dailyStats} />
-        <PieChartProductiveVal stats={weeklyStats} />
-        <PieChartProductiveVal stats={monthlyStats} />
+        <div className="pie-chart-container">
+          <PieChartProductiveVal stats={dailyStats} />
+          <PieChartProductiveVal stats={weeklyStats} />
+          <PieChartProductiveVal stats={monthlyStats} />
+        </div>
       </main>
     </>
   );
