@@ -902,18 +902,7 @@ func handleGetAllStats(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hm
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to marshal data into json in get all stats"})
 	}
 	logger.Info(jsonData)
-	// now we have the user email and da te we can get the values from user table specifically for the user
-	// dailyStats := dailyStats(c, logger, db, userEmail)
-	// weeklyStats := weeklyStats(c, logger, db, userEmail)
 
-	// type AllStats struct {
-	// 	DailyStats  string
-	// 	WeeklyStats string
-	// }
-	// allStats := AllStats{
-	// 	DailyStats:  dailyStats,
-	// 	WeeklyStats: weeklyStats,
-	// }
 	allStats := getAllStats(c, logger, db, userEmail)
 
 	return c.JSON(http.StatusOK, allStats)

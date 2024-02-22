@@ -10,6 +10,8 @@ const getPieChartTitle = (stats: Object) => {
         return "Daily stats";
       case "WeeklyStats":
         return "Weekly stats";
+      case "MonthlyStats":
+        return "Monthly stats";
       default:
         return "Stats";
     }
