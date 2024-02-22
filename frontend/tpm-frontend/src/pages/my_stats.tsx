@@ -31,6 +31,7 @@ const inter = Inter({ subsets: ["latin"] });
 export default function myStats() {
   const [dailyStats, setDailyStats] = useState<null | Object>(null);
   const [weeklyStats, setWeeklyStats] = useState<null | Object>(null);
+  const [monthlyStats, setMonthlyStats] = useState<null | Object>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -39,11 +40,13 @@ export default function myStats() {
       if (myStats) {
         myStats = JSON.parse(myStats);
 
-        const { DailyStats, WeeklyStats } = myStats;
+        const { DailyStats, WeeklyStats, MonthlyStats } = myStats;
         const formattedDailyStats = { DailyStats };
         const formattedWeeklyStats = { WeeklyStats };
+        const formattedMonthlyDtats = { MonthlyStats };
         setDailyStats(formattedDailyStats);
         setWeeklyStats(formattedWeeklyStats);
+        setMonthlyStats(formattedMonthlyDtats);
       } else {
         console.log("no stats from api");
       }
@@ -65,6 +68,7 @@ export default function myStats() {
         <NavbarComponent />
         <PieChartProductiveVal stats={dailyStats} />
         <PieChartProductiveVal stats={weeklyStats} />
+        <PieChartProductiveVal stats={monthlyStats} />
       </main>
     </>
   );
