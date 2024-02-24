@@ -6,6 +6,7 @@ import React, { ChangeEvent } from "react";
 import Router from "next/router";
 import Link from "next/link";
 import { showEmailWarning, sanitiseEmail } from "@/functions/loginFunctions";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -16,6 +17,7 @@ const inter = Inter({ subsets: ["latin"] });
 export default function RegisterUser() {
   const [userEmail, setCreateUserEmail] = useState<string>("");
   const [emailSanitiseCheck, setEmailSanitiseCheck] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const handleCreateUserEmailChange = (
     event: ChangeEvent<HTMLInputElement>
@@ -43,6 +45,9 @@ export default function RegisterUser() {
   const [responseErr, setResponseErr] = useState<string>("");
 
   function VerificationMessage() {
+    if (loading) {
+      return <LoadingSpinner />;
+    }
     if (verifiedUserEmailResponse) {
       switch (verifiedUserEmailResponse) {
         case 200:
@@ -66,6 +71,7 @@ export default function RegisterUser() {
   };
 
   const submitVerificationCheck = async (data: VerifyEmailData) => {
+    setLoading(true);
     const response = await fetch(
       "http://localhost:8080/api/v1/userVerification",
       {
@@ -93,6 +99,7 @@ export default function RegisterUser() {
 
       await submitVerificationCheck(verifySubmissionData).then((response) => {
         setVerifiedUserEmailResponse(response);
+        setLoading(false);
       });
 
       // response needs to be response.status return on the backend when created, then create a check on if verifiedUserEmailResponse is 200, if so redirect to login page, else throw errors
@@ -138,13 +145,15 @@ export default function RegisterUser() {
             </div>
             <div className="form-group">
               {VerificationMessage()}
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={!emailSanitiseCheck}
-              >
-                Verify
-              </button>
+              {loading ? null : (
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={!emailSanitiseCheck}
+                >
+                  Verify
+                </button>
+              )}
               <button className="btn btn-primary">
                 <Link href={"/reset_email_verification_view"}>
                   Resend Verification Code
