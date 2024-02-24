@@ -11,6 +11,7 @@ import {
   showEmailWarning,
   showPasswordWarning,
 } from "@/functions/loginFunctions";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -40,11 +41,7 @@ export default function LoginUser() {
   const [responseErr, setResponseErr] = useState<string>("");
   function showLoginMessage() {
     if (loading) {
-      return (
-        <div className="spinner-border" role="status">
-          <span className="sr-only">Loading...</span>
-        </div>
-      );
+      return <LoadingSpinner />;
     }
 
     if (submitResponseStatus !== null) {
