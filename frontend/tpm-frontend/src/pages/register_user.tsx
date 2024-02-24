@@ -12,7 +12,7 @@ import {
   sanitiseEmail,
   sanitisePassword,
 } from "@/functions/loginFunctions";
-
+import LoadingSpinner from "@/components/LoadingSpinner";
 const inter = Inter({ subsets: ["latin"] });
 
 //TODO on this page, the user is registered, but a response is sent from server only when the function on the backend completes
@@ -40,28 +40,16 @@ export default function RegisterUser() {
     sanitisePassword(event.target.value, setPasswordSanitiseCheck);
   };
 
-  const [emailVerificationCode, setEmailVerificationCode] = useState<
-    number | null
-  >(null);
-  // the function below updates the value of emailVerificationCode when the user types it in
-  const handleEmailVerificationCode = (
-    event: ChangeEvent<HTMLInputElement>
-  ) => {
-    const numericValue = parseInt(event.target.value, 10);
-
-    // Check if the conversion is successful and it's a 6-digit integer
-    if (!isNaN(numericValue) && String(numericValue).length === 6) {
-      setEmailVerificationCode(numericValue);
-    }
-  };
-
-  const [verifyEmailView, setVerifyEmailView] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
   //TODO need to verify username and password sanitization here
 
   // functions for sanitising input
   const [responseErr, setResponseErr] = useState<string>("");
   function showRegistrationMessage() {
+    if (loading) {
+      return <LoadingSpinner />;
+    }
     if (submitResponseStatus) {
       switch (submitResponseStatus) {
         case 200:
@@ -90,6 +78,7 @@ export default function RegisterUser() {
     userPassword: string;
   };
   const submitNewUser = async (data: SubmissionData) => {
+    setLoading(true);
     const response = await fetch("http://localhost:8080/api/v1/createUser", {
       method: "POST",
       headers: {
@@ -118,6 +107,7 @@ export default function RegisterUser() {
       const response = await submitNewUser(SubmissionData);
 
       setSubmitResponseStatus(response);
+      setLoading(false);
     }
   }
 
@@ -160,13 +150,15 @@ export default function RegisterUser() {
             </div>
             <div className="form-group">
               {showRegistrationMessage()}
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={!emailSanitiseCheck || !passwordSanitiseCheck}
-              >
-                Register
-              </button>
+              {loading ? null : (
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={!emailSanitiseCheck || !passwordSanitiseCheck}
+                >
+                  Register
+                </button>
+              )}
             </div>
           </form>
         </main>
