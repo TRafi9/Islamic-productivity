@@ -1,5 +1,4 @@
 import Head from "next/head";
-import Image from "next/image";
 import { Roboto_Mono, Bebas_Neue } from "next/font/google";
 import styles from "@/styles/Home.module.css";
 import { useEffect, useState } from "react";
@@ -16,7 +15,7 @@ import NavbarComponent from "@/components/NavBar";
 import { Row, Col } from "react-bootstrap";
 import AfterIshaView from "@/functions/afterIshaView";
 
-const inter = Roboto_Mono({
+const roboto = Roboto_Mono({
   weight: "400",
   subsets: ["latin"],
 });
@@ -76,8 +75,8 @@ export default function Home() {
             Asr: "2024-02-25T09:42:00Z",
             Dhuhr: "2024-02-25T09:41:00Z",
             Fajr: "2024-02-25T08:42:00Z",
-            Isha: "2024-02-25T10:03:00Z",
-            Maghrib: "2024-02-25T10:02:00Z",
+            Isha: "2024-02-25T10:17:00Z",
+            Maghrib: "2024-02-25T10:04:00Z",
           };
 
           if (result) {
@@ -188,7 +187,7 @@ export default function Home() {
           crossOrigin="anonymous"
         />
       </Head>
-      <main className={`${styles.main} ${inter.className}`}>
+      <main className={`${styles.main} ${roboto.className}`}>
         <NavbarComponent />
         {displayType == "countdown" &&
           productiveState == false &&
