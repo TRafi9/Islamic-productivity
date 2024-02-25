@@ -1,5 +1,11 @@
 import Button from "react-bootstrap/Button";
 import AfterIshaView from "./afterIshaView";
+import { Roboto_Mono, Bebas_Neue } from "next/font/google";
+
+const Bebas = Bebas_Neue({
+  weight: "400",
+  subsets: ["latin"],
+});
 
 // need to send data to handleSendData from getCurrentPrayer + next prayer
 const ProductiveStateView = (props: any) => {
@@ -52,12 +58,25 @@ const ProductiveStateView = (props: any) => {
   }
 
   return (
-    <div>
-      <p>
-        {props.currentPrayerName} & {props.lastPrayerName}
-      </p>
-      <Button onClick={() => sendData(true)}>Yes</Button>
-      <Button onClick={() => sendData(false)}>No</Button>
+    <div className="col-center text-center-p">
+      <h1>
+        Have you been productive between {props.lastPrayerName} and{" "}
+        {props.currentPrayerName}?
+      </h1>
+      <Button
+        onClick={() => sendData(true)}
+        // size="lg"
+        className={`${Bebas.className} custom-button btn-success`}
+      >
+        Yes
+      </Button>
+      <Button
+        onClick={() => sendData(false)}
+        // size="lg"
+        className={`${Bebas.className} custom-button btn-danger`}
+      >
+        No
+      </Button>
     </div>
   );
 };
