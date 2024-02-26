@@ -1,7 +1,8 @@
 import Head from "next/head";
 import styles from "@/styles/Home.module.css";
 import { Inter } from "next/font/google";
-import { useEffect, useState } from "react";
+import { Roboto_Mono } from "next/font/google";
+import { useState } from "react";
 import Link from "next/link";
 import React, { ChangeEvent } from "react";
 import Router from "next/router";
@@ -13,7 +14,10 @@ import {
 } from "@/functions/loginFunctions";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
-const inter = Inter({ subsets: ["latin"] });
+const roboto = Roboto_Mono({
+  weight: "400",
+  subsets: ["latin"],
+});
 
 export default function LoginUser() {
   const [userEmail, setUserEmail] = useState<string>("");
@@ -49,10 +53,6 @@ export default function LoginUser() {
         case 200:
           Router.push("main_page");
           return <p>Login successful!</p>;
-        // case 401:
-        //   return <p>Incorrect email or password</p>;
-        // case 403:
-        //   return <p>Invalid credentials</p>;
         case 406:
           return (
             <>
@@ -121,10 +121,10 @@ export default function LoginUser() {
         />
       </Head>
       <div>
-        <main className={`${styles.main} ${inter.className}`}>
+        <main className={`${styles.main} ${roboto.className}`}>
           <div className="card">
             <div className="card-body">
-              <h5 className="card-title">User Login</h5>
+              <h1 className="card-title">Login</h1>
               <form className="login-form" onSubmit={(e) => handleSubmit(e)}>
                 <div className="form-group">
                   {showEmailWarning(emailSanitiseCheck)}
@@ -133,7 +133,7 @@ export default function LoginUser() {
                     type="email"
                     className="form-control"
                     id="email"
-                    placeholder="name@example.com"
+                    placeholder="name@gmail.com"
                     onChange={handleUserEmailChange}
                   />
                 </div>

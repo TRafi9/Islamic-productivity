@@ -1,9 +1,8 @@
 import Head from "next/head";
 import styles from "@/styles/Home.module.css";
-import { Inter } from "next/font/google";
-import { SetStateAction, useState, Dispatch } from "react";
+import { Roboto_Mono } from "next/font/google";
+import { useState } from "react";
 
-import Link from "next/link";
 import Router from "next/router";
 import React, { ChangeEvent } from "react";
 import {
@@ -13,7 +12,11 @@ import {
   sanitisePassword,
 } from "@/functions/loginFunctions";
 import LoadingSpinner from "@/components/LoadingSpinner";
-const inter = Inter({ subsets: ["latin"] });
+
+const roboto = Roboto_Mono({
+  weight: "400",
+  subsets: ["latin"],
+});
 
 //TODO on this page, the user is registered, but a response is sent from server only when the function on the backend completes
 // because of this, there is a delay in showRegistrationMessage() to resolve
@@ -122,7 +125,7 @@ export default function RegisterUser() {
         />
       </Head>
       <div>
-        <main className={`${styles.main} ${inter.className}`}>
+        <main className={`${styles.main} ${roboto.className}`}>
           <form className="register-form" onSubmit={(e) => submit(e)}>
             <h1> User Registration</h1>
             <div className="form-group">
