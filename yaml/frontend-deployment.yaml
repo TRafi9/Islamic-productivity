@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tpm-frontend
+  labels:
+    app: tpm-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tpm-frontend
+  template:
+    metadata:
+      labels:
+        app: tpm-frontend
+    spec:
+      containers:
+        - name: tpm-frontend
+          image: tpm-frontend:0.0.1
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3000
+              protocol: TCP
