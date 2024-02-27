@@ -19,7 +19,7 @@ const roboto = Roboto_Mono({
   subsets: ["latin"],
 });
 
-export default function myStats() {
+export default function MyStats() {
   const [dailyStats, setDailyStats] = useState<null | Object>(null);
   const [weeklyStats, setWeeklyStats] = useState<null | Object>(null);
   const [monthlyStats, setMonthlyStats] = useState<null | Object>(null);
