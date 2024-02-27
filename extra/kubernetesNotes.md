@@ -42,7 +42,19 @@ output configmap in yaml format:
 work similar to configmaps but are encrypted at rest.
 It's important to keep secrets and config maps separate as we can use RBAC to give access to secrets to some people but others can only see configMaps
 
+creating secrets:
+`kubectl -n <namespace name> create secret generic <secret name> --from-literal SECRET_KEY=secretValue`
+![alt text](image-2.png)
+
+in the picture below we can see how the secret value is set as an environment variable in the deployment yaml:
+![alt text](image-3.png)
+
+list all secrets:
+`kubectl -n <namespace name> get secret`
+
 --DEPLOYMENTS--
+
+Use kubernetes deployment to define how we want kubernetes to run the containers, we do this through the spec in the yaml file.
 
 in the deployments yaml file you can state pods and number of replicas (more pods to allow failover)
 
@@ -54,3 +66,25 @@ name, image, ports, you can also add env variables and pass in secret values tha
 ![alt text](image.png)
 
 the env variables can also be mapped to configmaps
+
+deploy application to k8s:
+kubectl -n <namespace name> apply -f <deploy.yaml file>
+
+once the deployment happens you can view the pods:
+`kubectl -n <namespace name> get pods`
+
+--SERVICES--
+
+Once we expose a port through our deployment yaml, we need to send traffic to that port, to do this we use services.
+
+A service is a construct that defines how we want traffic to flow to our pods. It is an abstract way to expose an application running on a set of pods as a network service. You can define a service with service.yaml file:
+![alt text](image-4.png)
+
+In the image above, the targetPort needs to match the port of the selector. The selector also needs to be the same name as the label for the app that you have set in the deployment.yaml file.
+
+difference between port and target port:
+the target port is what the service is exposing and listening for external traffic. Once it receives traffic, it then forwards it to the port, which is the port that the pods inside the cluster are listening on.
+
+port is the port on which the Service itself listens for traffic, while targetPort is the port to which traffic is forwarded to the backend Pods. They are separate because the Service may expose a different port to clients than what the Pods are listening on internally. This abstraction allows for flexibility in managing networking and port assignments within Kubernetes deployments.
+
+Services can provide a public or private endpoint.
