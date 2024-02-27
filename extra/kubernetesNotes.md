@@ -88,3 +88,26 @@ the target port is what the service is exposing and listening for external traff
 port is the port on which the Service itself listens for traffic, while targetPort is the port to which traffic is forwarded to the backend Pods. They are separate because the Service may expose a different port to clients than what the Pods are listening on internally. This abstraction allows for flexibility in managing networking and port assignments within Kubernetes deployments.
 
 Services can provide a public or private endpoint.
+
+to apply the service yaml file:
+`kubectl -n <namespace name> -f <path to service.yaml>`
+
+to list the service:
+`kubectl -n <namespace name> get svc`
+
+running list service will give us an internal IP address, we can access our deployment on, as well as show the port thats exposed. This internal IP address allows other applications deployed in your cluster to access the pod running on the service.
+![alt text](image-5.png)
+
+Note that this internal cluster IP address is not accessible from outside the cluster by default, it allows different parts of the application within the cluster to communicate to each other. If you need to make your service accessible from outside the cluster, you can use things such as an ingress controller or LoadBalancer.
+
+If you have two different deployments running different images within the same namespace and each deployment exposes a Service, the Pods managed by these deployments can communicate with each other using their internal Cluster IP addresses and exposed ports.
+
+Here's how it works:
+
+1.You have two Deployments, each deploying Pods running different container images.
+
+
+2.Each Deployment exposes a Service, which creates a stable endpoint for accessing the Pods.
+
+
+3.The Pods within the same namespace can communicate with each other using the DNS name of the Service, which resolves to the internal Cluster IP address of the Service. They can use the internal Cluster IP address and exposed ports to send and receive data.
