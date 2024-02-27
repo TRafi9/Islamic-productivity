@@ -125,3 +125,11 @@ command to load docker images into kind:
 `docker image tag tpm-backend:latest tpm-backend:0.0.1`
 
 https://documentation.breadnet.co.uk/kubernetes/kb/kubectl-commands/
+
+
+
+
+
+because pods that are in the same namespace share the same network, they both work off the same localhost, therefore images deployed in the same namespace can talk to each other i.e. cloud sql proxy and your db connection vals:
+
+https://github.com/GoogleCloudPlatform/cloud-sql-proxy/blob/main/examples/k8s-sidecar/proxy_with_sa_key.yaml
