@@ -19,6 +19,7 @@ after submission from user,next productive state view isnt updated to show new p
 
 
 TODO CONTINUE - 
+- LEARN kubernetes and how to deploy app https://www.youtube.com/watch?v=JeAHlTYB1Qk&ab_channel=ThatDevOpsGuy
 - married up view of backend daily stats and frontend pie chart, need to functionalise further and add more stats
 - can add last week bar graph that is split between productive/unproductive values
 - currently using weekly pull from DB for daily productivity pie charts

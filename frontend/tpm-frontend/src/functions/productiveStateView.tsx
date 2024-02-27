@@ -1,6 +1,5 @@
 import Button from "react-bootstrap/Button";
-import AfterIshaView from "./afterIshaView";
-import { Roboto_Mono, Bebas_Neue } from "next/font/google";
+import { Bebas_Neue } from "next/font/google";
 
 const Bebas = Bebas_Neue({
   weight: "400",
@@ -26,7 +25,6 @@ const ProductiveStateView = (props: any) => {
         const responseData = await response.json();
         console.log("API Response:", responseData);
       } else {
-        // Handle errors
         console.error("Error:", response.statusText);
       }
     } catch (error) {
@@ -65,14 +63,12 @@ const ProductiveStateView = (props: any) => {
       </h1>
       <Button
         onClick={() => sendData(true)}
-        // size="lg"
         className={`${Bebas.className} custom-button btn-success`}
       >
         Yes
       </Button>
       <Button
         onClick={() => sendData(false)}
-        // size="lg"
         className={`${Bebas.className} custom-button btn-danger`}
       >
         No

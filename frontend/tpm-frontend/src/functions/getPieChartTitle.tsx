@@ -1,6 +1,4 @@
 const getPieChartTitle = (stats: Object) => {
-  //   const stats = props.stats;
-
   if (stats) {
     const innerStatsKey = Object.keys(stats)[0];
     console.log(innerStatsKey);

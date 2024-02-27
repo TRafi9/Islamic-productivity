@@ -12,7 +12,7 @@ import ProductiveStateView from "@/functions/productiveStateView";
 import getLastPrayer from "@/functions/getLastPrayer";
 import calculateTimeTillRefresh from "@/functions/calculateTimeTillRefresh";
 import NavbarComponent from "@/components/NavBar";
-import { Row, Col } from "react-bootstrap";
+import { Row } from "react-bootstrap";
 import AfterIshaView from "@/functions/afterIshaView";
 
 const roboto = Roboto_Mono({
@@ -70,14 +70,14 @@ export default function Home() {
     const fetchData = async () => {
       if (displayType !== "after isha") {
         try {
-          // const result = await getTodaysPrayers(formattedDate);
-          const result = {
-            Asr: "2024-02-25T09:42:00Z",
-            Dhuhr: "2024-02-25T09:41:00Z",
-            Fajr: "2024-02-25T08:42:00Z",
-            Isha: "2024-02-25T10:17:00Z",
-            Maghrib: "2024-02-25T10:04:00Z",
-          };
+          const result = await getTodaysPrayers(formattedDate);
+          // const result = {
+          //   Asr: "2024-02-26T13:42:00Z",
+          //   Dhuhr: "2024-02-26T13:29:00Z",
+          //   Fajr: "2024-02-26T08:42:00Z",
+          //   Isha: "2024-02-26T10:17:00Z",
+          //   Maghrib: "2024-02-26T10:04:00Z",
+          // };
 
           if (result) {
             setTodaysPrayers(result);
