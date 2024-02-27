@@ -68,7 +68,7 @@ name, image, ports, you can also add env variables and pass in secret values tha
 the env variables can also be mapped to configmaps
 
 deploy application to k8s:
-kubectl -n <namespace name> apply -f <deploy.yaml file>
+`kubectl -n <namespace name> apply -f <deploy.yaml file>`
 
 once the deployment happens you can view the pods:
 `kubectl -n <namespace name> get pods`
@@ -106,8 +106,22 @@ Here's how it works:
 
 1.You have two Deployments, each deploying Pods running different container images.
 
-
 2.Each Deployment exposes a Service, which creates a stable endpoint for accessing the Pods.
 
-
 3.The Pods within the same namespace can communicate with each other using the DNS name of the Service, which resolves to the internal Cluster IP address of the Service. They can use the internal Cluster IP address and exposed ports to send and receive data.
+
+--EXTRA NOTES--
+
+command to get cluster names:
+`kind get clusters`
+
+command to load docker images into kind:
+`kind load docker-image <Image name> -n <cluster name>`
+
+`kubectl describe deployment tpm-backend  -n tpm`
+
+`kubectl describe pod/tpm-backend-86c48f8b46-6t4m7 -n tpm`
+
+`docker image tag tpm-backend:latest tpm-backend:0.0.1`
+
+https://documentation.breadnet.co.uk/kubernetes/kb/kubectl-commands/
