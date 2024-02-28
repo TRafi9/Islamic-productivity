@@ -14,9 +14,14 @@ spec:
       labels:
         app: tpm-backend
     spec:
+      # volume is at pod level as it is created for the pod, volume mount is then at container level as it adds the volume to the container
+      volumes:
+        - name: cloudsql-credentials
+          secret:
+            secretName: cloudsql-credentials
       containers:
         - name: tpm-backend
-          image: tpm-backend:0.0.1
+          image: tpm-backend:0.0.2
           imagePullPolicy: Never
           env:
             - name: USER
@@ -54,6 +59,13 @@ spec:
               protocol: TCP
         - name: cloud-sql-proxy
           image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.8.2
+          volumeMounts:
+            # mount path specifies a directory on the container directory
+            - mountPath: /secrets/
+              # picking the name of the volume from the pod
+              # the secrets file cloudsql-credentials is then parsed automatically into the /secrets/ directory so you can reference those secrets directly with /secrets/<key_name_in_secret>
+              name: cloudsql-credentials
+              readOnly: true
           env:
             - name: USER
               valueFrom:
@@ -70,41 +82,10 @@ spec:
                 secretKeyRef:
                   name: tpmsecrets
                   key: DB_NAME
-            # - name: cloudsql-credentials
-            #   valueFrom:
-            #     secretKeyRef:
-            #       name: cloudsql-credentials
-            #       key: application_default_credentials.json
-
           args:
             - starlit-booster-408007:europe-west2:the-productive-muslim
-            - --credentials-file=/secrets/application_default_credentials.json
+            - --credentials-file=/secrets/service_account.json
             # If connecting from a VPC-native GKE cluster, you can use the
             # following flag to have the proxy connect over private IP
             # - "--private-ip"
             # - --private-ip
-          startupProbe:
-            httpGet:
-              path: /startup
-              port: 9801
-            initialDelaySeconds: 1
-            periodSeconds: 1
-            timeoutSeconds: 5
-            failureThreshold: 20
-          livenessProbe:
-            httpGet:
-              path: /liveness
-              port: 9801
-            initialDelaySeconds: 0
-            periodSeconds: 60
-            timeoutSeconds: 30
-            failureThreshold: 5
-          volumeMounts:
-            - mountPath: /secrets/
-              name: cloudsql-credentials
-              readOnly: true
-          volumes:
-            - name: cloudsql-credentials
-              secretKeyRef:
-                name: cloudsql-credentials
-                key: application_default_credentials.json
