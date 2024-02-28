@@ -52,3 +52,59 @@ spec:
           ports:
             - containerPort: 8080
               protocol: TCP
+        - name: cloud-sql-proxy
+          image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.8.2
+          env:
+            - name: USER
+              valueFrom:
+                secretKeyRef:
+                  name: tpmsecrets
+                  key: USER
+            - name: PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: tpmsecrets
+                  key: PASSWORD
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: tpmsecrets
+                  key: DB_NAME
+            # - name: cloudsql-credentials
+            #   valueFrom:
+            #     secretKeyRef:
+            #       name: cloudsql-credentials
+            #       key: application_default_credentials.json
+
+          args:
+            - starlit-booster-408007:europe-west2:the-productive-muslim
+            - --credentials-file=/secrets/application_default_credentials.json
+            # If connecting from a VPC-native GKE cluster, you can use the
+            # following flag to have the proxy connect over private IP
+            # - "--private-ip"
+            # - --private-ip
+          startupProbe:
+            httpGet:
+              path: /startup
+              port: 9801
+            initialDelaySeconds: 1
+            periodSeconds: 1
+            timeoutSeconds: 5
+            failureThreshold: 20
+          livenessProbe:
+            httpGet:
+              path: /liveness
+              port: 9801
+            initialDelaySeconds: 0
+            periodSeconds: 60
+            timeoutSeconds: 30
+            failureThreshold: 5
+          volumeMounts:
+            - mountPath: /secrets/
+              name: cloudsql-credentials
+              readOnly: true
+          volumes:
+            - name: cloudsql-credentials
+              secretKeyRef:
+                name: cloudsql-credentials
+                key: application_default_credentials.json
