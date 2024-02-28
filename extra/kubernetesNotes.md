@@ -126,10 +126,43 @@ command to load docker images into kind:
 
 https://documentation.breadnet.co.uk/kubernetes/kb/kubectl-commands/
 
-
-
-
-
 because pods that are in the same namespace share the same network, they both work off the same localhost, therefore images deployed in the same namespace can talk to each other i.e. cloud sql proxy and your db connection vals:
 
 https://github.com/GoogleCloudPlatform/cloud-sql-proxy/blob/main/examples/k8s-sidecar/proxy_with_sa_key.yaml
+
+--update code and push to kind pod --
+
+### when creating a dockerfile/code change
+
+1. rebuild your image with a new tag e.g.
+
+```diff
+-    docker build -t tpm-backend:0.0.2
++    docker build -t tpm-backend:0.0.2
+```
+
+2. change deployment file to point image section to new tag
+
+```diff
+containers:
+        - name: tpm-backend
+-          image: tpm-backend:0.0.1
++          image: tpm-backend:0.0.2
+```
+
+3. redeploy the deployment file using the following:
+
+`kubectl apply -f <path to deployment.yaml>`
+
+### View pod status
+
+`kubectl get pods`
+
+`kubectl get pods/<pod name>`
+
+## Debugging
+
+First see what is running within the pod and see if the descriptors make sense:
+`kubectl describe pods/<pod name>`
+
+### Debugging CrashLoopBackOff
