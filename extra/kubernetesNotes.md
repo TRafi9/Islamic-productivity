@@ -73,7 +73,9 @@ deploy application to k8s:
 once the deployment happens you can view the pods:
 `kubectl -n <namespace name> get pods`
 
---SERVICES--
+## Services
+
+https://kubernetes.io/docs/concepts/services-networking/service/
 
 Once we expose a port through our deployment yaml, we need to send traffic to that port, to do this we use services.
 

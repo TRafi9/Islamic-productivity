@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: tpm-backend
+spec:
+  # clusterIP is set by default if no type is chosen, it allows the service to be accessible inside of the cluster, but not from the outside,
+  # for that an ingress/loadbalancer/nodePort is needed
+  type: ClusterIP
+  selector:
+    # note tpm-backend encapsulates both cloudsql proxy and backend app,
+    # dont need to expose sql proxy port as only image running in deployment needs to use it, which is running in the same pod?
+    app: tpm-backend
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
