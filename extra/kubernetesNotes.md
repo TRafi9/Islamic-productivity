@@ -160,6 +160,13 @@ containers:
 
 `kubectl get pods/<pod name>`
 
+### View container logs from the pod its running in
+
+`kubectl logs -f pod/tpm-backend-c5587bf9b-89pds -c cloud-sql-proxy`
+
+-c stands for container
+`kubectl logs -f pod/<pod name> -c <container name that is set in deployment.yaml>`
+
 ## Debugging
 
 First see what is running within the pod and see if the descriptors make sense:
