@@ -9,6 +9,7 @@ spec:
   selector:
     # note tpm-backend encapsulates both cloudsql proxy and backend app,
     # dont need to expose sql proxy port as only image running in deployment needs to use it, which is running in the same pod?
+    # we are exposing all apps called tpm-backend via the clusterIP & port here
     app: tpm-backend
   ports:
     - protocol: TCP
