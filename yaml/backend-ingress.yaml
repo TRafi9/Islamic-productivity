@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tpm-backend-ingress
+spec:
+  rules:
+    - host: "foo-bar.com" # //hostname for the application e.g. my website, need to map domain name to node IP address 4:45 on video
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/tpm"
+            backend:
+              service:
+                name: tpm-backend
+                port:
+                  number: 8080 # this points to the service port we are exposing
