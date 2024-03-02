@@ -169,9 +169,15 @@ containers:
 -c stands for container
 `kubectl logs -f pod/<pod name> -c <container name that is set in deployment.yaml>`
 
+
+
 ## Debugging
 
 First see what is running within the pod and see if the descriptors make sense:
 `kubectl describe pods/<pod name>`
 
 ### Debugging CrashLoopBackOff
+
+### questions
+
+what is the command to list namespaces and select one as default one? can only find config related commands online
