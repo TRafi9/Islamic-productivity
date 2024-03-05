@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: tpm-frontend
-          image: tpm-frontend:0.0.1
+          image: tpm-frontend:0.0.6
           imagePullPolicy: Never
           ports:
             - containerPort: 3000
