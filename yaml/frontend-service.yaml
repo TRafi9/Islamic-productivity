@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: tpm-frontend
+spec:
+  # clusterIP is set by default if no type is chosen, it allows the service to be accessible inside of the cluster, but not from the outside,
+  # for that an ingress/loadbalancer/nodePort is needed
+  type: ClusterIP
+  selector:
+    app: tpm-frontend
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000

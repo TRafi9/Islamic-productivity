@@ -5,6 +5,30 @@ kubernetes uses yaml files to create infrastructure
 use KIND for local testing, this is Kubernetes In Docker
 
 creating a single cluster with kind (starts cluster in docker container):
+This will create a kind cluster, but to get a kind cluster that works with nginx kind controller you need `extraPortMappings` and `node-labels`, run the following command in terminal for creating a kind cluster for it:
+
+```
+cat <<EOF | kind create cluster --config=-
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+- role: control-plane
+  kubeadmConfigPatches:
+  - |
+    kind: InitConfiguration
+    nodeRegistration:
+      kubeletExtraArgs:
+        node-labels: "ingress-ready=true"
+  extraPortMappings:
+  - containerPort: 80
+    hostPort: 80
+    protocol: TCP
+  - containerPort: 443
+    hostPort: 443
+    protocol: TCP
+EOF
+```
+
 `kind create cluster --image kindest/node:v1.23.5`
 
 see the running nodes :
@@ -168,8 +192,6 @@ containers:
 
 -c stands for container
 `kubectl logs -f pod/<pod name> -c <container name that is set in deployment.yaml>`
-
-
 
 ## Debugging
 
