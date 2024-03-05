@@ -32,6 +32,7 @@ func main() {
 	// setup logger
 	z, _ := zap.NewProduction()
 	logger := z.Sugar()
+	logger.Info("Version 0.0.6")
 
 	// read in password for redis connection
 	pass, err := readFile("./pass.txt")
@@ -71,7 +72,7 @@ func main() {
 	e := echo.New()
 	// cors not needed when running on docker containers that are on same network because of docker-compose file? - check TODO
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins:     []string{"http://tpm-frontend:3000", "http://localhost:3000"},
+		AllowOrigins:     []string{"http://tpm-frontend:80"},
 		AllowMethods:     []string{echo.GET, echo.POST},
 		AllowHeaders:     []string{"Authorization", "Content-Type", "Set-Cookie"},
 		ExposeHeaders:    []string{"Authorization", "Set-Cookie"}, // Add this line

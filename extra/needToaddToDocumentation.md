@@ -1,8 +1,9 @@
-## section on how to load local docker images into kind cluster
-
-e.g.
-
-rewrite tag on image and then:
-kind load docker-image tpm-frontend:0.0.1 -n kind
 
 ## section on how to run nginx on kind cluster to get external IP address
+
+finding env vars that run in your container on pods:
+kubectl exec -it tpm-frontend-8dfb5484b-z5v22 -- /bin/sh
+
+then you can call using os.env version in javascript or whatever
+
+http://$TPM_BACKEND_SERVICE:$TPM_BACKEND_SERVICE_PORT/

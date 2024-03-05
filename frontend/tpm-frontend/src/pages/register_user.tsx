@@ -82,7 +82,8 @@ export default function RegisterUser() {
   };
   const submitNewUser = async (data: SubmissionData) => {
     setLoading(true);
-    const response = await fetch("http://localhost:8080/api/v1/createUser", {
+    // needs to be service name and port of the backend service
+    const response = await fetch("http://tpm-backend:8080/api/v1/createUser", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
