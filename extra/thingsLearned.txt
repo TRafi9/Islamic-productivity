@@ -20,4 +20,4 @@ what this project demonstrates
 
 - understanding of writing sql statements for postgres
 
-- FIND OUT - why api calls needed to be moved onto server side rather than client side in nextjs to access it by kubernetes?
+- FIND OUT - why api calls needed to be moved onto server side rather than client side in nextjs to access it by kubernetes? also move all calls to serverside
