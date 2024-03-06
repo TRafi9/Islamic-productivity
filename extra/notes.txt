@@ -19,6 +19,9 @@ after submission from user,next productive state view isnt updated to show new p
 
 
 TODO CONTINUE - 
+
+- backend dockerfile currently copying whole repo, need to move all backend stuff into a backend folder and docker build in there
+- ko build 
 - LEARN kubernetes and how to deploy app https://www.youtube.com/watch?v=JeAHlTYB1Qk&ab_channel=ThatDevOpsGuy
 - married up view of backend daily stats and frontend pie chart, need to functionalise further and add more stats
 - can add last week bar graph that is split between productive/unproductive values

@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tpm-backend-ingress
+spec:
+  defaultBackend:
+    service:
+      name: tpm-backend
+      port:
+        number: 8080
+# kubectl get ingressclasses
+
+# kubectl get ns
+# go into the ingress nginx namespace that is created by ingress command
+# ingress controller usually run in its own namespace
+

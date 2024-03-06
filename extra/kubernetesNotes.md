@@ -5,6 +5,30 @@ kubernetes uses yaml files to create infrastructure
 use KIND for local testing, this is Kubernetes In Docker
 
 creating a single cluster with kind (starts cluster in docker container):
+This will create a kind cluster, but to get a kind cluster that works with nginx kind controller you need `extraPortMappings` and `node-labels`, run the following command in terminal for creating a kind cluster for it:
+
+```
+cat <<EOF | kind create cluster --config=-
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+- role: control-plane
+  kubeadmConfigPatches:
+  - |
+    kind: InitConfiguration
+    nodeRegistration:
+      kubeletExtraArgs:
+        node-labels: "ingress-ready=true"
+  extraPortMappings:
+  - containerPort: 80
+    hostPort: 80
+    protocol: TCP
+  - containerPort: 443
+    hostPort: 443
+    protocol: TCP
+EOF
+```
+
 `kind create cluster --image kindest/node:v1.23.5`
 
 see the running nodes :
@@ -68,12 +92,14 @@ name, image, ports, you can also add env variables and pass in secret values tha
 the env variables can also be mapped to configmaps
 
 deploy application to k8s:
-kubectl -n <namespace name> apply -f <deploy.yaml file>
+`kubectl -n <namespace name> apply -f <deploy.yaml file>`
 
 once the deployment happens you can view the pods:
 `kubectl -n <namespace name> get pods`
 
---SERVICES--
+## Services
+
+https://kubernetes.io/docs/concepts/services-networking/service/
 
 Once we expose a port through our deployment yaml, we need to send traffic to that port, to do this we use services.
 
@@ -106,8 +132,74 @@ Here's how it works:
 
 1.You have two Deployments, each deploying Pods running different container images.
 
-
 2.Each Deployment exposes a Service, which creates a stable endpoint for accessing the Pods.
 
-
 3.The Pods within the same namespace can communicate with each other using the DNS name of the Service, which resolves to the internal Cluster IP address of the Service. They can use the internal Cluster IP address and exposed ports to send and receive data.
+
+--EXTRA NOTES--
+
+command to get cluster names:
+`kind get clusters`
+
+command to load docker images into kind:
+`kind load docker-image <Image name> -n <cluster name>`
+
+`kubectl describe deployment tpm-backend  -n tpm`
+
+`kubectl describe pod/tpm-backend-86c48f8b46-6t4m7 -n tpm`
+
+`docker image tag tpm-backend:latest tpm-backend:0.0.1`
+
+https://documentation.breadnet.co.uk/kubernetes/kb/kubectl-commands/
+
+because pods that are in the same namespace share the same network, they both work off the same localhost, therefore images deployed in the same namespace can talk to each other i.e. cloud sql proxy and your db connection vals:
+
+https://github.com/GoogleCloudPlatform/cloud-sql-proxy/blob/main/examples/k8s-sidecar/proxy_with_sa_key.yaml
+
+--update code and push to kind pod --
+
+### when creating a dockerfile/code change
+
+1. rebuild your image with a new tag e.g.
+
+```diff
+-    docker build -t tpm-backend:0.0.2
++    docker build -t tpm-backend:0.0.2
+```
+
+2. change deployment file to point image section to new tag
+
+```diff
+containers:
+        - name: tpm-backend
+-          image: tpm-backend:0.0.1
++          image: tpm-backend:0.0.2
+```
+
+3. redeploy the deployment file using the following:
+
+`kubectl apply -f <path to deployment.yaml>`
+
+### View pod status
+
+`kubectl get pods`
+
+`kubectl get pods/<pod name>`
+
+### View container logs from the pod its running in
+
+`kubectl logs -f pod/tpm-backend-c5587bf9b-89pds -c cloud-sql-proxy`
+
+-c stands for container
+`kubectl logs -f pod/<pod name> -c <container name that is set in deployment.yaml>`
+
+## Debugging
+
+First see what is running within the pod and see if the descriptors make sense:
+`kubectl describe pods/<pod name>`
+
+### Debugging CrashLoopBackOff
+
+### questions
+
+what is the command to list namespaces and select one as default one? can only find config related commands online
