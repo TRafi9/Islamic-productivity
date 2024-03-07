@@ -12,20 +12,22 @@ export default async function PostRegisterUser(
     try {
       // Perform user creation logic here
       // You may interact with your database or any other backend service
-      const response = await fetch(
-        "http://tpm-backend:8080/api/v1/createUser",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        }
-      );
+      const response = await fetch("http://localhost:8080/api/v1/createUser", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
 
-      const dataRes = await response.json();
-
-      res.status(200).json(dataRes);
+      if (response.status == 200) {
+        const dataRes = await response.json();
+        res.status(200).json(dataRes);
+      } else {
+        // If response is not successful, parse JSON response to get error message and status code
+        const errorResponse = await response.json();
+        res.status(500).json(errorResponse);
+      }
     } catch (error) {
       console.error("Error creating user:", error);
       res.status(500).json({ error: "Internal server error" });

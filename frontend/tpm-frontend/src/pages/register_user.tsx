@@ -58,16 +58,6 @@ export default function RegisterUser() {
         case 200:
           Router.push("verify_email_view");
           return null;
-        // case 208:
-        //   return <p> Error creating user, email already in use</p>;
-        // case 400:
-        //   return (
-        //     <p>Error creating user, please contact developer: status: 400.</p>
-        //   );
-        // case 500:
-        //   return (
-        //     <p>Error creating user, please contact developer: status: 500.</p>
-        //   );
         default:
           return <p>{responseErr}</p>;
       }
@@ -90,7 +80,7 @@ export default function RegisterUser() {
       },
       body: JSON.stringify(data),
     });
-    
+
     const responseData = await response.json();
     setResponseErr(responseData["error"]);
 
@@ -110,6 +100,7 @@ export default function RegisterUser() {
         userPassword: UserPassword,
       };
       const response = await submitNewUser(SubmissionData);
+      console.log(response);
 
       setSubmitResponseStatus(response);
       setLoading(false);
