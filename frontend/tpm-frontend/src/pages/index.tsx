@@ -76,7 +76,7 @@ export default function LoginUser() {
   const loginUser = async () => {
     setLoading(true);
 
-    const response = await fetch("http://tpm-backend:8080/api/v1/login", {
+    const response = await fetch("/api/postLoginUser", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
