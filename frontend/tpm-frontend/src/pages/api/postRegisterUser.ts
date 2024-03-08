@@ -12,7 +12,7 @@ export default async function PostRegisterUser(
     try {
       // Perform user creation logic here
       // You may interact with your database or any other backend service
-      const response = await fetch("http://localhost:8080/api/v1/createUser", {
+      const response = await fetch("http://tpm-backend:80/api/v1/createUser", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

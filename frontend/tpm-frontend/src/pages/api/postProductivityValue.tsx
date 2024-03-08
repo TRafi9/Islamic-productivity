@@ -17,7 +17,7 @@ export default async function postProductivityValue(
     console.log(jwtCookie);
     const response = await fetch(
       // needs to be updated to something else probably
-      `http://localhost:8080/api/v1/restricted/userData`,
+      `http://tpm-backend:80/api/v1/restricted/userData`,
       {
         method: "POST",
         credentials: "include",

@@ -20,7 +20,7 @@ export default async function getAllStats(
   const jwtCookie = cookies.jwt;
 
   const response = await fetch(
-    `http://localhost:8080/api/v1/restricted/getAllStats`,
+    `http://tpm-backend:80/api/v1/restricted/getAllStats`,
     {
       method: "GET",
       credentials: "include",

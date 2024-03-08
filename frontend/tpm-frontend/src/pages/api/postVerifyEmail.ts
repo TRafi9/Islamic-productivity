@@ -13,7 +13,7 @@ export default async function PostVerifyEmail(
       // Perform user creation logic here
       // You may interact with your database or any other backend service
       const response = await fetch(
-        "http://localhost:8080/api/v1/userVerification",
+        "http://tpm-backend:80/api/v1/userVerification",
         {
           method: "POST",
           headers: {

@@ -10,7 +10,7 @@ export default async function PostLoginUser(
     const { userEmail, userPassword } = req.body;
 
     try {
-      const response = await fetch("http://localhost:8080/api/v1/login", {
+      const response = await fetch("http://tpm-backend:80/api/v1/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

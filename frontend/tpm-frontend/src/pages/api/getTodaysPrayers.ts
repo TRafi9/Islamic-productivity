@@ -23,7 +23,7 @@ export default async function getTodaysPrayers(
   const response = await fetch(
     // needs to be updated to something else probably
     // `http://tpm-backend:8080/api/v1/getPrayerTimes/${date}`,
-    `http://localhost:8080/api/v1/restricted/getPrayerTimes/${date}`,
+    `http://tpm-backend:80/api/v1/restricted/getPrayerTimes/${date}`,
     {
       method: "GET",
       credentials: "include",
