@@ -7,7 +7,7 @@ export default async function PostRegisterUser(
   res: NextApiResponse
 ) {
   if (req.method === "POST") {
-    const { data } = req.body;
+    const { userEmail, userPassword } = req.body;
 
     try {
       // Perform user creation logic here
@@ -17,7 +17,7 @@ export default async function PostRegisterUser(
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ userEmail, userPassword }),
       });
 
       if (response.status == 200) {
