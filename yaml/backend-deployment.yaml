@@ -21,7 +21,7 @@ spec:
             secretName: cloudsql-credentials
       containers:
         - name: tpm-backend
-          image: tpm-backend:0.0.6
+          image: tpm-backend:0.0.8
           imagePullPolicy: Never
           env:
             - name: USER
