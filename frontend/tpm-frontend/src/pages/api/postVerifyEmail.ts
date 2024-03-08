@@ -2,23 +2,26 @@
 
 import { NextApiRequest, NextApiResponse } from "next";
 
-export default async function PostRegisterUser(
+export default async function PostVerifyEmail(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
   if (req.method === "POST") {
-    const { userEmail, userPassword } = req.body;
+    const { userEmail, verificationCode } = req.body;
 
     try {
       // Perform user creation logic here
       // You may interact with your database or any other backend service
-      const response = await fetch("http://tpm-backend:80/api/v1/createUser", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userEmail, userPassword }),
-      });
+      const response = await fetch(
+        "http://tpm-backend:80/api/v1/userVerification",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ userEmail, verificationCode }),
+        }
+      );
 
       if (response.status == 200) {
         const dataRes = await response.json();

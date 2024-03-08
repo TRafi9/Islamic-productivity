@@ -54,16 +54,13 @@ export default function RegisterUser() {
   };
 
   const submitVerificationCheck = async (data: ReverifyEmailData) => {
-    const response = await fetch(
-      "http://localhost:8080/api/v1/resetUserVerification",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      }
-    );
+    const response = await fetch("/api/postResetEmailVerification", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
     // can use responseData to pull error code out to frontend
     const responseData = await response.json();
     setResponseErr(responseData["error"]);

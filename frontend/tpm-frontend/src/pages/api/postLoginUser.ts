@@ -2,7 +2,7 @@
 
 import { NextApiRequest, NextApiResponse } from "next";
 
-export default async function PostRegisterUser(
+export default async function PostLoginUser(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
@@ -10,18 +10,26 @@ export default async function PostRegisterUser(
     const { userEmail, userPassword } = req.body;
 
     try {
-      // Perform user creation logic here
-      // You may interact with your database or any other backend service
-      const response = await fetch("http://tpm-backend:80/api/v1/createUser", {
+      const response = await fetch("http://tpm-backend:80/api/v1/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ userEmail, userPassword }),
+        body: JSON.stringify({
+          userEmail,
+          userPassword,
+        }),
+        credentials: "include",
       });
 
       if (response.status == 200) {
         const dataRes = await response.json();
+        const jwtCookie = response.headers.get("set-cookie");
+        // Set the "jwt" cookie in the API route's response headers
+        if (jwtCookie) {
+          res.setHeader("Set-Cookie", jwtCookie);
+        }
+
         res.status(200).json(dataRes);
       } else {
         // If response is not successful, parse JSON response to get error message and status code
