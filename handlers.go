@@ -754,11 +754,6 @@ func handleLogin(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hmacSecr
 
 			c.SetCookie(cookie)
 
-			// TODO understand why c.Response is passed as responseWriter arg?
-			c.Response().Header().Set("Access-Control-Expose-Headers", "Authorization, Set-Cookie")
-
-			c.Response().Header().Set("Authorization", tokenString)
-
 			return c.JSON(http.StatusOK, map[string]string{"error": ""})
 		} else {
 			logger.Info("email is not verified, password is correct")
