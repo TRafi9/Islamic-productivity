@@ -5,7 +5,9 @@ metadata:
 spec:
   # clusterIP is set by default if no type is chosen, it allows the service to be accessible inside of the cluster, but not from the outside,
   # for that an ingress/loadbalancer/nodePort is needed
-  type: ClusterIP
+  # At this point in digital ocean you can apply a loadbalancer instead of a clusterIP, this will make it accessible for external traffic!
+  type: LoadBalancer
+  # type: ClusterIP
   selector:
     app: tpm-frontend
   ports:

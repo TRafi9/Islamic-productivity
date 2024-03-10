@@ -21,8 +21,8 @@ spec:
             secretName: cloudsql-credentials
       containers:
         - name: tpm-backend
-          image: tpm-backend:0.0.8
-          imagePullPolicy: Never
+          image: registry.digitalocean.com/tpm-containers-test/tpm-backend:0.0.02
+          # imagePullPolicy: Never
           env:
             - name: USER
               valueFrom:

@@ -1,4 +1,4 @@
-## section on how to run nginx on kind cluster to get external IP address
+# section on finding env names inside pods to expose to containers
 
 finding env vars that run in your container on pods:
 
@@ -45,3 +45,28 @@ Navigate to Container Registry in the control panel.
 If you have a live registry and you have pushed images to it, the images are listed here.
 
 Click the plus, +, next to a repository to see its image versions and each version’s tags. You can also see untagged images here, which we recommend deleting manually or through garbage collection.
+
+# section on switching between clusters in kubectl using config
+
+`kubectl config get-contexts`
+`kubectl config use-context <context name>`
+
+# digital ocean uses amd64 architecture
+
+this means that your containers need to be built for the same architecture, so if on mac, build it with that architecture specifically as it cannot use arm architecture to run the container on the digitial ocean clusters.
+push the versions of your images with new tags to container registry but build using:
+docker build --platform linux/amd64
+
+tpm-backend:0.0.02
+tpm-frontend:0.0.02
+
+# section on exposing frontend to public
+
+check frontend-service yaml, no ingress needed for external IP as Loadbalancer provisioning will do this
+through the following command:
+apply frontend service
+then use external Ip and port exposed by service to see frontend: 159.65.212.242:3000
+
+![alt text](image-6.png)
+
+# move get logs command to debugging section

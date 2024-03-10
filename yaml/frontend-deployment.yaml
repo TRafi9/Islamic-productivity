@@ -16,8 +16,8 @@ spec:
     spec:
       containers:
         - name: tpm-frontend
-          image: tpm-frontend:0.0.01
-          imagePullPolicy: Never
+          image: registry.digitalocean.com/tpm-containers-test/tpm-frontend:0.0.02
+          # imagePullPolicy: Never
           ports:
             - containerPort: 3000
               protocol: TCP
