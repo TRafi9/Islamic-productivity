@@ -30,6 +30,9 @@ You can then use the docker tag command to tag your image with the fully qualifi
 `docker tag <my-image> registry.digitalocean.com/<my-registry>/<my-image>`
 `docker push registry.digitalocean.com/<my-registry>/<my-image>`
 
+`docker build --platform=linux/amd64 -t registry.digitalocean.com/tpm-containers-test/tpm-backend:0.0.05 .`
+`docker push registry.digitalocean.com/tpm-containers-test/tpm-backend:0.0.05`
+
 ## How to Free Up Space in Your Container Registry
 
 Over time after pushing many updates to an image, it can result in unused layers and blobs taking up space. Running garbage collection will remove these unused layers and blobs.
