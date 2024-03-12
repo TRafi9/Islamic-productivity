@@ -746,9 +746,9 @@ func handleLogin(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hmacSecr
 				Value:    tokenString,
 				Path:     "/",
 				HttpOnly: true,
-				SameSite: http.SameSiteNoneMode,
-				Secure:   true, // set true if using HTTPS
-
+				SameSite: http.SameSiteStrictMode,
+				//Secure:   true, // set true if using HTTPS
+				// look into getting tls certification to have frontend (ingress controller) call backend service securely using https
 				Expires: time.Now().Add(24 * time.Hour),
 			}
 

@@ -70,7 +70,25 @@ export default function Home() {
     const fetchData = async () => {
       if (displayType !== "after isha") {
         try {
-          const result = await getTodaysPrayers(formattedDate);
+          //const result = await getTodaysPrayers(formattedDate);
+          const response = await fetch(
+            `api/getTodaysPrayers?date=${formattedDate}`,
+            {
+              method: "GET",
+              credentials: "include",
+            }
+          );
+          console.log("Response received:", response);
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+
+          console.log("Parsing response as JSON...");
+          const result = await response.json();
+          console.log("Result on client side is:", result);
+          // console.log(data);
+          // const result = data;
           // const result = {
           //   Asr: "2024-02-26T13:42:00Z",
           //   Dhuhr: "2024-02-26T13:29:00Z",
