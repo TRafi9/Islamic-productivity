@@ -19,6 +19,7 @@ after submission from user,next productive state view isnt updated to show new p
 
 
 TODO CONTINUE - 
+// look into getting tls certification to have frontend (ingress controller) call backend service securely using https
 
 - backend dockerfile currently copying whole repo, need to move all backend stuff into a backend folder and docker build in there
 - ko build 
