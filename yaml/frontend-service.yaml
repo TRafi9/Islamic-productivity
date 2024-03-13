@@ -11,6 +11,8 @@ spec:
   selector:
     app: tpm-frontend
   ports:
-    - protocol: TCP
-      port: 3000
+    - name: https
+      protocol: TCP
+      port: 443
       targetPort: 3000
+## 443 is the default for https requests while 80 is for http (unsecure requests), right now accessing port 443 will be insecure but when adding tls certificate it will become https (secure http)
