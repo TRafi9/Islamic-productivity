@@ -73,3 +73,14 @@ then use external Ip and port exposed by service to see frontend: 159.65.212.242
 ![alt text](image-6.png)
 
 # move get logs command to debugging section
+
+# configuring cloudflare domain to link up to kubernetes
+
+- have the loadbalancer public IP address and expose a port for main traffic, e.g. 443 for standard https traffic
+- allow traffic from loadbalancer IP address through creating a dns record in cloudflare
+- create and get origin server ssl/tls certs from cloudflare (will need these to marry up domain access to http)
+- save cert and private key file locally e.g. tls.crt & tls.key
+- pass those values into a kubernetes secret of type tls, which expects a --cert and --key value:
+  `kubectl create secret tls cloudflare-tls-secret --cert=/path/to/file/tls.crt --key=/path/to/file/tls.key`
+- add the secret to the frontend ingress yaml manifest & make sure to add it under tls heading too.
+- map the ports using an ingress file to point to your port exposed by loadbalancer e.g. 443

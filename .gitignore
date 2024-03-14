@@ -6,3 +6,4 @@ dockerCommand.txt
 .env
 application_default_credentials.json
 doctlAPI.txt
+cloudflare/
