@@ -490,7 +490,7 @@ func handleCreateUser(c echo.Context, logger *zap.SugaredLogger, db *sql.DB) err
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to upload email verification code to db"})
 	}
 
-	err = sendEmailVerification(c, verificationCode, logger)
+	err = sendEmailVerification(c, verificationCode, incomingUserRegistration.UserEmail, logger)
 	if err != nil {
 		logger.Errorf("Error sending email, err: %s", err.Error())
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Send email verification failed"})
@@ -666,7 +666,7 @@ func handleResetUserVerification(c echo.Context, logger *zap.SugaredLogger, db *
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to upload email verification code to db"})
 	}
 
-	err = sendEmailVerification(c, verificationCode, logger)
+	err = sendEmailVerification(c, verificationCode, EmailReverificationDetailsFromFrontend.UserEmail, logger)
 	if err != nil {
 		logger.Errorf("Error sending email, err: %s", err.Error())
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Send email verification failed"})

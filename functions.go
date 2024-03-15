@@ -102,11 +102,11 @@ func generateRandomCode(codeLength int) (int, error) {
 	return int(randomNum.Int64()), nil
 }
 
-func sendEmailVerification(c echo.Context, verificationCode int, logger *zap.SugaredLogger) error {
+func sendEmailVerification(c echo.Context, verificationCode int, userEmail string, logger *zap.SugaredLogger) error {
 	email_sender := os.Getenv("VERIFICATION_EMAIL")
 	verification_email_password := os.Getenv("VERIFICATION_EMAIL_PASSWORD")
 
-	email_recipient := []string{"talhar9@gmail.com"}
+	email_recipient := []string{userEmail}
 	auth := smtp.PlainAuth("", email_sender, verification_email_password, "smtp.gmail.com")
 
 	subject := "The Productive Muslim Verification Code"
@@ -116,10 +116,10 @@ Please enter it at the following link to register your account!
 %s
 Note that the code will expire within an hour!
 Kind regards,
-The Productive Muslim team`, strconv.Itoa(verificationCode), "http://localhost:3000/verify_email_view")
+The Productive Muslim team`, strconv.Itoa(verificationCode), "http://tpm.talhaprojects.com/verify_email_view")
 
 	msg := fmt.Sprintf("From: %s\nTo: %s \nSubject: %s\n\n%s",
-		email_sender, "talhar9@gmail.com", subject, body)
+		email_sender, userEmail, subject, body)
 
 	err := smtp.SendMail("smtp.gmail.com:587",
 		auth,
@@ -131,12 +131,5 @@ The Productive Muslim team`, strconv.Itoa(verificationCode), "http://localhost:3
 		logger.Errorf("could not send email to recipient err: %s", err.Error())
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "failed to send verification email to recipient"})
 	}
-
-	//https://www.youtube.com/watch?v=H0HZc4FgX7E&t=249s&ab_channel=CodingwithRobby
-	//https://pkg.go.dev/net/smtp#example-PlainAuth
-
-	// generate random code
-
-	// add email client
 	return nil
 }
