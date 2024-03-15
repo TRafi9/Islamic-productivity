@@ -57,10 +57,11 @@ const ProductiveStateView = (props: any) => {
 
   return (
     <div className="col-center text-center-p">
-      <h1>
+      <h1 className="question">
         Have you been productive between {props.lastPrayerName} and{" "}
         {props.currentPrayerName}?
       </h1>
+
       <Button
         onClick={() => sendData(true)}
         className={`${Bebas.className} custom-button btn-success`}
