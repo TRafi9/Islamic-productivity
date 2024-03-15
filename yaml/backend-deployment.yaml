@@ -21,7 +21,7 @@ spec:
             secretName: cloudsql-credentials
       containers:
         - name: tpm-backend
-          image: registry.digitalocean.com/tpm-containers-test/tpm-backend:0.0.09
+          image: registry.digitalocean.com/tpm-containers-test/tpm-backend:0.0.10
           imagePullPolicy: Always
           env:
             - name: USER
@@ -54,6 +54,11 @@ spec:
                 secretKeyRef:
                   name: tpmsecrets
                   key: VERIFICATION_EMAIL_PASSWORD
+            - name: HMAC_STRING
+              valueFrom:
+                secretKeyRef:
+                  name: tpmsecrets
+                  key: HMAC_STRING
           ports:
             - containerPort: 8080
               protocol: TCP
