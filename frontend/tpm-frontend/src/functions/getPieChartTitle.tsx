@@ -5,11 +5,11 @@ const getPieChartTitle = (stats: Object) => {
 
     switch (innerStatsKey) {
       case "DailyStats":
-        return "Daily stats";
+        return "Daily";
       case "WeeklyStats":
-        return "Weekly stats";
+        return "Weekly";
       case "MonthlyStats":
-        return "Monthly stats";
+        return "Monthly";
       default:
         return "Stats";
     }
