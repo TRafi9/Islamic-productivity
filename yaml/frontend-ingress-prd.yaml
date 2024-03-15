@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tpm-frontend-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/auth-tls-pass-certificate-to-upstream: "true"
+    nginx.ingress.kubernetes.io/auth-tls-secret: default/cf-orig
+    nginx.ingress.kubernetes.io/auth-tls-verify-client: "on"
+    nginx.ingress.kubernetes.io/auth-tls-verify-depth: "1"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - tpm.talhaprojects.com
+      secretName: cf
+  rules:
+    - host: tpm.talhaprojects.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: tpm-frontend
+                port:
+                  number: 80
+
+                  # after deploying this, the ingress did not run as I forgot to put in an ingress controller to run these rules
