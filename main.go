@@ -54,6 +54,7 @@ func main() {
 	password := os.Getenv("PASSWORD")
 	dbName := os.Getenv("DB_NAME")
 	connectionString := fmt.Sprintf("host=localhost user=%s password=%s dbname=%s sslmode=disable", user, password, dbName)
+	hmacString := os.Getenv("HMAC_STRING")
 
 	db, err := sql.Open("postgres", connectionString)
 
@@ -83,7 +84,7 @@ func main() {
 	// clickjacking, insecure connection and other code injection attacks.
 	e.Use(middleware.Secure())
 	// pass env var for secret here
-	hmacSecret := []byte("RandomSecretStringHere")
+	hmacSecret := []byte(hmacString)
 	//TODO fix middleware implementation to check if incoming JWT is valid
 	// e.Use(echojwt.JWT(hmacSecret))
 

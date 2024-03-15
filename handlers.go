@@ -704,7 +704,7 @@ func handleLogin(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hmacSecr
 
 	for rows.Next() {
 		err := rows.Scan(&hashed_password_from_db, &verified_email)
-		logger.Infof("hashed password from db is: %s and verified email status is : %s", hashed_password_from_db, strconv.FormatBool(verified_email))
+		// logger.Infof("hashed password from db is: %s and verified email status is : %s", hashed_password_from_db, strconv.FormatBool(verified_email))
 		if err != nil {
 			logger.Info("rows.Next() error in getting hashed password + verified email flag")
 			logger.Error(err)
@@ -747,7 +747,7 @@ func handleLogin(c echo.Context, logger *zap.SugaredLogger, db *sql.DB, hmacSecr
 				Path:     "/",
 				HttpOnly: true,
 				SameSite: http.SameSiteStrictMode,
-				//Secure:   true, // set true if using HTTPS
+				Secure:   true, // set true if using HTTPS
 				// look into getting tls certification to have frontend (ingress controller) call backend service securely using https
 				Expires: time.Now().Add(24 * time.Hour),
 			}
