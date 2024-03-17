@@ -13,6 +13,7 @@ import {
   showPasswordWarning,
 } from "@/functions/loginFunctions";
 import LoadingSpinner from "@/components/LoadingSpinner";
+// import "bootstrap/dist/css/bootstrap.min.css";
 
 const roboto = Roboto_Mono({
   weight: "400",
@@ -121,7 +122,7 @@ export default function LoginUser() {
         />
       </Head>
       <div>
-        <main className={`${styles.main} ${roboto.className}`}>
+        <main className={`${styles.main} ${roboto.className} black-text`}>
           <div className="card">
             <div className="card-body">
               <h1 className="card-title">Login</h1>
