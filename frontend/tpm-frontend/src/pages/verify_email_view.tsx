@@ -7,8 +7,12 @@ import Router from "next/router";
 import Link from "next/link";
 import { showEmailWarning, sanitiseEmail } from "@/functions/loginFunctions";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { Roboto_Mono } from "next/font/google";
 
-const inter = Inter({ subsets: ["latin"] });
+const roboto = Roboto_Mono({
+  weight: "400",
+  subsets: ["latin"],
+});
 
 //TODO on this page, the user is registered, but a response is sent from server only when the function on the backend completes
 // because of this, there is a delay in showRegistrationMessage() to resolve
@@ -115,7 +119,7 @@ export default function RegisterUser() {
         />
       </Head>
       <div>
-        <main className={`${styles.main} ${inter.className}`}>
+        <main className={`${styles.main} ${roboto.className}`}>
           <form className="register-form" onSubmit={(e) => submit(e)}>
             <h1>Verify Email</h1>
             <div className="form-group">
